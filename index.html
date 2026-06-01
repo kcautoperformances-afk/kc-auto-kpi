@@ -635,10 +635,12 @@ function FeedbackPage({user,feedbacks,setFeedbacks}){
   const isBoss=user.role==="boss";
   const [msg,setMsg]=useState("");
   const [sent,setSent]=useState(false);
+  const [reveal,setReveal]=useState({});
 
   const sendFeedback=()=>{
     if(!msg.trim()){alert(t.feedbackEmpty);return;}
-    const newFb={id:Date.now(),msg:msg.trim(),time:new Date().toLocaleString(),read:false};
+    // Store sender info but hidden - only boss can reveal
+    const newFb={id:Date.now(),msg:msg.trim(),time:new Date().toLocaleString(),read:false,_sender:user.name,_dept:user.dept||user.role};
     const upd=[newFb,...feedbacks];
     setFeedbacks(upd);
     api.save("feedbacks",upd);
@@ -659,6 +661,8 @@ function FeedbackPage({user,feedbacks,setFeedbacks}){
     api.save("feedbacks",upd);
   };
 
+  const toggleReveal=id=>setReveal(r=>({...r,[id]:!r[id]}));
+
   if(isBoss){
     const unread=feedbacks.filter(f=>!f.read).length;
     return(
@@ -678,6 +682,9 @@ function FeedbackPage({user,feedbacks,setFeedbacks}){
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
                   <div style={{fontSize:18}}>💬</div>
                   {!f.read&&<span style={{background:"#D0021B",color:"#fff",borderRadius:4,padding:"1px 6px",fontSize:9,fontWeight:700}}>{t.feedbackNew}</span>}
+                  {f._sender&&<button onClick={()=>toggleReveal(f.id)} style={{...S.btn(reveal[f.id]?"#D0021B22":B.border,reveal[f.id]?B.red:B.muted,{fontSize:9,padding:"2px 7px"})}}>
+                    {reveal[f.id]?`👤 ${f._sender} (${f._dept})`:"🔍 查看发件人"}
+                  </button>}
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
                   <span style={{color:B.muted,fontSize:10}}>{f.time}</span>
@@ -1150,6 +1157,13 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
 
   const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
   const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,...ev,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
+  const resetPwd=async(uid,name)=>{
+    const newPwd=prompt(`重置 ${name} 的密码为：`);
+    if(!newPwd||newPwd.length<4){alert("密码至少4位");return;}
+    const upd=users.map(u=>u.id===uid?{...u,pin:newPwd}:u);
+    setUsers(upd);await api.save("users",upd);
+    alert(`✅ ${name} 密码已重置`);
+  };
   const delUser=async id=>{if(!confirm(t.confirmDelete))return;const target=users.find(u=>u.id===id);const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);if(target){const empUpd=employees.filter(e=>e.name!==target.name);setEmployees(empUpd);await api.save("employees",empUpd);}};
   const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false});};
 
@@ -1256,6 +1270,7 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
                     <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?t.saving:t.save}</button>
                     <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>{t.cancel}</button>
                     {u.role!=="boss"&&<button onClick={()=>delUser(u.id)} style={{...S.btn("#2B0009","#E74C3C",{fontSize:12})}}>{t.delete}</button>}
+                    <button onClick={()=>resetPwd(u.id,u.name)} style={{...S.btn("#1A1A00","#F1C40F",{fontSize:12})}}>🔑 重置密码</button>
                   </div>
                 </div>
               ):(
@@ -1264,7 +1279,7 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
                   onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
                   <Av src={u.avatar} name={u.name} dept={u.dept} size={38}/>
                   <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div><div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (can manage)":""}{u.canViewAll?" · "+t.canViewAllShort:""}{u.canScore?" · ✏️":""}</div></div>
-                  <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>PIN: {u.pin}</div>
+                  <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>••••</div>
                 </div>
               )}
             </div>
@@ -1300,6 +1315,21 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ...(canManage?[["attendance","出席"],["history","历史"],["settings",t.settings]]:[]),
   ];
 
+  const [showChangePwd,setShowChangePwd]=useState(false);
+  const [pwdForm,setPwdForm]=useState({old:"",new1:"",new2:""});
+  const [pwdErr,setPwdErr]=useState("");
+
+  const changeMyPassword=()=>{
+    if(!pwdForm.old||!pwdForm.new1||!pwdForm.new2){setPwdErr("请填写所有栏位");return;}
+    if(pwdForm.old!==user.pin){setPwdErr("旧密码不正确");return;}
+    if(pwdForm.new1!==pwdForm.new2){setPwdErr("新密码不一致");return;}
+    if(pwdForm.new1.length<4){setPwdErr("密码至少4位");return;}
+    const upd=users.map(u=>u.id===user.id?{...u,pin:pwdForm.new1}:u);
+    setUsers(upd);api.save("users",upd);
+    setPwdErr("✅ 密码已更新！");
+    setTimeout(()=>{setShowChangePwd(false);setPwdForm({old:"",new1:"",new2:""});setPwdErr("");},1500);
+  };
+
   if(sel)return<ScoringPage user={user} emp={{...sel,quarter,userId:users.find(u=>u.name===sel.name)?.id}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};return{...upd,history};});setEmployees(u);api.save("employees",u);setSel(null);}}/>;
 
   return(
@@ -1317,6 +1347,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
           </div>
           <div style={{display:"flex",alignItems:"center",gap:7}}>
             <LangSwitcher lang={lang} setLang={setLang}/>
+            <button onClick={()=>setShowChangePwd(true)} title="改密码" style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>🔑</button>
             <Av src={user.avatar} name={user.name} size={28}/>
             <button onClick={onLogout} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>{t.logout}</button>
           </div>
@@ -1402,6 +1433,22 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
           })}
         </>}
       </div>
+      {showChangePwd&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:20}}>
+        <div style={{...S.card(),padding:21,width:"100%",maxWidth:330}}>
+          <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:15}}>🔑 修改我的密码</div>
+          {["old","new1","new2"].map((k,i)=>(
+            <div key={k} style={{marginBottom:10}}>
+              <div style={{color:B.muted,fontSize:10,marginBottom:3}}>{["旧密码","新密码","确认新密码"][i]}</div>
+              <input type="password" value={pwdForm[k]} onChange={e=>setPwdForm(p=>({...p,[k]:e.target.value}))} style={{...S.inp,letterSpacing:3}}/>
+            </div>
+          ))}
+          {pwdErr&&<div style={{color:pwdErr.includes("✅")?"#2ECC71":B.red,fontSize:12,marginBottom:10,textAlign:"center"}}>{pwdErr}</div>}
+          <div style={{display:"flex",gap:7}}>
+            <button onClick={()=>{setShowChangePwd(false);setPwdForm({old:"",new1:"",new2:""});setPwdErr("");}} style={{...S.btn(B.border,B.muted,{flex:1})}}>取消</button>
+            <button onClick={changeMyPassword} style={{...S.btn(B.red,"#fff",{flex:2})}}>确认修改</button>
+          </div>
+        </div>
+      </div>}
       {showAddEmp&&canManage&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}}>
         <div style={{...S.card(),padding:21,width:"100%",maxWidth:330}}>
           <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:15}}>{t.addStaff}</div>
@@ -1551,9 +1598,31 @@ function QuarterHistory({employees,bonusCfg}){
 
 // ── LOGIN ─────────────────────────────────────────────
 function Login({users,logoUrl,onLogin,lang,setLang}){
-  const [sel,setSel]=useState(null);const [pin,setPin]=useState("");const [err,setErr]=useState("");
-  const tap=d=>{if(pin.length>=4)return;const next=pin+d;setPin(next);if(next.length===4){const u=users.find(u=>u.id===sel&&u.pin===next);if(u){onLogin(u);}else{setErr(T[lang]?.wrongPin||"Wrong PIN");setTimeout(()=>{setPin("");setErr("");},600);}}};
+  const [sel,setSel]=useState(null);
+  const [pwd,setPwd]=useState("");
+  const [err,setErr]=useState("");
+  const [showPwd,setShowPwd]=useState(false);
+  const [attempts,setAttempts]=useState(0);
+  const [locked,setLocked]=useState(false);
   const {t}=useLang();
+
+  const tryLogin=()=>{
+    if(locked)return;
+    const u=users.find(u=>u.id===sel&&u.pin===pwd);
+    if(u){onLogin(u);setAttempts(0);}
+    else{
+      const newAttempts=attempts+1;
+      setAttempts(newAttempts);
+      setErr(t.wrongPin);
+      if(newAttempts>=3){
+        setLocked(true);
+        setTimeout(()=>{setLocked(false);setAttempts(0);setErr("");},30000);
+      }
+      setTimeout(()=>{if(newAttempts<3)setErr("");},1500);
+      setPwd("");
+    }
+  };
+
   return(
     <div style={{minHeight:"100vh",background:B.dark,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{position:"absolute",top:16,right:16}}><LangSwitcher lang={lang} setLang={setLang}/></div>
@@ -1562,7 +1631,7 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
         <div style={{color:B.muted,fontSize:10,letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>{t.selectAccount}</div>
         <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:13,maxHeight:270,overflowY:"auto"}}>
           {users.map(u=>(
-            <button key={u.id} onClick={()=>{setSel(u.id);setPin("");setErr("");}} style={{...S.btn(sel===u.id?B.red:B.border,sel===u.id?"#fff":B.muted,{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",fontSize:12})}}>
+            <button key={u.id} onClick={()=>{setSel(u.id);setPwd("");setErr("");setAttempts(0);setLocked(false);}} style={{...S.btn(sel===u.id?B.red:B.border,sel===u.id?"#fff":B.muted,{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",fontSize:12})}}>
               <Av src={u.avatar} name={u.name} dept={u.dept} size={26}/>
               <span style={{flex:1,textAlign:"left"}}>{u.name}</span>
               <span style={{fontSize:9,opacity:0.6}}>{RL[u.role]}{u.dept?" - "+u.dept:""}</span>
@@ -1571,9 +1640,27 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
         </div>
         {sel&&<>
           <div style={{color:B.muted,fontSize:10,letterSpacing:2,marginBottom:8}}>{t.enterPin}</div>
-          <div style={{display:"flex",gap:7,justifyContent:"center",marginBottom:10}}>{[0,1,2,3].map(i=><div key={i} style={{width:34,height:34,borderRadius:8,background:i<pin.length?B.red:B.border,transition:"all .2s"}}/>)}</div>
-          {err&&<div style={{color:B.red,fontSize:11,textAlign:"center",marginBottom:6}}>{t.wrongPin}</div>}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5}}>{[1,2,3,4,5,6,7,8,9,"",0,"X"].map((d,i)=><button key={i} onClick={()=>d==="X"?setPin(p=>p.slice(0,-1)):d!==""&&tap(String(d))} style={{...S.btn(d==="X"?"#2A0008":B.border,d==="X"?B.red:B.text,{padding:"10px",fontSize:15,fontWeight:800,opacity:d===""?0:1,pointerEvents:d===""?"none":"auto"})}}>{d}</button>)}</div>
+          {locked
+            ?<div style={{background:"#2B0009",border:"1px solid #E74C3C",borderRadius:9,padding:"12px",textAlign:"center",color:"#E74C3C",fontSize:12,fontWeight:700,marginBottom:10}}>🔒 输错3次，请等30秒后重试</div>
+            :<>
+              <div style={{position:"relative",marginBottom:10}}>
+                <input
+                  type={showPwd?"text":"password"}
+                  value={pwd}
+                  onChange={e=>setPwd(e.target.value)}
+                  onKeyDown={e=>e.key==="Enter"&&tryLogin()}
+                  placeholder="输入密码"
+                  style={{...S.inp,paddingRight:44,letterSpacing:showPwd?"normal":3}}
+                  autoComplete="current-password"
+                />
+                <button onClick={()=>setShowPwd(s=>!s)} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:B.muted,cursor:"pointer",fontSize:16}}>
+                  {showPwd?"🙈":"👁️"}
+                </button>
+              </div>
+              {err&&<div style={{color:B.red,fontSize:11,textAlign:"center",marginBottom:8}}>{err} {attempts>0&&`(${attempts}/3次)`}</div>}
+              <button onClick={tryLogin} style={{...S.btn(B.red,"#fff",{width:"100%",padding:11,fontSize:14})}}>登录</button>
+            </>
+          }
         </>}
       </div>
       <div style={{color:B.muted,fontSize:9,marginTop:11}}>KC Auto Workshop KPI System v5</div>
