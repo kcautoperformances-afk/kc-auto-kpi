@@ -56,6 +56,255 @@ const DEF_BONUS={type:"fixed",tiers:[
   {label:"Fail",minScore:0,amount:0,color:"#E74C3C"},
 ]};
 
+// ── CRIT TRANSLATIONS ────────────────────────────────
+const CRIT_T={
+  en:{
+    sec:{Attitude:"Attitude",Technical:"Technical",Efficiency:"Efficiency",Attendance:"Attendance",Professional:"Professional"},
+    items:{
+      "Proactive Learning":"Proactive Learning","Follow Instructions":"Follow Instructions",
+      "Task Accuracy":"Task Accuracy","Tool Usage":"Tool Usage",
+      "On-Time Delivery":"On-Time Delivery","Workstation Tidiness":"Workstation Tidiness",
+      "Attendance Rate":"Attendance Rate",
+      "Proactive Work":"Proactive Work","Teamwork":"Teamwork",
+      "Repair Quality":"Repair Quality","Technical Independence":"Technical Independence","Mentoring Intern":"Mentoring Intern",
+      "Professionalism":"Professionalism","Customer Communication":"Customer Communication",
+      "Tune Quality & Safety":"Tune Quality & Safety","General Repair Quality":"General Repair Quality",
+      "Customer Satisfaction":"Customer Satisfaction",
+      "Customer Service":"Customer Service","Team Coordination":"Team Coordination",
+      "Document Accuracy":"Document Accuracy","Accounts Tidiness":"Accounts Tidiness",
+      "On-Time Completion":"On-Time Completion","Response Speed":"Response Speed",
+      "Proactive Stock":"Proactive Stock","Dept Cooperation":"Dept Cooperation",
+      "Inventory Accuracy":"Inventory Accuracy","Warehouse Order":"Warehouse Order",
+      "Parts Delivery Speed":"Parts Delivery Speed","Stockout Warning":"Stockout Warning",
+      "Creative Initiative":"Creative Initiative","Cross-Dept Support":"Cross-Dept Support",
+      "Content Quality":"Content Quality","Posting Frequency":"Posting Frequency",
+      "Engagement / Growth":"Engagement / Growth","Lead Conversion":"Lead Conversion",
+    },
+    desc:{
+      "Ask questions, stay engaged":"Ask questions, stay engaged",
+      "Follow Senior/Tuner guidance":"Follow Senior/Tuner guidance",
+      "Low error rate":"Low error rate","Correct tool usage & return":"Correct tool usage & return",
+      "Auto: Full 12pts, -0.12pt per 1% overtime":"Auto: Full 12pts, -0.12pt per 1% overtime",
+      "Auto: Full 15pts, -0.15pt per 1% overtime":"Auto: Full 15pts, -0.15pt per 1% overtime",
+      "Clean & organized workspace":"Clean & organized workspace","Clean workspace":"Clean workspace",
+      "100%=20|95-99%=16|<85%=0":"100%=20|95-99%=16|<85%=0",
+      "100%=15|95-99%=12|<85%=0":"100%=15|95-99%=12|<85%=0",
+      "100%=25|95-99%=20|<85%=0":"100%=25|95-99%=20|<85%=0",
+      "Take jobs without being told":"Take jobs without being told","Help teammates":"Help teammates",
+      "Rework rate <5%":"Rework rate <5%","Work without frequent supervision":"Work without frequent supervision",
+      "Guide junior staff":"Guide junior staff","Own results, no shortcuts":"Own results, no shortcuts",
+      "Explain tune plan clearly":"Explain tune plan clearly","Zero tune-related issues":"Zero tune-related issues",
+      "Low rework rate":"Low rework rate","Return rate / good reviews":"Return rate / good reviews",
+      "Polite & patient":"Polite & patient","Accurate information relay":"Accurate information relay",
+      "Zero errors in invoices":"Zero errors in invoices","Clean reconciliation":"Clean reconciliation",
+      "Reply within 1 hour":"Reply within 1 hour","Restock without waiting":"Restock without waiting",
+      "Support tech team":"Support tech team","Match system records":"Match system records",
+      "Clear categorization":"Clear categorization","Notify before running out":"Notify before running out",
+      "Propose new content ideas":"Propose new content ideas","Support shoots & promos":"Support shoots & promos",
+      "Clear visuals, professional copy":"Clear visuals, professional copy","Hit weekly targets":"Hit weekly targets",
+      "Quarter-on-quarter growth":"Quarter-on-quarter growth","Pass DM enquiries promptly":"Pass DM enquiries promptly",
+    },
+    bonus:{"Customer Compliment":"Customer Compliment","New Customer Referral":"New Customer Referral","Zero Complaints":"Zero Complaints","Helped Other Depts":"Helped Other Depts"},
+    bonusDesc:{"+2 each":"+2 each","+3 each":"+3 each","+3":"+3","+2":"+2"},
+  },
+  zh:{
+    sec:{Attitude:"态度",Technical:"技术",Efficiency:"效率",Attendance:"出席率",Professional:"专业"},
+    items:{
+      "Proactive Learning":"主动学习","Follow Instructions":"服从指示",
+      "Task Accuracy":"工作准确率","Tool Usage":"工具使用",
+      "On-Time Delivery":"准时交车","Workstation Tidiness":"工作台整洁",
+      "Attendance Rate":"出席率",
+      "Proactive Work":"主动工作","Teamwork":"团队合作",
+      "Repair Quality":"维修质量","Technical Independence":"独立工作能力","Mentoring Intern":"指导实习生",
+      "Professionalism":"专业态度","Customer Communication":"客户沟通",
+      "Tune Quality & Safety":"调校质量与安全","General Repair Quality":"一般维修质量",
+      "Customer Satisfaction":"客户满意度",
+      "Customer Service":"客户服务","Team Coordination":"团队协调",
+      "Document Accuracy":"文件准确率","Accounts Tidiness":"账目整洁",
+      "On-Time Completion":"准时完成","Response Speed":"回复速度",
+      "Proactive Stock":"主动备货","Dept Cooperation":"部门协作",
+      "Inventory Accuracy":"库存准确率","Warehouse Order":"仓库整洁",
+      "Parts Delivery Speed":"零件供应速度","Stockout Warning":"缺货预警",
+      "Creative Initiative":"创意主动性","Cross-Dept Support":"跨部门支持",
+      "Content Quality":"内容质量","Posting Frequency":"发帖频率",
+      "Engagement / Growth":"互动与增长","Lead Conversion":"潜在客户转化",
+    },
+    desc:{
+      "Ask questions, stay engaged":"主动提问，保持专注",
+      "Follow Senior/Tuner guidance":"遵从高级技师/调校师指导",
+      "Low error rate":"低错误率","Correct tool usage & return":"正确使用并归还工具",
+      "Auto: Full 12pts, -0.12pt per 1% overtime":"自动：满分12分，每超时1%扣0.12分",
+      "Auto: Full 15pts, -0.15pt per 1% overtime":"自动：满分15分，每超时1%扣0.15分",
+      "Clean & organized workspace":"工作台干净整洁","Clean workspace":"工作台干净",
+      "100%=20|95-99%=16|<85%=0":"100%=20|95-99%=16|<85%=0",
+      "100%=15|95-99%=12|<85%=0":"100%=15|95-99%=12|<85%=0",
+      "100%=25|95-99%=20|<85%=0":"100%=25|95-99%=20|<85%=0",
+      "Take jobs without being told":"无需吩咐主动接工作","Help teammates":"协助队友",
+      "Rework rate <5%":"返工率低于5%","Work without frequent supervision":"无需频繁监督",
+      "Guide junior staff":"指导初级员工","Own results, no shortcuts":"对结果负责，不走捷径",
+      "Explain tune plan clearly":"清晰解释调校方案","Zero tune-related issues":"零调校相关问题",
+      "Low rework rate":"低返工率","Return rate / good reviews":"回头率/好评",
+      "Polite & patient":"礼貌耐心","Accurate information relay":"准确传达信息",
+      "Zero errors in invoices":"发票零错误","Clean reconciliation":"账目清晰",
+      "Reply within 1 hour":"1小时内回复","Restock without waiting":"无需等待主动补货",
+      "Support tech team":"支援技术团队","Match system records":"与系统记录一致",
+      "Clear categorization":"清晰分类","Notify before running out":"缺货前提前通知",
+      "Propose new content ideas":"提出新内容创意","Support shoots & promos":"支援拍摄与推广",
+      "Clear visuals, professional copy":"画面清晰，文案专业","Hit weekly targets":"完成每周发帖目标",
+      "Quarter-on-quarter growth":"环比增长","Pass DM enquiries promptly":"及时转交私信询问",
+    },
+    bonus:{"Customer Compliment":"客户好评","New Customer Referral":"新客户推荐","Zero Complaints":"零投诉","Helped Other Depts":"协助其他部门"},
+    bonusDesc:{"+2 each":"每次+2","+3 each":"每次+3","+3":"+3","+2":"+2"},
+  },
+  ms:{
+    sec:{Attitude:"Sikap",Technical:"Teknikal",Efficiency:"Kecekapan",Attendance:"Kehadiran",Professional:"Profesional"},
+    items:{
+      "Proactive Learning":"Pembelajaran Proaktif","Follow Instructions":"Ikut Arahan",
+      "Task Accuracy":"Ketepatan Tugas","Tool Usage":"Penggunaan Alat",
+      "On-Time Delivery":"Penghantaran Tepat Masa","Workstation Tidiness":"Kekemasan Tempat Kerja",
+      "Attendance Rate":"Kadar Kehadiran",
+      "Proactive Work":"Kerja Proaktif","Teamwork":"Kerja Berpasukan",
+      "Repair Quality":"Kualiti Pembaikan","Technical Independence":"Kemandirian Teknikal","Mentoring Intern":"Bimbing Pelatih",
+      "Professionalism":"Profesionalisme","Customer Communication":"Komunikasi Pelanggan",
+      "Tune Quality & Safety":"Kualiti & Keselamatan Tune","General Repair Quality":"Kualiti Pembaikan Am",
+      "Customer Satisfaction":"Kepuasan Pelanggan",
+      "Customer Service":"Perkhidmatan Pelanggan","Team Coordination":"Koordinasi Pasukan",
+      "Document Accuracy":"Ketepatan Dokumen","Accounts Tidiness":"Kekemasan Akaun",
+      "On-Time Completion":"Siap Tepat Masa","Response Speed":"Kelajuan Respons",
+      "Proactive Stock":"Stok Proaktif","Dept Cooperation":"Kerjasama Jabatan",
+      "Inventory Accuracy":"Ketepatan Inventori","Warehouse Order":"Keteraturan Gudang",
+      "Parts Delivery Speed":"Kelajuan Bekalan Alat Ganti","Stockout Warning":"Amaran Kehabisan Stok",
+      "Creative Initiative":"Inisiatif Kreatif","Cross-Dept Support":"Sokongan Rentas Jabatan",
+      "Content Quality":"Kualiti Kandungan","Posting Frequency":"Kekerapan Posting",
+      "Engagement / Growth":"Penglibatan / Pertumbuhan","Lead Conversion":"Penukaran Prospek",
+    },
+    desc:{
+      "Ask questions, stay engaged":"Tanya soalan, kekal fokus",
+      "Follow Senior/Tuner guidance":"Ikut panduan Senior/Tuner",
+      "Low error rate":"Kadar ralat rendah","Correct tool usage & return":"Guna & pulangkan alat dengan betul",
+      "Auto: Full 12pts, -0.12pt per 1% overtime":"Auto: Penuh 12pts, -0.12pt setiap 1% lebih masa",
+      "Auto: Full 15pts, -0.15pt per 1% overtime":"Auto: Penuh 15pts, -0.15pt setiap 1% lebih masa",
+      "Clean & organized workspace":"Tempat kerja bersih & tersusun","Clean workspace":"Tempat kerja bersih",
+      "100%=20|95-99%=16|<85%=0":"100%=20|95-99%=16|<85%=0",
+      "100%=15|95-99%=12|<85%=0":"100%=15|95-99%=12|<85%=0",
+      "100%=25|95-99%=20|<85%=0":"100%=25|95-99%=20|<85%=0",
+      "Take jobs without being told":"Ambil kerja tanpa diarah","Help teammates":"Bantu rakan sepasukan",
+      "Rework rate <5%":"Kadar buat semula <5%","Work without frequent supervision":"Kerja tanpa pengawasan kerap",
+      "Guide junior staff":"Bimbing kakitangan junior","Own results, no shortcuts":"Bertanggungjawab, tiada jalan pintas",
+      "Explain tune plan clearly":"Terangkan pelan tune dengan jelas","Zero tune-related issues":"Sifar isu berkaitan tune",
+      "Low rework rate":"Kadar buat semula rendah","Return rate / good reviews":"Kadar kembali / ulasan baik",
+      "Polite & patient":"Sopan & sabar","Accurate information relay":"Sampaikan maklumat dengan tepat",
+      "Zero errors in invoices":"Sifar ralat invois","Clean reconciliation":"Penyesuaian bersih",
+      "Reply within 1 hour":"Balas dalam 1 jam","Restock without waiting":"Tambah stok tanpa tunggu",
+      "Support tech team":"Sokong pasukan teknik","Match system records":"Padan dengan rekod sistem",
+      "Clear categorization":"Pengkategorian jelas","Notify before running out":"Beritahu sebelum kehabisan",
+      "Propose new content ideas":"Cadang idea kandungan baru","Support shoots & promos":"Sokong penggambaran & promosi",
+      "Clear visuals, professional copy":"Visual jelas, teks profesional","Hit weekly targets":"Capai sasaran mingguan",
+      "Quarter-on-quarter growth":"Pertumbuhan suku tahunan","Pass DM enquiries promptly":"Hantar pertanyaan DM dengan segera",
+    },
+    bonus:{"Customer Compliment":"Pujian Pelanggan","New Customer Referral":"Rujukan Pelanggan Baru","Zero Complaints":"Sifar Aduan","Helped Other Depts":"Bantu Jabatan Lain"},
+    bonusDesc:{"+2 each":"+2 setiap","+3 each":"+3 setiap","+3":"+3","+2":"+2"},
+  },
+  th:{
+    sec:{Attitude:"ทัศนคติ",Technical:"เทคนิค",Efficiency:"ประสิทธิภาพ",Attendance:"การเข้างาน",Professional:"ความเป็นมืออาชีพ"},
+    items:{
+      "Proactive Learning":"การเรียนรู้เชิงรุก","Follow Instructions":"ปฏิบัติตามคำสั่ง",
+      "Task Accuracy":"ความแม่นยำในงาน","Tool Usage":"การใช้เครื่องมือ",
+      "On-Time Delivery":"ส่งมอบตรงเวลา","Workstation Tidiness":"ความเป็นระเบียบของที่ทำงาน",
+      "Attendance Rate":"อัตราการเข้างาน",
+      "Proactive Work":"การทำงานเชิงรุก","Teamwork":"การทำงานเป็นทีม",
+      "Repair Quality":"คุณภาพการซ่อม","Technical Independence":"ความเป็นอิสระทางเทคนิค","Mentoring Intern":"การให้คำปรึกษาฝึกงาน",
+      "Professionalism":"ความเป็นมืออาชีพ","Customer Communication":"การสื่อสารกับลูกค้า",
+      "Tune Quality & Safety":"คุณภาพและความปลอดภัยการจูน","General Repair Quality":"คุณภาพการซ่อมทั่วไป",
+      "Customer Satisfaction":"ความพึงพอใจของลูกค้า",
+      "Customer Service":"การบริการลูกค้า","Team Coordination":"การประสานงานทีม",
+      "Document Accuracy":"ความถูกต้องของเอกสาร","Accounts Tidiness":"ความเป็นระเบียบของบัญชี",
+      "On-Time Completion":"เสร็จตรงเวลา","Response Speed":"ความเร็วในการตอบสนอง",
+      "Proactive Stock":"การสต็อกเชิงรุก","Dept Cooperation":"ความร่วมมือของแผนก",
+      "Inventory Accuracy":"ความแม่นยำของสินค้าคงคลัง","Warehouse Order":"ความเป็นระเบียบของคลังสินค้า",
+      "Parts Delivery Speed":"ความเร็วในการส่งอะไหล่","Stockout Warning":"การแจ้งเตือนสินค้าหมด",
+      "Creative Initiative":"ความคิดริเริ่มสร้างสรรค์","Cross-Dept Support":"การสนับสนุนข้ามแผนก",
+      "Content Quality":"คุณภาพเนื้อหา","Posting Frequency":"ความถี่ในการโพสต์",
+      "Engagement / Growth":"การมีส่วนร่วม / การเติบโต","Lead Conversion":"การแปลงลูกค้าเป้าหมาย",
+    },
+    desc:{
+      "Ask questions, stay engaged":"ถามคำถาม มีส่วนร่วมอยู่เสมอ",
+      "Follow Senior/Tuner guidance":"ปฏิบัติตามคำแนะนำของซีเนียร์/ช่างจูน",
+      "Low error rate":"อัตราข้อผิดพลาดต่ำ","Correct tool usage & return":"ใช้และคืนเครื่องมืออย่างถูกต้อง",
+      "Auto: Full 12pts, -0.12pt per 1% overtime":"อัตโนมัติ: เต็ม 12 คะแนน หัก 0.12 ต่อ 1% ล่าช้า",
+      "Auto: Full 15pts, -0.15pt per 1% overtime":"อัตโนมัติ: เต็ม 15 คะแนน หัก 0.15 ต่อ 1% ล่าช้า",
+      "Clean & organized workspace":"ที่ทำงานสะอาดและเป็นระเบียบ","Clean workspace":"ที่ทำงานสะอาด",
+      "100%=20|95-99%=16|<85%=0":"100%=20|95-99%=16|<85%=0",
+      "100%=15|95-99%=12|<85%=0":"100%=15|95-99%=12|<85%=0",
+      "100%=25|95-99%=20|<85%=0":"100%=25|95-99%=20|<85%=0",
+      "Take jobs without being told":"รับงานโดยไม่ต้องบอก","Help teammates":"ช่วยเหลือเพื่อนร่วมทีม",
+      "Rework rate <5%":"อัตราทำซ้ำ <5%","Work without frequent supervision":"ทำงานโดยไม่ต้องดูแลบ่อย",
+      "Guide junior staff":"แนะนำพนักงานระดับล่าง","Own results, no shortcuts":"รับผิดชอบผลลัพธ์ ไม่ลัดขั้นตอน",
+      "Explain tune plan clearly":"อธิบายแผนการจูนอย่างชัดเจน","Zero tune-related issues":"ไม่มีปัญหาจากการจูน",
+      "Low rework rate":"อัตราทำซ้ำต่ำ","Return rate / good reviews":"อัตราลูกค้ากลับมา / รีวิวดี",
+      "Polite & patient":"สุภาพและอดทน","Accurate information relay":"ส่งต่อข้อมูลอย่างถูกต้อง",
+      "Zero errors in invoices":"ไม่มีข้อผิดพลาดในใบแจ้งหนี้","Clean reconciliation":"การกระทบยอดที่ชัดเจน",
+      "Reply within 1 hour":"ตอบภายใน 1 ชั่วโมง","Restock without waiting":"เติมสต็อกโดยไม่ต้องรอ",
+      "Support tech team":"สนับสนุนทีมช่าง","Match system records":"ตรงกับบันทึกในระบบ",
+      "Clear categorization":"การจัดหมวดหมู่ที่ชัดเจน","Notify before running out":"แจ้งเตือนก่อนสินค้าหมด",
+      "Propose new content ideas":"เสนอไอเดียเนื้อหาใหม่","Support shoots & promos":"สนับสนุนการถ่ายทำและโปรโมชั่น",
+      "Clear visuals, professional copy":"ภาพชัดเจน เนื้อหาเป็นมืออาชีพ","Hit weekly targets":"บรรลุเป้าหมายรายสัปดาห์",
+      "Quarter-on-quarter growth":"การเติบโตเทียบไตรมาส","Pass DM enquiries promptly":"ส่งต่อการสอบถาม DM อย่างรวดเร็ว",
+    },
+    bonus:{"Customer Compliment":"คำชมจากลูกค้า","New Customer Referral":"แนะนำลูกค้าใหม่","Zero Complaints":"ไม่มีข้อร้องเรียน","Helped Other Depts":"ช่วยแผนกอื่น"},
+    bonusDesc:{"+2 each":"+2 ต่อครั้ง","+3 each":"+3 ต่อครั้ง","+3":"+3","+2":"+2"},
+  },
+  my:{
+    sec:{Attitude:"သဘောထား",Technical:"နည်းပညာ",Efficiency:"ထိရောက်မှု",Attendance:"တက်ရောက်မှု",Professional:"ပရော်ဖက်ရှင်နယ်"},
+    items:{
+      "Proactive Learning":"တက်ကြွသောသင်ယူမှု","Follow Instructions":"ညွှန်ကြားချက်လိုက်နာမှု",
+      "Task Accuracy":"လုပ်ငန်းတိကျမှု","Tool Usage":"ကိရိယာသုံးစွဲမှု",
+      "On-Time Delivery":"အချိန်မီပေးပို့မှု","Workstation Tidiness":"လုပ်နေရာသပ်ရပ်မှု",
+      "Attendance Rate":"တက်ရောက်နှုန်း",
+      "Proactive Work":"တက်ကြွသောလုပ်ဆောင်မှု","Teamwork":"အဖွဲ့လုပ်ဆောင်မှု",
+      "Repair Quality":"ပြင်ဆင်မှုအရည်အသွေး","Technical Independence":"နည်းပညာလွတ်လပ်မှု","Mentoring Intern":"အလုပ်သင်လမ်းညွှန်မှု",
+      "Professionalism":"ပရော်ဖက်ရှင်နယ်ဆန်မှု","Customer Communication":"ဖောက်သည်ဆက်သွယ်မှု",
+      "Tune Quality & Safety":"Tune အရည်အသွေးနှင့်ဘေးကင်းမှု","General Repair Quality":"အထွေထွေပြင်ဆင်မှုအရည်အသွေး",
+      "Customer Satisfaction":"ဖောက်သည်သဘောကျမှု",
+      "Customer Service":"ဖောက်သည်ဝန်ဆောင်မှု","Team Coordination":"အဖွဲ့ညှိနှိုင်းမှု",
+      "Document Accuracy":"စာရွက်စာတမ်းတိကျမှု","Accounts Tidiness":"စာရင်းသပ်ရပ်မှု",
+      "On-Time Completion":"အချိန်မီပြီးစီးမှု","Response Speed":"တုံ့ပြန်မှုအမြန်နှုန်း",
+      "Proactive Stock":"တက်ကြွသောစတော့မှု","Dept Cooperation":"ဌာနပူးပေါင်းဆောင်ရွက်မှု",
+      "Inventory Accuracy":"ကုန်ပစ္စည်းတိကျမှု","Warehouse Order":"သိုလှောင်ရုံစနစ်တကျမှု",
+      "Parts Delivery Speed":"အပိုပစ္စည်းပေးပို့မှုအမြန်နှုန်း","Stockout Warning":"ကုန်ပစ္စည်းကုန်ခမ်းသတိပေးချက်",
+      "Creative Initiative":"ဖန်တီးမှုစွမ်းဆောင်ရည်","Cross-Dept Support":"ဌာနဖြတ်ကျော်ပံ့ပိုးမှု",
+      "Content Quality":"အကြောင်းအရာအရည်အသွေး","Posting Frequency":"ပို့စ်တင်မှုကြိမ်နှုန်း",
+      "Engagement / Growth":"ပါဝင်မှု / တိုးတက်မှု","Lead Conversion":"ဖောက်သည်ပြောင်းလဲမှု",
+    },
+    desc:{
+      "Ask questions, stay engaged":"မေးခွန်းများမေးပါ၊ တက်ကြွနေပါ",
+      "Follow Senior/Tuner guidance":"အကြီးအကဲ/Tuner ၏လမ်းညွှန်မှုကိုလိုက်နာပါ",
+      "Low error rate":"အမှားနှုန်းနည်း","Correct tool usage & return":"ကိရိယာမှန်ကန်စွာသုံး၍ပြန်အပ်ပါ",
+      "Auto: Full 12pts, -0.12pt per 1% overtime":"အလိုအလျောက်: ပြည့်မှတ် 12၊ နောက်ကျ 1% တိုင်း 0.12 နုတ်",
+      "Auto: Full 15pts, -0.15pt per 1% overtime":"အလိုအလျောက်: ပြည့်မှတ် 15၊ နောက်ကျ 1% တိုင်း 0.15 နုတ်",
+      "Clean & organized workspace":"လုပ်နေရာသပ်ရပ်စနစ်တကျ","Clean workspace":"လုပ်နေရာသပ်ရပ်",
+      "100%=20|95-99%=16|<85%=0":"100%=20|95-99%=16|<85%=0",
+      "100%=15|95-99%=12|<85%=0":"100%=15|95-99%=12|<85%=0",
+      "100%=25|95-99%=20|<85%=0":"100%=25|95-99%=20|<85%=0",
+      "Take jobs without being told":"မမှာဘဲလုပ်ငန်းလက်ခံ","Help teammates":"အဖွဲ့ဖော်များကူညီ",
+      "Rework rate <5%":"ပြန်လုပ်နှုန်း 5% အောက်","Work without frequent supervision":"မကြာခဏကြီးကြပ်မှုမလိုဘဲလုပ်",
+      "Guide junior staff":"အောက်ငယ်ဝန်ထမ်းများလမ်းညွှန်","Own results, no shortcuts":"ရလဒ်တာဝန်ယူ၊ နာမည်ကောင်းလမ်းမသွား",
+      "Explain tune plan clearly":"Tune အစီအစဉ်ရှင်းလင်းစွာရှင်းပြ","Zero tune-related issues":"Tune ဆိုင်ရာပြဿနာမရှိ",
+      "Low rework rate":"ပြန်လုပ်နှုန်းနည်း","Return rate / good reviews":"ပြန်လာနှုန်း/ကောင်းသောသုံးသပ်ချက်",
+      "Polite & patient":"ယဉ်ကျေးသည်းခံ","Accurate information relay":"တိကျစွာသတင်းပြန်လည်ပေးပို့",
+      "Zero errors in invoices":"ငွေတောင်းခံလွှာ အမှားမရှိ","Clean reconciliation":"ဘဏ္ဍာရေးစာရင်းသပ်ရပ်",
+      "Reply within 1 hour":"၁ နာရီအတွင်းပြန်ကြား","Restock without waiting":"စောင့်ဆိုင်းမနေဘဲပြန်ဖြည့်",
+      "Support tech team":"နည်းပညာအဖွဲ့ကိုပံ့ပိုး","Match system records":"စနစ်မှတ်တမ်းနှင့်ညီညွတ်",
+      "Clear categorization":"ရှင်းလင်းသောအမျိုးအစားခွဲ","Notify before running out":"ကုန်မချင်းသတိပေး",
+      "Propose new content ideas":"အကြောင်းအရာအကြံဉာဏ်သစ်တင်ပြ","Support shoots & promos":"ရိုက်ကူးမှုနှင့်မြှင့်တင်မှုကိုပံ့ပိုး",
+      "Clear visuals, professional copy":"ပုံရှင်းသည်၊ စာသားပရော်ဖက်ရှင်နယ်","Hit weekly targets":"အပတ်စဉ်ပစ်မှတ်ရောက်",
+      "Quarter-on-quarter growth":"သုံးလပတ်တိုးတက်မှု","Pass DM enquiries promptly":"DM မေးမြန်းချက်အချိန်မီဖြန့်",
+    },
+    bonus:{"Customer Compliment":"ဖောက်သည်ချီးကျူးချက်","New Customer Referral":"ဖောက်သည်အသစ်ညွှန်","Zero Complaints":"တိုင်ကြားမှုမရှိ","Helped Other Depts":"အခြားဌာနကူညီ"},
+    bonusDesc:{"+2 each":"တစ်ကြိမ်+2","+3 each":"တစ်ကြိမ်+3","+3":"+3","+2":"+2"},
+  },
+};
+
 const CRIT={
   "Tech Intern":{t:55,s:[
     {n:"Attitude",c:"#1A5276",i:[{n:"Proactive Learning",d:"Ask questions, stay engaged",m:15},{n:"Follow Instructions",d:"Follow Senior/Tuner guidance",m:15}]},
@@ -768,8 +1017,14 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
 
 // ── SCORING PAGE ─────────────────────────────────────
 function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
-  const {t}=useLang();
+  const {t,lang}=useLang();
   const cr=CRIT[emp.role];const dc=DC[emp.role];
+  const ct=CRIT_T[lang]||CRIT_T.en;
+  const tn=k=>ct.items[k]||k;
+  const td=k=>ct.desc[k]||k;
+  const ts=k=>ct.sec[k]||k;
+  const tb=k=>ct.bonus[k]||k;
+  const tbd=k=>ct.bonusDesc[k]||k;
   const canScore=user.role==="boss"||(user.canManage&&user.dept===emp.role)||(user.role==="manager"&&user.dept===emp.role);
   const empUserId=emp.userId||null;
   const init=()=>{
@@ -806,15 +1061,15 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
         {!canScore&&<div style={{...S.card(),padding:9,marginBottom:11,textAlign:"center",color:B.muted,fontSize:11}}>{t.viewOnly}</div>}
         {cr.s.map(sec=>(
           <div key={sec.n} style={{...S.card(),marginBottom:9,overflow:"hidden"}}>
-            <div style={{background:sec.c,padding:"7px 13px"}}><span style={{color:"#fff",fontWeight:700,fontSize:11}}>{sec.n}</span></div>
+            <div style={{background:sec.c,padding:"7px 13px"}}><span style={{color:"#fff",fontWeight:700,fontSize:11}}>{ts(sec.n)}</span></div>
             {sec.i.map(it=>(
               <div key={it.n} style={{padding:"9px 13px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:9}}>
                 <div style={{flex:1}}>
                   <div style={{color:B.text,fontWeight:700,fontSize:12}}>
-                    {it.n}
+                    {tn(it.n)}
                     {it.auto&&<span style={{background:"#D0021B22",color:B.red,fontSize:9,marginLeft:6,borderRadius:4,padding:"1px 5px"}}>{t.autoLabel}</span>}
                   </div>
-                  <div style={{color:B.muted,fontSize:10,marginTop:1}}>{it.d}</div>
+                  <div style={{color:B.muted,fontSize:10,marginTop:1}}>{td(it.d)}</div>
                 </div>
                 <SI value={sc[sec.n+"__"+it.n]||0} max={it.m} onChange={v=>set(sec.n+"__"+it.n,v)} locked={!canScore}/>
               </div>
@@ -828,7 +1083,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
           </div>
           {BONUS_ITEMS.map(b=>(
             <div key={b.n} style={{padding:"9px 13px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:9}}>
-              <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:12}}>{b.n}</div><div style={{color:B.muted,fontSize:10}}>{b.d}</div></div>
+              <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:12}}>{tb(b.n)}</div><div style={{color:B.muted,fontSize:10}}>{tbd(b.d)}</div></div>
               <SI value={sc["B__"+b.n]||0} max={b.m} onChange={v=>set("B__"+b.n,v)} locked={!canScore}/>
             </div>
           ))}
