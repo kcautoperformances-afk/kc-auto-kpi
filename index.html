@@ -96,7 +96,6 @@ const CRIT={
 };
 const BONUS_ITEMS=[{n:"Customer Compliment",d:"+2 each",m:6},{n:"New Customer Referral",d:"+3 each",m:9},{n:"Zero Complaints",d:"+3",m:3},{n:"Helped Other Depts",d:"+2",m:2}];
 
-
 // ── I18N ─────────────────────────────────────────────
 const LANGS={
   en:{code:"en",flag:"🇬🇧",name:"English"},
@@ -109,8 +108,8 @@ const LANGS={
 const T={
   en:{
     selectAccount:"Select Account",enterPin:"Enter 4-digit PIN",wrongPin:"Wrong PIN",logout:"Logout",
-    kpi:"KPI",vehicles:"Vehicles",myStats:"My Stats",settings:"Settings",
-    addStaff:"+ Add Staff",score:"Score",pending:"Pending...",tapToScore:"Tap to score",
+    kpi:"KPI",vehicles:"Vehicles",myStats:"My Stats",settings:"Settings",feedback:"Feedback",
+    score:"Score",pending:"Pending...",tapToScore:"Tap to score",
     quarterMvp:"QUARTER MVP",staff:"Staff",scored:"Scored",pass:"Pass",excellent:"Excellent",
     addRecord:"Add Vehicle Record",editRecord:"Edit Record",saveRecord:"Save",cancel:"Cancel",
     date:"Date",plate:"Plate No.",model:"Model",checkIn:"Check-In",startRepair:"Start Repair",
@@ -136,13 +135,17 @@ const T={
     noPeriodData:"No records in this period",
     eachTechShare:"Each tech shares",overtimePct:"% overtime",
     vehicles_tracker:"Vehicle Time Tracker",vehicles_subtitle:"Auto overtime calc · Up to 4 technicians · Shared KPI impact",
-    addStaffMember:"Add Staff",addStaffName:"Name",addStaffDept:"Department",confirm:"Confirm",
     autoLabel:"Auto",threshold:"Threshold",
+    feedbackTitle:"Anonymous Feedback",feedbackSubtitle:"Your message is completely anonymous",
+    feedbackPlaceholder:"Share your thoughts, suggestions or concerns...",
+    feedbackSend:"Send Feedback",feedbackSent:"Feedback sent!",feedbackEmpty:"Please write something first",
+    feedbackInbox:"Feedback Inbox",feedbackCount:"messages",feedbackNone:"No feedback yet",
+    feedbackDelete:"Delete",feedbackNew:"New",
   },
   zh:{
     selectAccount:"选择账号",enterPin:"输入4位PIN",wrongPin:"PIN错误",logout:"登出",
-    kpi:"KPI",vehicles:"车辆",myStats:"我的数据",settings:"设置",
-    addStaff:"+ 添加员工",score:"总分",pending:"等待评分",tapToScore:"点击评分",
+    kpi:"KPI",vehicles:"车辆",myStats:"我的数据",settings:"设置",feedback:"反馈",
+    score:"总分",pending:"等待评分",tapToScore:"点击评分",
     quarterMvp:"季度MVP",staff:"员工",scored:"已评分",pass:"达标",excellent:"优秀",
     addRecord:"添加车辆记录",editRecord:"编辑记录",saveRecord:"保存",cancel:"取消",
     date:"日期",plate:"车牌",model:"车型",checkIn:"进车时间",startRepair:"开始维修",
@@ -168,13 +171,17 @@ const T={
     noPeriodData:"此时段暂无记录",
     eachTechShare:"每位技师分担",overtimePct:"%超时",
     vehicles_tracker:"车辆时间追踪",vehicles_subtitle:"超时自动计算 · 最多4位技师 · 平均分担KPI",
-    addStaffMember:"添加员工",addStaffName:"员工姓名",addStaffDept:"岗位",confirm:"确认添加",
     autoLabel:"自动",threshold:"达标门槛",
+    feedbackTitle:"匿名反馈",feedbackSubtitle:"您的留言完全匿名",
+    feedbackPlaceholder:"分享您的想法、建议或意见...",
+    feedbackSend:"发送反馈",feedbackSent:"反馈已发送！",feedbackEmpty:"请先输入内容",
+    feedbackInbox:"反馈收件箱",feedbackCount:"条留言",feedbackNone:"暂无反馈",
+    feedbackDelete:"删除",feedbackNew:"新",
   },
   ms:{
     selectAccount:"Pilih Akaun",enterPin:"Masukkan PIN 4 digit",wrongPin:"PIN Salah",logout:"Log Keluar",
-    kpi:"KPI",vehicles:"Kenderaan",myStats:"Statistik Saya",settings:"Tetapan",
-    addStaff:"+ Tambah Pekerja",score:"Markah",pending:"Menunggu...",tapToScore:"Klik untuk nilai",
+    kpi:"KPI",vehicles:"Kenderaan",myStats:"Statistik Saya",settings:"Tetapan",feedback:"Maklum Balas",
+    score:"Markah",pending:"Menunggu...",tapToScore:"Klik untuk nilai",
     quarterMvp:"MVP SUKU TAHUN",staff:"Pekerja",scored:"Dinilai",pass:"Lulus",excellent:"Cemerlang",
     addRecord:"Tambah Rekod Kenderaan",editRecord:"Edit Rekod",saveRecord:"Simpan",cancel:"Batal",
     date:"Tarikh",plate:"No. Plat",model:"Model",checkIn:"Masa Masuk",startRepair:"Mula Baiki",
@@ -200,13 +207,17 @@ const T={
     noPeriodData:"Tiada rekod dalam tempoh ini",
     eachTechShare:"Setiap teknisi kongsi",overtimePct:"% lebih masa",
     vehicles_tracker:"Penjejak Masa Kenderaan",vehicles_subtitle:"Kira lebih masa auto · Maks 4 teknisi · KPI dikongsi",
-    addStaffMember:"Tambah Pekerja",addStaffName:"Nama",addStaffDept:"Jabatan",confirm:"Sahkan",
     autoLabel:"Auto",threshold:"Had Lulus",
+    feedbackTitle:"Maklum Balas Tanpa Nama",feedbackSubtitle:"Mesej anda adalah tanpa nama sepenuhnya",
+    feedbackPlaceholder:"Kongsi pendapat, cadangan atau kebimbangan anda...",
+    feedbackSend:"Hantar Maklum Balas",feedbackSent:"Maklum balas dihantar!",feedbackEmpty:"Sila tulis sesuatu dahulu",
+    feedbackInbox:"Peti Masuk Maklum Balas",feedbackCount:"mesej",feedbackNone:"Tiada maklum balas lagi",
+    feedbackDelete:"Padam",feedbackNew:"Baru",
   },
   th:{
     selectAccount:"เลือกบัญชี",enterPin:"ใส่ PIN 4 หลัก",wrongPin:"PIN ผิด",logout:"ออกจากระบบ",
-    kpi:"KPI",vehicles:"ยานพาหนะ",myStats:"ข้อมูลของฉัน",settings:"การตั้งค่า",
-    addStaff:"+ เพิ่มพนักงาน",score:"คะแนน",pending:"รอการให้คะแนน",tapToScore:"แตะเพื่อให้คะแนน",
+    kpi:"KPI",vehicles:"ยานพาหนะ",myStats:"ข้อมูลของฉัน",settings:"การตั้งค่า",feedback:"ความคิดเห็น",
+    score:"คะแนน",pending:"รอการให้คะแนน",tapToScore:"แตะเพื่อให้คะแนน",
     quarterMvp:"MVP ไตรมาส",staff:"พนักงาน",scored:"ให้คะแนนแล้ว",pass:"ผ่าน",excellent:"ยอดเยี่ยม",
     addRecord:"เพิ่มบันทึกยานพาหนะ",editRecord:"แก้ไขบันทึก",saveRecord:"บันทึก",cancel:"ยกเลิก",
     date:"วันที่",plate:"ทะเบียนรถ",model:"รุ่น",checkIn:"เวลาเข้า",startRepair:"เริ่มซ่อม",
@@ -232,13 +243,17 @@ const T={
     noPeriodData:"ไม่มีข้อมูลในช่วงนี้",
     eachTechShare:"ช่างแต่ละคนรับผิดชอบ",overtimePct:"% ล่าช้า",
     vehicles_tracker:"ติดตามเวลายานพาหนะ",vehicles_subtitle:"คำนวณล่าช้าอัตโนมัติ · ช่างสูงสุด 4 คน · KPI แบ่งเท่าๆ",
-    addStaffMember:"เพิ่มพนักงาน",addStaffName:"ชื่อ",addStaffDept:"แผนก",confirm:"ยืนยัน",
     autoLabel:"อัตโนมัติ",threshold:"เกณฑ์ผ่าน",
+    feedbackTitle:"ความคิดเห็นแบบไม่ระบุชื่อ",feedbackSubtitle:"ข้อความของคุณเป็นความลับ",
+    feedbackPlaceholder:"แบ่งปันความคิด ข้อเสนอแนะ หรือความกังวลของคุณ...",
+    feedbackSend:"ส่งความคิดเห็น",feedbackSent:"ส่งแล้ว!",feedbackEmpty:"กรุณาเขียนข้อความก่อน",
+    feedbackInbox:"กล่องข้อความ",feedbackCount:"ข้อความ",feedbackNone:"ยังไม่มีความคิดเห็น",
+    feedbackDelete:"ลบ",feedbackNew:"ใหม่",
   },
   my:{
     selectAccount:"အကောင့်ရွေးချယ်ပါ",enterPin:"PIN ၄ လုံးထည့်ပါ",wrongPin:"PIN မမှန်ပါ",logout:"ထွက်မည်",
-    kpi:"KPI",vehicles:"ယာဉ်",myStats:"ကျွန်ုပ်၏ဒေတာ",settings:"ဆက်တင်",
-    addStaff:"+ ဝန်ထမ်းထည့်မည်",score:"မှတ်",pending:"စောင့်ဆိုင်းနေသည်",tapToScore:"နှိပ်ပြီးမှတ်ကြမ်း",
+    kpi:"KPI",vehicles:"ယာဉ်",myStats:"ကျွန်ုပ်၏ဒေတာ",settings:"ဆက်တင်",feedback:"အကြံပြုချက်",
+    score:"မှတ်",pending:"စောင့်ဆိုင်းနေသည်",tapToScore:"နှိပ်ပြီးမှတ်ကြမ်း",
     quarterMvp:"တာဝန်မှတ်မှ MVP",staff:"ဝန်ထမ်း",scored:"မှတ်ကြမ်းပြီး",pass:"အောင်",excellent:"ထူးချွန်",
     addRecord:"ယာဉ်မှတ်တမ်းထည့်မည်",editRecord:"မှတ်တမ်းပြင်မည်",saveRecord:"သိမ်းမည်",cancel:"ပယ်ဖျက်",
     date:"ရက်စွဲ",plate:"ယာဉ်ဆိုင်းဘုတ်",model:"ပုံစံ",checkIn:"ဝင်ချိန်",startRepair:"ပြင်ဆင်မှုစတင်",
@@ -264,8 +279,12 @@ const T={
     noPeriodData:"ဤကာလတွင် မှတ်တမ်းမရှိ",
     eachTechShare:"နည်းပညာတစ်ယောက်စီ",overtimePct:"% နောက်ကျ",
     vehicles_tracker:"ယာဉ်အချိန်ခြေရာခံ",vehicles_subtitle:"အလိုအလျောက်နောက်ကျတွက်ချက် · နည်းပညာ ၄ ယောက်",
-    addStaffMember:"ဝန်ထမ်းထည့်မည်",addStaffName:"နာမည်",addStaffDept:"ဌာန",confirm:"အတည်ပြု",
     autoLabel:"အလိုအလျောက်",threshold:"ပြင်ဆင်ခြင်းနှုန်း",
+    feedbackTitle:"အမည်မဖော်ပြ အကြံပြုချက်",feedbackSubtitle:"သင်၏မက်ဆေ့ချ် လုံးဝလျှို့ဝှက်သည်",
+    feedbackPlaceholder:"သင်၏အတွေးများ၊ အကြံဉာဏ်များ သို့မဟုတ် စိုးရိမ်မှုများ မျှဝေပါ...",
+    feedbackSend:"အကြံပြုချက်ပို့မည်",feedbackSent:"ပို့ပြီးပါပြီ!",feedbackEmpty:"ကျေးဇူးပြု၍ ဦးစွာကိုယ်ချင်းစာပါ",
+    feedbackInbox:"အကြံပြုချက်ပုံး",feedbackCount:"မက်ဆေ့ချ်",feedbackNone:"အကြံပြုချက်မရှိသေး",
+    feedbackDelete:"ဖျက်မည်",feedbackNew:"အသစ်",
   },
 };
 
@@ -308,7 +327,6 @@ const calcOT=r=>{
 const autoStatus=ot=>{if(!ot)return"PENDING";if(!ot.isOver)return"GOOD";if(ot.overPct<=15)return"OK";return"LATE";};
 const scColor=s=>s==="GOOD"?"#2ECC71":s==="OK"?"#F1C40F":s==="LATE"?"#E74C3C":"#7A7F8E";
 
-// Per-staff auto KPI score: avg overtime% across their jobs, deduct 0.15pt per 1%
 const calcAutoScore=(staffId,vehicles,maxScore)=>{
   const mine=vehicles.filter(v=>(v.staffIds||[]).includes(staffId)&&v.timeStart&&v.timeExpected&&v.timeActual);
   if(!mine.length)return maxScore;
@@ -316,7 +334,6 @@ const calcAutoScore=(staffId,vehicles,maxScore)=>{
   mine.forEach(v=>{
     const ot=calcOT(v);
     if(ot&&ot.isOver){
-      // each staff member shares the overtime equally
       const share=(v.staffIds||[]).length||1;
       totalPct+=ot.overPct/share;
     }
@@ -359,6 +376,93 @@ function SI({value,max,onChange,locked}){
         <div style={{width:`${p*100}%`,height:"100%",background:c,borderRadius:99}}/>
       </div>
       <span style={{fontSize:10,color:B.muted,minWidth:20,fontFamily:"monospace"}}>/{max}</span>
+    </div>
+  );
+}
+
+// ── ANONYMOUS FEEDBACK ───────────────────────────────
+function FeedbackPage({user,feedbacks,setFeedbacks}){
+  const {t}=useLang();
+  const isBoss=user.role==="boss";
+  const [msg,setMsg]=useState("");
+  const [sent,setSent]=useState(false);
+
+  const sendFeedback=()=>{
+    if(!msg.trim()){alert(t.feedbackEmpty);return;}
+    const newFb={id:Date.now(),msg:msg.trim(),time:new Date().toLocaleString(),read:false};
+    const upd=[newFb,...feedbacks];
+    setFeedbacks(upd);
+    api.save("feedbacks",upd);
+    setMsg("");
+    setSent(true);
+    setTimeout(()=>setSent(false),3000);
+  };
+
+  const deleteFb=id=>{
+    const upd=feedbacks.filter(f=>f.id!==id);
+    setFeedbacks(upd);
+    api.save("feedbacks",upd);
+  };
+
+  const markRead=()=>{
+    const upd=feedbacks.map(f=>({...f,read:true}));
+    setFeedbacks(upd);
+    api.save("feedbacks",upd);
+  };
+
+  if(isBoss){
+    const unread=feedbacks.filter(f=>!f.read).length;
+    return(
+      <div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div>
+            <div style={{color:B.text,fontSize:17,fontWeight:800}}>{t.feedbackInbox}</div>
+            <div style={{color:B.muted,fontSize:11}}>{feedbacks.length} {t.feedbackCount}</div>
+          </div>
+          {unread>0&&<button onClick={markRead} style={{...S.btn(B.border,B.muted,{fontSize:11})}}>Mark all read</button>}
+        </div>
+        {feedbacks.length===0
+          ?<div style={{...S.card(),padding:40,textAlign:"center",color:B.muted}}>{t.feedbackNone} 💬</div>
+          :feedbacks.map(f=>(
+            <div key={f.id} style={{...S.card(),padding:14,marginBottom:9,border:`1px solid ${f.read?B.border:"#D0021B44"}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:7}}>
+                <div style={{display:"flex",alignItems:"center",gap:7}}>
+                  <div style={{fontSize:18}}>💬</div>
+                  {!f.read&&<span style={{background:"#D0021B",color:"#fff",borderRadius:4,padding:"1px 6px",fontSize:9,fontWeight:700}}>{t.feedbackNew}</span>}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:7}}>
+                  <span style={{color:B.muted,fontSize:10}}>{f.time}</span>
+                  <button onClick={()=>deleteFb(f.id)} style={{...S.btn("#2B0009","#E74C3C",{fontSize:10,padding:"3px 8px"})}}>{t.feedbackDelete}</button>
+                </div>
+              </div>
+              <div style={{color:B.text,fontSize:13,lineHeight:1.6,background:B.dark,borderRadius:9,padding:"10px 13px"}}>{f.msg}</div>
+            </div>
+          ))
+        }
+      </div>
+    );
+  }
+
+  return(
+    <div>
+      <div style={{...S.card(),padding:20,marginBottom:14,textAlign:"center",background:"linear-gradient(135deg,#0A0C10,#16191F)"}}>
+        <div style={{fontSize:36,marginBottom:8}}>💬</div>
+        <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:4}}>{t.feedbackTitle}</div>
+        <div style={{color:B.muted,fontSize:12}}>{t.feedbackSubtitle}</div>
+      </div>
+      <div style={{...S.card(),padding:16}}>
+        <textarea
+          value={msg}
+          onChange={e=>setMsg(e.target.value)}
+          placeholder={t.feedbackPlaceholder}
+          rows={5}
+          style={{...S.inp,resize:"vertical",lineHeight:1.6,marginBottom:12}}
+        />
+        {sent
+          ?<div style={{background:"#0D2B19",border:"1px solid #2ECC71",borderRadius:10,padding:"11px 16px",textAlign:"center",color:"#2ECC71",fontWeight:700}}>✓ {t.feedbackSent}</div>
+          :<button onClick={sendFeedback} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:14})}}>📨 {t.feedbackSend}</button>
+        }
+      </div>
     </div>
   );
 }
@@ -417,7 +521,7 @@ function PersonalStats({user,vehicles}){
 
   return(
     <div>
-      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:14}}>My Efficiency Dashboard</div>
+      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:14}}>{t.myEfficiency}</div>
       <div style={{...S.card(),padding:13,marginBottom:14}}>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:range==="custom"?12:0}}>
           {[["today",t.today],["week",t.thisWeek],["month",t.thisMonth],["custom",t.custom]].map(([v,l])=>(
@@ -425,17 +529,17 @@ function PersonalStats({user,vehicles}){
           ))}
         </div>
         {range==="custom"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:10}}>
-          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>From</div><input type="date" value={custom.from} onChange={e=>setCustom(c=>({...c,from:e.target.value}))} style={S.inp}/></div>
-          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>To</div><input type="date" value={custom.to} onChange={e=>setCustom(c=>({...c,to:e.target.value}))} style={S.inp}/></div>
+          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>{t.from}</div><input type="date" value={custom.from} onChange={e=>setCustom(c=>({...c,from:e.target.value}))} style={S.inp}/></div>
+          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>{t.to}</div><input type="date" value={custom.to} onChange={e=>setCustom(c=>({...c,to:e.target.value}))} style={S.inp}/></div>
         </div>}
       </div>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9,marginBottom:14}}>
         {[
-          {label:t.totalVehicles,value:stats.total,unit:"cars",color:"#3498DB"},
-          {label:t.totalWorkTime,value:stats.totalWorkMin>0?fmtMin(stats.totalWorkMin):"0m",unit:"",color:"#9B59B6"},
-          {label:t.totalOvertime,value:stats.totalOTMin>0?fmtMin(stats.totalOTMin):t.noOvertime,unit:"",color:stats.totalOTMin>0?"#E74C3C":"#2ECC71"},
-          {label:t.onTimeRate,value:stats.onTimeRate+"%",unit:"",color:stats.onTimeRate>=90?"#2ECC71":stats.onTimeRate>=70?"#F1C40F":"#E74C3C"},
+          {label:t.totalVehicles,value:stats.total,color:"#3498DB"},
+          {label:t.totalWorkTime,value:stats.totalWorkMin>0?fmtMin(stats.totalWorkMin):"0m",color:"#9B59B6"},
+          {label:t.totalOvertime,value:stats.totalOTMin>0?fmtMin(stats.totalOTMin):t.noOvertime,color:stats.totalOTMin>0?"#E74C3C":"#2ECC71"},
+          {label:t.onTimeRate,value:stats.onTimeRate+"%",color:stats.onTimeRate>=90?"#2ECC71":stats.onTimeRate>=70?"#F1C40F":"#E74C3C"},
         ].map(s=>(
           <div key={s.label} style={{...S.card(),padding:14,textAlign:"center"}}>
             <div style={{color:B.muted,fontSize:10,marginBottom:5}}>{s.label}</div>
@@ -445,7 +549,7 @@ function PersonalStats({user,vehicles}){
       </div>
 
       <div style={{...S.card(),padding:16,marginBottom:14,border:`1px solid ${stats.autoScore>=12?"#2ECC71":stats.autoScore>=8?"#F1C40F":"#E74C3C"}44`}}>
-        <div style={{color:B.text,fontWeight:800,marginBottom:10}}>On-Time Delivery — Auto KPI Score</div>
+        <div style={{color:B.text,fontWeight:800,marginBottom:10}}>{t.autoKpiTitle}</div>
         <div style={{display:"flex",alignItems:"center",gap:14}}>
           <div style={{textAlign:"center",minWidth:72}}>
             <div style={{color:stats.autoScore>=12?"#2ECC71":stats.autoScore>=8?"#F1C40F":"#E74C3C",fontSize:34,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{stats.autoScore}</div>
@@ -455,20 +559,20 @@ function PersonalStats({user,vehicles}){
             <div style={{height:8,background:B.border,borderRadius:99,overflow:"hidden",marginBottom:7}}>
               <div style={{width:`${(stats.autoScore/15)*100}%`,height:"100%",background:stats.autoScore>=12?"#2ECC71":stats.autoScore>=8?"#F1C40F":"#E74C3C",borderRadius:99}}/>
             </div>
-            <div style={{color:B.muted,fontSize:11}}>Avg Overtime: {stats.avgOTPct}% · Deduction: {(parseFloat(stats.avgOTPct)*0.15).toFixed(1)}pts</div>
-            <div style={{color:B.muted,fontSize:10,marginTop:3}}>Formula: 15pts full, -0.15pt per 1% overtime (shared equally)</div>
+            <div style={{color:B.muted,fontSize:11}}>{t.avgOvertime}: {stats.avgOTPct}% · {t.deduction}: {(parseFloat(stats.avgOTPct)*0.15).toFixed(1)}pts</div>
+            <div style={{color:B.muted,fontSize:10,marginTop:3}}>{t.autoFormula}</div>
           </div>
         </div>
       </div>
 
       <div style={{...S.card(),overflow:"hidden"}}>
         <div style={{background:B.card2,padding:"9px 14px",borderBottom:`1px solid ${B.border}`}}>
-          <span style={{color:B.text,fontWeight:700,fontSize:12}}>My Vehicle Records ({myVehicles.length})</span>
+          <span style={{color:B.text,fontWeight:700,fontSize:12}}>{t.myVehicleRecords} ({myVehicles.length})</span>
         </div>
         <div style={{overflowX:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:480}}>
-            <thead><tr>{["Date","Plate","Model","Start","Out","Overtime","Status"].map(h=><th key={h} style={{color:B.muted,padding:"6px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10}}>{h}</th>)}</tr></thead>
-            <tbody>{myVehicles.length===0?<tr><td colSpan={7} style={{padding:28,textAlign:"center",color:B.muted}}>No records in this period</td></tr>:myVehicles.map(v=>{
+            <thead><tr>{[t.date,t.plate,t.model,t.startRepair,t.actualOut,t.overtime,t.status].map(h=><th key={h} style={{color:B.muted,padding:"6px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10}}>{h}</th>)}</tr></thead>
+            <tbody>{myVehicles.length===0?<tr><td colSpan={7} style={{padding:28,textAlign:"center",color:B.muted}}>{t.noPeriod}</td></tr>:myVehicles.map(v=>{
               const ot=v.overtime||calcOT(v);
               const share=(v.staffIds||[]).length||1;
               return<tr key={v.id} style={{borderBottom:`1px solid ${B.border}`,background:v.status==="LATE"?"#1A0808":B.dark}}>
@@ -547,40 +651,40 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:10}}>
         <div>
-          <div style={{color:B.text,fontSize:17,fontWeight:800}}>Vehicle Time Tracker</div>
-          <div style={{color:B.muted,fontSize:11}}>Auto overtime calc · Up to 4 technicians · Shared KPI impact</div>
+          <div style={{color:B.text,fontSize:17,fontWeight:800}}>{t.vehicles_tracker}</div>
+          <div style={{color:B.muted,fontSize:11}}>{t.vehicles_subtitle}</div>
         </div>
         {canEdit&&<div style={{display:"flex",gap:7}}>
-          <button onClick={()=>fRef.current.click()} style={{...S.btn(B.border,B.text,{fontSize:11})}}>Upload Sheet</button>
-          <button onClick={()=>{setShowAdd(true);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>+ Add Record</button>
+          <button onClick={()=>fRef.current.click()} style={{...S.btn(B.border,B.text,{fontSize:11})}}>{t.uploadSheet}</button>
+          <button onClick={()=>{setShowAdd(true);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addRecordBtn}</button>
         </div>}
       </div>
       <input ref={fRef} type="file" accept="image/*" style={{display:"none"}} onChange={upload}/>
 
-      {uploading&&<div style={{...S.card(),padding:14,marginBottom:12,textAlign:"center"}}><span style={{color:B.red,fontWeight:700}}>AI reading table...</span></div>}
+      {uploading&&<div style={{...S.card(),padding:14,marginBottom:12,textAlign:"center"}}><span style={{color:B.red,fontWeight:700}}>{t.aiReading}</span></div>}
 
       {aiResult&&<div style={{...S.card(),padding:16,marginBottom:12,border:"1px solid #F1C40F"}}>
-        <div style={{color:"#F1C40F",fontWeight:800,marginBottom:9}}>AI detected {aiResult.length} records — confirm to import</div>
+        <div style={{color:"#F1C40F",fontWeight:800,marginBottom:9}}>{t.aiConfirm} {aiResult.length} {t.records}</div>
         <div style={{overflowX:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
-            <thead><tr>{["No","Plate","Model","In","Start","Expected Out","Actual"].map(h=><th key={h} style={{color:B.muted,padding:"4px 8px",textAlign:"left",borderBottom:`1px solid ${B.border}`}}>{h}</th>)}</tr></thead>
+            <thead><tr>{["No",t.plate,t.model,t.checkIn,t.startRepair,t.expectedOut,t.actualOut].map(h=><th key={h} style={{color:B.muted,padding:"4px 8px",textAlign:"left",borderBottom:`1px solid ${B.border}`}}>{h}</th>)}</tr></thead>
             <tbody>{aiResult.map((r,i)=><tr key={i}>{[r.no,r.plate,r.model,r.timeIn,r.timeStart,r.timeExpected,r.timeActual].map((v,j)=><td key={j} style={{color:B.text,padding:"4px 8px",borderBottom:`1px solid ${B.border}`}}>{v||"–"}</td>)}</tr>)}</tbody>
           </table>
         </div>
         <div style={{display:"flex",gap:7,marginTop:10}}>
           <button onClick={()=>{
             const today=new Date().toLocaleDateString("en-GB").replace(/\//g,".");
-            save([...vehicles,...aiResult.map((r,i)=>{const ot=calcOT(r);return{...r,id:Date.now()+i,date:r.date||today,overtime:ot,status:autoStatus(ot),staffIds:[]}})]);
+            save([...vehicles,...aiResult.map((r,i)=>{const ot=calcOT(r);return{...r,id:Date.now()+i,date:r.date||today,overtime:ot,status:autoStatus(ot),staffIds:[]};})]);
             setAiResult(null);
-          }} style={{...S.btn(B.red)}}>Confirm Import</button>
-          <button onClick={()=>setAiResult(null)} style={{...S.btn(B.border,B.muted)}}>Cancel</button>
+          }} style={{...S.btn(B.red)}}>{t.confirmImport}</button>
+          <button onClick={()=>setAiResult(null)} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
         </div>
       </div>}
 
       {showAdd&&<div style={{...S.card(),padding:17,marginBottom:14,border:`1px solid ${B.red}`}}>
-        <div style={{color:B.text,fontWeight:700,marginBottom:13,fontSize:14}}>{editId?"Edit Record":t.addRecord}</div>
+        <div style={{color:B.text,fontWeight:700,marginBottom:13,fontSize:14}}>{editId?t.editRecord:t.addRecord}</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9,marginBottom:11}}>
-          {[["Date","date"],["Plate","plate"],["Model","model"],["Check-In Time","timeIn"],["Start Repair","timeStart"],["Expected Out","timeExpected"],["Actual Out","timeActual"]].map(([l,k])=>(
+          {[[t.date,"date"],[t.plate,"plate"],[t.model,"model"],[t.checkIn,"timeIn"],[t.startRepair,"timeStart"],[t.expectedOut,"timeExpected"],[t.actualOut,"timeActual"]].map(([l,k])=>(
             <div key={k}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>{l}</div>
               <input value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} placeholder={k.includes("time")?"HH:MM":""} style={S.inp}/>
             </div>
@@ -588,7 +692,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
         </div>
 
         <div style={{marginBottom:11}}>
-          <div style={{color:B.muted,fontSize:10,marginBottom:6}}>Assigned Technicians (max 4) — Selected: {(form.staffIds||[]).length}/4</div>
+          <div style={{color:B.muted,fontSize:10,marginBottom:6}}>{t.assignedTech} — {t.selected}: {(form.staffIds||[]).length}/4</div>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {staffList.map(s=>{
               const sel=(form.staffIds||[]).includes(s.id);
@@ -605,23 +709,23 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
 
         {previewOT&&<div style={{background:previewOT.isOver?"#2B0009":"#0D2B19",border:`1px solid ${previewOT.isOver?"#E74C3C":"#2ECC71"}`,borderRadius:9,padding:"8px 12px",marginBottom:11,fontSize:12}}>
           <span style={{color:previewOT.isOver?"#E74C3C":"#2ECC71",fontWeight:700}}>
-            {previewOT.isOver?`Overtime: ${previewOT.overMin}min (${previewOT.overPct}%)`:`On time (saved ${Math.abs(previewOT.overMin)}min)`}
+            {previewOT.isOver?`${t.overtime}: ${previewOT.overMin}min (${previewOT.overPct}%)`:`${t.onTime} (saved ${Math.abs(previewOT.overMin)}min)`}
           </span>
           <span style={{color:B.muted,marginLeft:10}}>Planned {previewOT.planned}min / Actual {previewOT.actual}min</span>
           {previewOT.isOver&&(form.staffIds||[]).length>1&&<div style={{color:B.muted,fontSize:10,marginTop:3}}>
-            Each tech shares: {(previewOT.overPct/(form.staffIds||[]).length).toFixed(1)}% overtime
+            {t.eachTechShare}: {(previewOT.overPct/(form.staffIds||[]).length).toFixed(1)}{t.overtimePct}
           </div>}
         </div>}
 
         <div style={{display:"flex",gap:7}}>
-          <button onClick={submitForm} style={{...S.btn(B.red)}}>Save</button>
-          <button onClick={()=>{setShowAdd(false);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.border,B.muted)}}>Cancel</button>
+          <button onClick={submitForm} style={{...S.btn(B.red)}}>{t.save}</button>
+          <button onClick={()=>{setShowAdd(false);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
         </div>
       </div>}
 
       <div style={{overflowX:"auto"}}>
         <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:800}}>
-          <thead><tr style={{background:B.card2}}>{["No","Date","Plate","Model","Check-In","Start","Exp. Out","Actual","Overtime","Status","Technicians",""].map(h=><th key={h} style={{color:B.muted,padding:"7px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+          <thead><tr style={{background:B.card2}}>{["No",t.date,t.plate,t.model,t.checkIn,t.startRepair,t.expectedOut,t.actualOut,t.overtime,t.status,t.technicians,""].map(h=><th key={h} style={{color:B.muted,padding:"7px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
           <tbody>{vehicles.map(r=>{
             const ot=r.overtime||calcOT(r);
             const techs=(r.staffIds||[]).map(id=>allUsers.find(u=>u.id===id)).filter(Boolean);
@@ -648,15 +752,15 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
                 </td>
                 {canEdit&&<td style={{padding:"7px 9px"}}>
                   <div style={{display:"flex",gap:3}}>
-                    <button onClick={()=>{setForm({plate:r.plate,model:r.model,timeIn:r.timeIn||"",timeStart:r.timeStart||"",timeExpected:r.timeExpected||"",timeActual:r.timeActual||"",staffIds:r.staffIds||[],date:r.date});setEditId(r.id);setShowAdd(true);}} style={{...S.btn("#252830",B.muted,{padding:"3px 7px",fontSize:9})}}>Edit</button>
-                    <button onClick={()=>{if(confirm(t.confirmDelete))save(vehicles.filter(v=>v.id!==r.id));}} style={{...S.btn("#2B0009","#E74C3C",{padding:"3px 7px",fontSize:9})}}>Del</button>
+                    <button onClick={()=>{setForm({plate:r.plate,model:r.model,timeIn:r.timeIn||"",timeStart:r.timeStart||"",timeExpected:r.timeExpected||"",timeActual:r.timeActual||"",staffIds:r.staffIds||[],date:r.date});setEditId(r.id);setShowAdd(true);}} style={{...S.btn("#252830",B.muted,{padding:"3px 7px",fontSize:9})}}>{t.save}</button>
+                    <button onClick={()=>{if(confirm(t.confirmDelete))save(vehicles.filter(v=>v.id!==r.id));}} style={{...S.btn("#2B0009","#E74C3C",{padding:"3px 7px",fontSize:9})}}>{t.delete}</button>
                   </div>
                 </td>}
               </tr>
             );
           })}</tbody>
         </table>
-        {vehicles.length===0&&<div style={{textAlign:"center",padding:36,color:B.muted}}>No records yet</div>}
+        {vehicles.length===0&&<div style={{textAlign:"center",padding:36,color:B.muted}}>{t.noRecords}</div>}
       </div>
     </div>
   );
@@ -688,7 +792,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
     <div style={{minHeight:"100vh",background:B.dark}}>
       <div style={{background:"#0A0C10",borderBottom:`1px solid ${B.border}`,padding:"12px 16px",position:"sticky",top:0,zIndex:10}}>
         <div style={{maxWidth:680,margin:"0 auto",display:"flex",alignItems:"center",gap:11}}>
-          <button onClick={onBack} style={{...S.btn(B.border,B.muted,{padding:"6px 12px"})}}>Back</button>
+          <button onClick={onBack} style={{...S.btn(B.border,B.muted,{padding:"6px 12px"})}}>{t.backBtn}</button>
           <Av src={emp.avatar} name={emp.name} dept={emp.role} size={34}/>
           <div style={{flex:1}}><div style={{color:B.muted,fontSize:10,letterSpacing:2}}>{emp.role} - {emp.quarter}</div><div style={{color:B.text,fontSize:15,fontWeight:800}}>{emp.name}</div></div>
           <div style={{textAlign:"right"}}><div style={{color:dc,fontSize:24,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{total}</div><div style={{color:B.muted,fontSize:10}}>/ {mxBase+10}</div></div>
@@ -696,10 +800,10 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
       </div>
       <div style={{maxWidth:680,margin:"0 auto",padding:"15px 14px"}}>
         <div style={{...S.card(),padding:"11px 15px",marginBottom:11,background:grade.color+"15",border:`1px solid ${grade.color}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div><div style={{color:grade.color,fontWeight:800,fontSize:15}}>{grade.label}</div><div style={{color:B.muted,fontSize:10,marginTop:2}}>Threshold: {cr.t}pts</div></div>
+          <div><div style={{color:grade.color,fontWeight:800,fontSize:15}}>{grade.label}</div><div style={{color:B.muted,fontSize:10,marginTop:2}}>{t.threshold}: {cr.t}pts</div></div>
           <div style={{background:grade.color,color:"#fff",borderRadius:9,padding:"5px 13px",fontWeight:900,fontSize:14}}>RM {grade.amount}</div>
         </div>
-        {!canScore&&<div style={{...S.card(),padding:9,marginBottom:11,textAlign:"center",color:B.muted,fontSize:11}}>View only — no scoring permission</div>}
+        {!canScore&&<div style={{...S.card(),padding:9,marginBottom:11,textAlign:"center",color:B.muted,fontSize:11}}>{t.viewOnly}</div>}
         {cr.s.map(sec=>(
           <div key={sec.n} style={{...S.card(),marginBottom:9,overflow:"hidden"}}>
             <div style={{background:sec.c,padding:"7px 13px"}}><span style={{color:"#fff",fontWeight:700,fontSize:11}}>{sec.n}</span></div>
@@ -708,7 +812,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
                 <div style={{flex:1}}>
                   <div style={{color:B.text,fontWeight:700,fontSize:12}}>
                     {it.n}
-                    {it.auto&&<span style={{background:"#D0021B22",color:B.red,fontSize:9,marginLeft:6,borderRadius:4,padding:"1px 5px"}}>Auto</span>}
+                    {it.auto&&<span style={{background:"#D0021B22",color:B.red,fontSize:9,marginLeft:6,borderRadius:4,padding:"1px 5px"}}>{t.autoLabel}</span>}
                   </div>
                   <div style={{color:B.muted,fontSize:10,marginTop:1}}>{it.d}</div>
                 </div>
@@ -719,7 +823,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
         ))}
         <div style={{...S.card(),marginBottom:13,overflow:"hidden"}}>
           <div style={{background:"#7D5A00",padding:"7px 13px",display:"flex",justifyContent:"space-between"}}>
-            <span style={{color:"#FFD700",fontWeight:700,fontSize:11}}>Bonus Items (max +10)</span>
+            <span style={{color:"#FFD700",fontWeight:700,fontSize:11}}>{t.bonusItems}</span>
             <span style={{color:"#FFD700",fontWeight:800}}>+{bon}</span>
           </div>
           {BONUS_ITEMS.map(b=>(
@@ -729,7 +833,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
             </div>
           ))}
         </div>
-        {canScore&&<button onClick={()=>onSave({...emp,scores:sc,total,grade:grade.label,bonusAmt:grade.amount})} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:13,boxShadow:`0 4px 18px ${B.red}44`})}}>Save Score</button>}
+        {canScore&&<button onClick={()=>onSave({...emp,scores:sc,total,grade:grade.label,bonusAmt:grade.amount})} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:13,boxShadow:`0 4px 18px ${B.red}44`})}}>{t.saveScore}</button>}
       </div>
     </div>
   );
@@ -740,12 +844,12 @@ function BonusConfig({bonusCfg,setBonusCfg}){
   const {t}=useLang();
   const [cfg,setCfg]=useState(bonusCfg);
   const saveIt=()=>{setBonusCfg(cfg);api.save("bonusConfig",cfg);alert("✓");};
-  const setT=(i,k,v)=>setCfg(c=>({...c,tiers:c.tiers.map((t,j)=>j===i?{...t,[k]:v}:t)}));
+  const setT=(i,k,v)=>setCfg(c=>({...c,tiers:c.tiers.map((tier,j)=>j===i?{...tier,[k]:v}:tier)}));
   return(
     <div>
-      <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>Bonus Configuration</div>
+      <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>{t.bonusConfig}</div>
       <div style={{...S.card(),padding:14,marginBottom:11}}>
-        <div style={{color:B.muted,fontSize:10,marginBottom:8}}>Bonus Type</div>
+        <div style={{color:B.muted,fontSize:10,marginBottom:8}}>{t.bonusType}</div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {[["fixed",t.fixedRM],["percentage",t.salaryPct],["custom",t.custom]].map(([v,l])=>(
             <button key={v} onClick={()=>setCfg(c=>({...c,type:v}))} style={{...S.btn(cfg.type===v?B.red:B.border,cfg.type===v?"#fff":B.muted,{fontSize:11})}}>{l}</button>
@@ -754,26 +858,26 @@ function BonusConfig({bonusCfg,setBonusCfg}){
       </div>
       <div style={{...S.card(),padding:14,marginBottom:11}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11}}>
-          <span style={{color:B.text,fontWeight:700}}>Grade Tiers</span>
-          <button onClick={()=>setCfg(c=>({...c,tiers:[...c.tiers,{label:"New Grade",minScore:50,amount:50,color:"#3498DB"}]}))} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 9px"})}}>+ Add</button>
+          <span style={{color:B.text,fontWeight:700}}>{t.gradeTiers}</span>
+          <button onClick={()=>setCfg(c=>({...c,tiers:[...c.tiers,{label:"New Grade",minScore:50,amount:50,color:"#3498DB"}]}))} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 9px"})}}>{t.addTier}</button>
         </div>
-        {cfg.tiers.map((t,i)=>(
-          <div key={i} style={{background:B.dark,borderRadius:9,padding:"10px 12px",marginBottom:7,border:`1px solid ${t.color}22`}}>
+        {cfg.tiers.map((tier,i)=>(
+          <div key={i} style={{background:B.dark,borderRadius:9,padding:"10px 12px",marginBottom:7,border:`1px solid ${tier.color}22`}}>
             <div style={{display:"grid",gridTemplateColumns:"1fr 65px 65px 32px",gap:7,alignItems:"center",marginBottom:7}}>
-              <input value={t.label} onChange={e=>setT(i,"label",e.target.value)} style={{...S.inp,fontSize:12}}/>
-              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Min Score</div><input type="number" value={t.minScore} onChange={e=>setT(i,"minScore",Number(e.target.value))} style={{...S.inp,textAlign:"center"}}/></div>
-              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{cfg.type==="percentage"?"%":"RM"}</div><input type="number" value={t.amount} onChange={e=>setT(i,"amount",Number(e.target.value))} style={{...S.inp,textAlign:"center"}}/></div>
+              <input value={tier.label} onChange={e=>setT(i,"label",e.target.value)} style={{...S.inp,fontSize:12}}/>
+              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.minScore}</div><input type="number" value={tier.minScore} onChange={e=>setT(i,"minScore",Number(e.target.value))} style={{...S.inp,textAlign:"center"}}/></div>
+              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{cfg.type==="percentage"?"%":"RM"}</div><input type="number" value={tier.amount} onChange={e=>setT(i,"amount",Number(e.target.value))} style={{...S.inp,textAlign:"center"}}/></div>
               <button onClick={()=>setCfg(c=>({...c,tiers:c.tiers.filter((_,j)=>j!==i)}))} style={{...S.btn("#2B0009","#E74C3C",{padding:"5px"})}}>X</button>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:7}}>
               <span style={{color:B.muted,fontSize:10}}>Color:</span>
-              <input type="color" value={t.color} onChange={e=>setT(i,"color",e.target.value)} style={{width:28,height:24,border:"none",background:"none",cursor:"pointer"}}/>
-              <div style={{background:t.color,color:"#fff",borderRadius:4,padding:"1px 8px",fontSize:11,fontWeight:700}}>{t.label}</div>
+              <input type="color" value={tier.color} onChange={e=>setT(i,"color",e.target.value)} style={{width:28,height:24,border:"none",background:"none",cursor:"pointer"}}/>
+              <div style={{background:tier.color,color:"#fff",borderRadius:4,padding:"1px 8px",fontSize:11,fontWeight:700}}>{tier.label}</div>
             </div>
           </div>
         ))}
       </div>
-      <button onClick={saveIt} style={{...S.btn(B.red,"#fff",{width:"100%",padding:11})}}>Save Bonus Settings</button>
+      <button onClick={saveIt} style={{...S.btn(B.red,"#fff",{width:"100%",padding:11})}}>{t.saveBonus}</button>
     </div>
   );
 }
@@ -791,12 +895,12 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg}){
 
   const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
   const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,...ev,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
-  const delUser=async id=>{if(!confirm("Delete this account?"))return;const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);};
+  const delUser=async id=>{if(!confirm(t.confirmDelete))return;const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);};
   const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const upd=[...users,{...nu,id:"u"+Date.now(),avatar:null}];setUsers(upd);await api.save("users",upd);setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false});};
 
   return(
     <div>
-      <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>Settings</div>
+      <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>{t.settings}</div>
       <div style={{display:"flex",gap:6,marginBottom:13,flexWrap:"wrap"}}>
         {[["users",t.accounts],["logo",t.logo],["bonus",t.bonus]].map(([tabKey,l])=>(
           <button key={tabKey} onClick={()=>setTab(tabKey)} style={{...S.btn(tab===tabKey?B.red:B.border,tab===tabKey?"#fff":B.muted,{fontSize:11})}}>{l}</button>
@@ -804,15 +908,15 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg}){
       </div>
 
       {tab==="logo"&&<div style={{...S.card(),padding:17}}>
-        <div style={{color:B.text,fontWeight:700,marginBottom:11}}>Company Logo</div>
+        <div style={{color:B.text,fontWeight:700,marginBottom:11}}>{t.companyLogo}</div>
         <div style={{display:"flex",gap:13,alignItems:"center",flexWrap:"wrap"}}>
           <div style={{background:B.dark,borderRadius:9,padding:"13px 18px",border:`1px solid ${B.border}`,minWidth:130,textAlign:"center"}}>
-            {logoUrl?<img src={logoUrl} style={{height:34,objectFit:"contain"}}/>:<span style={{color:B.muted,fontSize:11}}>No Logo</span>}
+            {logoUrl?<img src={logoUrl} style={{height:34,objectFit:"contain"}}/>:<span style={{color:B.muted,fontSize:11}}>{t.noLogo}</span>}
           </div>
           <div>
             <input ref={lRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{setLogoUrl(r.result);api.save("logo",{logoUrl:r.result});};r.readAsDataURL(f);}}/>
-            <button onClick={()=>lRef.current.click()} style={{...S.btn(B.red,"#fff",{marginBottom:7,display:"block"})}}>Upload Logo</button>
-            {logoUrl&&<button onClick={()=>{setLogoUrl(null);api.save("logo",{logoUrl:null});}} style={{...S.btn(B.border,B.muted,{fontSize:11})}}>Remove</button>}
+            <button onClick={()=>lRef.current.click()} style={{...S.btn(B.red,"#fff",{marginBottom:7,display:"block"})}}>{t.uploadLogo}</button>
+            {logoUrl&&<button onClick={()=>{setLogoUrl(null);api.save("logo",{logoUrl:null});}} style={{...S.btn(B.border,B.muted,{fontSize:11})}}>{t.remove}</button>}
           </div>
         </div>
       </div>}
@@ -821,24 +925,24 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg}){
 
       {tab==="users"&&<div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
-          <span style={{color:B.muted,fontSize:11}}>Click to edit an account</span>
-          <button onClick={()=>setShowAdd(true)} style={{...S.btn(B.red,"#fff",{fontSize:10,padding:"5px 10px"})}}>+ Add Account</button>
+          <span style={{color:B.muted,fontSize:11}}>{t.clickToEdit}</span>
+          <button onClick={()=>setShowAdd(true)} style={{...S.btn(B.red,"#fff",{fontSize:10,padding:"5px 10px"})}}>{t.addAccount}</button>
         </div>
         {showAdd&&<div style={{...S.card(),padding:13,marginBottom:9,border:`1px solid ${B.red}`}}>
-          <div style={{color:B.text,fontWeight:700,marginBottom:9}}>New Account</div>
+          <div style={{color:B.text,fontWeight:700,marginBottom:9}}>{t.newAccount}</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:9}}>
-            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Name</div><input value={nu.name} onChange={e=>setNu(p=>({...p,name:e.target.value}))} style={S.inp}/></div>
-            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>PIN (4 digits)</div><input value={nu.pin} maxLength={4} onChange={e=>setNu(p=>({...p,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>
-            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Role</div><select value={nu.role} onChange={e=>setNu(p=>({...p,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
-            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Department</div><select value={nu.dept} onChange={e=>setNu(p=>({...p,dept:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.name}</div><input value={nu.name} onChange={e=>setNu(p=>({...p,name:e.target.value}))} style={S.inp}/></div>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.pin}</div><input value={nu.pin} maxLength={4} onChange={e=>setNu(p=>({...p,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.role}</div><select value={nu.role} onChange={e=>setNu(p=>({...p,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.department}</div><select value={nu.dept} onChange={e=>setNu(p=>({...p,dept:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>
           </div>
           <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
             <input type="checkbox" checked={nu.canManage} onChange={e=>setNu(p=>({...p,canManage:e.target.checked}))}/>
-            <span style={{color:B.text,fontSize:11}}>Can manage other staff permissions</span>
+            <span style={{color:B.text,fontSize:11}}>{t.canManagePerm}</span>
           </label>
           <div style={{display:"flex",gap:7}}>
-            <button onClick={addUser} style={{...S.btn(B.red)}}>Add</button>
-            <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted)}}>Cancel</button>
+            <button onClick={addUser} style={{...S.btn(B.red)}}>{t.add}</button>
+            <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
           </div>
         </div>}
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -850,23 +954,23 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg}){
                     <Av src={u.avatar} name={u.name} dept={u.dept} size={44}/>
                     <div>
                       <input ref={aRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files[0])uploadAv(u.id,e.target.files[0]);}}/>
-                      <button onClick={()=>aRef.current.click()} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>Change Photo</button>
+                      <button onClick={()=>aRef.current.click()} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>{t.changePhoto}</button>
                     </div>
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:9}}>
-                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Name</div><input value={ev.name} onChange={e=>setEv(v=>({...v,name:e.target.value}))} style={S.inp}/></div>
-                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>PIN</div><input value={ev.pin} maxLength={4} onChange={e=>setEv(v=>({...v,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>
-                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Role</div><select value={ev.role} onChange={e=>setEv(v=>({...v,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
-                    {ev.role!=="boss"&&<div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Department</div><select value={ev.dept||""} onChange={e=>setEv(v=>({...v,dept:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>}
+                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.name}</div><input value={ev.name} onChange={e=>setEv(v=>({...v,name:e.target.value}))} style={S.inp}/></div>
+                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.pin}</div><input value={ev.pin} maxLength={4} onChange={e=>setEv(v=>({...v,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>
+                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.role}</div><select value={ev.role} onChange={e=>setEv(v=>({...v,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
+                    {ev.role!=="boss"&&<div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.department}</div><select value={ev.dept||""} onChange={e=>setEv(v=>({...v,dept:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>}
                   </div>
                   {ev.role!=="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
                     <input type="checkbox" checked={ev.canManage||false} onChange={e=>setEv(v=>({...v,canManage:e.target.checked}))}/>
-                    <span style={{color:B.text,fontSize:11}}>Can manage staff permissions</span>
+                    <span style={{color:B.text,fontSize:11}}>{t.canManagePerm}</span>
                   </label>}
                   <div style={{display:"flex",gap:7}}>
-                    <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?"Saving...":t.saveRecord}</button>
-                    <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>Cancel</button>
-                    {u.role!=="boss"&&<button onClick={()=>delUser(u.id)} style={{...S.btn("#2B0009","#E74C3C",{fontSize:12})}}>Delete</button>}
+                    <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?t.saving:t.save}</button>
+                    <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>{t.cancel}</button>
+                    {u.role!=="boss"&&<button onClick={()=>delUser(u.id)} style={{...S.btn("#2B0009","#E74C3C",{fontSize:12})}}>{t.delete}</button>}
                   </div>
                 </div>
               ):(
@@ -887,21 +991,26 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg}){
 }
 
 // ── DASHBOARD ────────────────────────────────────────
-function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,onLogout}){
+function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,onLogout}){
   const {lang,t,setLang}=useLang();
   const [tab,setTab]=useState("kpi");
   const [sel,setSel]=useState(null);
   const [quarter,setQuarter]=useState("Q2 2026");
-  const [showAdd,setShowAdd]=useState(false);
-  const [ne,setNe]=useState({name:"",role:"Senior Tech"});
   const isBoss=user.role==="boss";
   const canManage=isBoss||user.canManage;
   const isStaff=user.role==="staff";
   const vis=employees.filter(e=>isBoss?true:canManage?e.role===user.dept:e.name===user.name);
   const scored=vis.filter(e=>e.total!=null);
   const mvp=scored.length?scored.reduce((a,b)=>a.total>b.total?a:b):null;
+  const unreadFb=feedbacks.filter(f=>!f.read).length;
 
-  const tabs=[["kpi",t.kpi],["vehicle",t.vehicles],...(isStaff?[["mystats",t.myStats]]:[]),(canManage?[["settings",t.settings]]:[])[0]].filter(Boolean);
+  const tabs=[
+    ["kpi",t.kpi],
+    ["vehicle",t.vehicles],
+    ...(isStaff?[["mystats",t.myStats]]:[]),
+    ["feedback",t.feedback],
+    ...(canManage?[["settings",t.settings]]:[]),
+  ];
 
   if(sel)return<ScoringPage user={user} emp={{...sel,quarter,userId:users.find(u=>u.name===sel.name)?.id}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>e.id===upd.id?upd:e);setEmployees(u);api.save("employees",u);setSel(null);}}/>;
 
@@ -910,7 +1019,14 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
       <div style={{background:"#0A0C10",borderBottom:`1px solid ${B.border}`,padding:"0 15px",position:"sticky",top:0,zIndex:10}}>
         <div style={{maxWidth:920,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:54}}>
           {logoUrl?<img src={logoUrl} style={{height:30,objectFit:"contain",maxWidth:140}}/>:<svg width="96" height="22" viewBox="0 0 96 22"><text x="0" y="17" fontFamily="Arial Black" fontSize="20" fontWeight="900" fill="#D0021B" fontStyle="italic">KC</text><text x="37" y="12" fontFamily="Arial" fontSize="9" fontWeight="700" fill="#FFF" letterSpacing="1">AUTO</text><text x="37" y="20" fontFamily="Arial" fontSize="7" fontWeight="600" fill="#666" letterSpacing="1">WORKSHOP</text></svg>}
-          <div style={{display:"flex",gap:3}}>{tabs.map(([t,l])=><button key={t} onClick={()=>setTab(t)} style={{...S.btn(tab===t?B.red:"transparent",tab===t?"#fff":B.muted,{fontSize:11,padding:"5px 10px"})}}>{l}</button>)}</div>
+          <div style={{display:"flex",gap:3,flexWrap:"wrap",justifyContent:"center"}}>
+            {tabs.map(([tabKey,l])=>(
+              <button key={tabKey} onClick={()=>setTab(tabKey)} style={{...S.btn(tab===tabKey?B.red:"transparent",tab===tabKey?"#fff":B.muted,{fontSize:11,padding:"5px 10px",position:"relative"})}}>
+                {l}
+                {tabKey==="feedback"&&isBoss&&unreadFb>0&&<span style={{position:"absolute",top:-2,right:-2,background:B.red,color:"#fff",borderRadius:"50%",width:14,height:14,fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900}}>{unreadFb}</span>}
+              </button>
+            ))}
+          </div>
           <div style={{display:"flex",alignItems:"center",gap:7}}>
             <LangSwitcher lang={lang} setLang={setLang}/>
             <Av src={user.avatar} name={user.name} size={28}/>
@@ -921,13 +1037,13 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
       <div style={{maxWidth:920,margin:"0 auto",padding:"15px 13px"}}>
         {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles} allUsers={users}/>}
         {tab==="mystats"&&isStaff&&<PersonalStats user={user} vehicles={vehicles}/>}
+        {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
         {tab==="settings"&&canManage&&<SettingsPage users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg}/>}
         {tab==="kpi"&&<>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
             <select value={quarter} onChange={e=>setQuarter(e.target.value)} style={{background:B.card,border:`1px solid ${B.border}`,color:B.text,padding:"7px 11px",borderRadius:9,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
               {["Q1 2025","Q2 2025","Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026","Q4 2026"].map(q=><option key={q}>{q}</option>)}
             </select>
-            {canManage&&<button onClick={()=>setShowAdd(true)} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addStaff}</button>}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:13}}>
             {[[t.staff,vis.length,B.muted],[t.scored,scored.length,"#3498DB"],[t.pass,scored.filter(e=>e.total>=CRIT[e.role].t).length,"#2ECC71"],[t.excellent,scored.filter(e=>e.total>=90).length,"#F1C40F"]].map(([l,v,c])=>(
@@ -966,7 +1082,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
                             {grade&&<div style={{background:grade.color+"22",color:grade.color,borderRadius:4,padding:"1px 5px",fontSize:9,fontWeight:700}}>RM{grade.amount}</div>}
                           </div>
                           {emp.total!=null?(<div>
-                            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{color:B.muted,fontSize:9}}>Score</span><span style={{color:grade.color,fontWeight:800,fontSize:11,fontFamily:"'IBM Plex Mono',monospace"}}>{emp.total}</span></div>
+                            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{color:B.muted,fontSize:9}}>{t.score}</span><span style={{color:grade.color,fontWeight:800,fontSize:11,fontFamily:"'IBM Plex Mono',monospace"}}>{emp.total}</span></div>
                             <div style={{height:3,background:B.border,borderRadius:99,overflow:"hidden"}}><div style={{width:`${Math.min(emp.total,110)/110*100}%`,height:"100%",background:grade.color,borderRadius:99}}/></div>
                             <div style={{color:B.muted,fontSize:9,marginTop:2}}>{grade.label}</div>
                           </div>):<div style={{color:B.muted,fontSize:9}}>{canManage?t.tapToScore:t.pending}</div>}
@@ -980,17 +1096,6 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
           })}
         </>}
       </div>
-      {showAdd&&canManage&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}}>
-        <div style={{...S.card(),padding:21,width:"100%",maxWidth:330}}>
-          <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:15}}>Add Staff</div>
-          <div style={{marginBottom:9}}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>Name</div><input value={ne.name} onChange={e=>setNe(p=>({...p,name:e.target.value}))} style={S.inp}/></div>
-          <div style={{marginBottom:15}}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>Department</div><select value={ne.role} onChange={e=>setNe(p=>({...p,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>
-          <div style={{display:"flex",gap:7}}>
-            <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted,{flex:1})}}>Cancel</button>
-            <button onClick={()=>{if(!ne.name.trim())return;const upd=[...employees,{id:Date.now(),name:ne.name.trim(),role:ne.role,quarter,total:null,scores:{},avatar:null}];setEmployees(upd);api.save("employees",upd);setShowAdd(false);setNe({name:"",role:"Senior Tech"});}} style={{...S.btn(B.red,"#fff",{flex:2})}}>Add</button>
-          </div>
-        </div>
-      </div>}
     </div>
   );
 }
@@ -1039,6 +1144,7 @@ function App(){
   const [vehicles,setVehicles]=useState([]);
   const [logoUrl,setLogoUrl]=useState(null);
   const [bonusCfg,setBonusCfg]=useState(DEF_BONUS);
+  const [feedbacks,setFeedbacks]=useState([]);
 
   useEffect(()=>{
     api.load().then(d=>{
@@ -1047,6 +1153,7 @@ function App(){
       setVehicles(d.vehicles||[]);
       setLogoUrl(d.logoUrl||null);
       setBonusCfg(d.bonusConfig||DEF_BONUS);
+      setFeedbacks(d.feedbacks||[]);
       setReady(true);
     }).catch(()=>{setUsers(DEF_USERS);setEmployees(DEF_EMP);setReady(true);});
   },[]);
@@ -1058,7 +1165,8 @@ function App(){
         ?<Login users={users} logoUrl={logoUrl} onLogin={setUser} lang={lang} setLang={handleLang}/>
         :<Dashboard user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl}
             employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles}
-            bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} onLogout={()=>setUser(null)}/>}
+            bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} feedbacks={feedbacks} setFeedbacks={setFeedbacks}
+            onLogout={()=>setUser(null)}/>}
     </LangContext.Provider>
   );
 }
