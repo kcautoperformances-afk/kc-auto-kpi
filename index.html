@@ -27,19 +27,20 @@ const {useState,useEffect,useRef,useMemo}=React;
 const B={red:"#D0021B",dark:"#0F1117",card:"#16191F",card2:"#1E2128",border:"#252830",text:"#F0F0F0",muted:"#7A7F8E"};
 const DEPTS=["Tech Intern","Senior Tech","Tuner","Admin","Store","Media"];
 const DC={"Tech Intern":"#3498DB","Senior Tech":"#F1C40F","Tuner":"#E74C3C","Admin":"#2ECC71","Store":"#E67E22","Media":"#9B59B6"};
-const ROLES=["boss","manager","staff"];
-const RL={boss:"Boss",manager:"Manager",staff:"Staff"};
+const ROLES=["boss","manager","tech_head","staff"];
+const RL={boss:"Boss",manager:"Manager",tech_head:"Tech Head",staff:"Staff"};
 
 const DEF_USERS=[
-  {id:"boss0",name:"Boss Katak",role:"boss",pin:"1234",dept:null,canManage:true,canViewAll:true,canScore:true,avatar:null},
-  {id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,canViewAll:true,canScore:true,avatar:null},
-  {id:"mgr1",name:"Manager 1",role:"manager",pin:"1111",dept:"Senior Tech",canManage:true,avatar:null},
-  {id:"emp1",name:"Staff 1",role:"staff",pin:"3333",dept:"Senior Tech",canManage:false,avatar:null},
-  {id:"emp2",name:"Staff 2",role:"staff",pin:"4444",dept:"Tuner",canManage:false,avatar:null},
-  {id:"emp3",name:"Staff 3",role:"staff",pin:"5555",dept:"Admin",canManage:false,avatar:null},
-  {id:"emp4",name:"Staff 4",role:"staff",pin:"6666",dept:"Tech Intern",canManage:false,avatar:null},
-  {id:"emp5",name:"Staff 5",role:"staff",pin:"7777",dept:"Store",canManage:false,avatar:null},
-  {id:"emp6",name:"Staff 6",role:"staff",pin:"8888",dept:"Media",canManage:false,avatar:null},
+  {id:"boss0",name:"Boss Katak",role:"boss",pin:"1234",dept:null,canManage:true,canViewAll:true,canScore:true,canResetPin:true,canAttendance:true,canVehicle:true,avatar:null},
+  {id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,canViewAll:true,canScore:true,canResetPin:true,canAttendance:true,canVehicle:true,avatar:null},
+  {id:"mgr1",name:"Manager 1",role:"manager",pin:"1111",dept:"Senior Tech",canManage:true,canViewAll:false,canScore:true,canResetPin:false,canAttendance:true,canVehicle:true,avatar:null},
+  {id:"th1",name:"Tech Head 1",role:"tech_head",pin:"2222",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:true,avatar:null},
+  {id:"emp1",name:"Staff 1",role:"staff",pin:"3333",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
+  {id:"emp2",name:"Staff 2",role:"staff",pin:"4444",dept:"Tuner",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
+  {id:"emp3",name:"Staff 3",role:"staff",pin:"5555",dept:"Admin",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
+  {id:"emp4",name:"Staff 4",role:"staff",pin:"6666",dept:"Tech Intern",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
+  {id:"emp5",name:"Staff 5",role:"staff",pin:"7777",dept:"Store",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
+  {id:"emp6",name:"Staff 6",role:"staff",pin:"8888",dept:"Media",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
 ];
 const DEF_EMP=[
   {id:1,name:"Staff 1",role:"Senior Tech",quarter:"Q2 2026",total:null,scores:{},avatar:null},
@@ -385,7 +386,7 @@ const T={
     eachTechShare:"Each tech shares",overtimePct:"% overtime",
     vehicles_tracker:"Vehicle Time Tracker",vehicles_subtitle:"Auto overtime calc · Up to 4 technicians · Shared KPI impact",
     autoLabel:"Auto",threshold:"Threshold",
-    canViewAll:"Can view all departments",canViewAllShort:"All Depts",ownDeptOnly:"Own Dept Only",canScore:"Can score staff KPI",feedbackTitle:"Anonymous Feedback",feedbackSubtitle:"Your message is completely anonymous",
+    canViewAll:"Can view all departments",canViewAllShort:"All Depts",ownDeptOnly:"Own Dept Only",canScore:"Can score staff KPI",canResetPin:"Can reset staff PIN",canAttendance:"Can manage attendance",canVehicle:"Can manage vehicles",techHead:"Tech Head",feedbackTitle:"Anonymous Feedback",feedbackSubtitle:"Your message is completely anonymous",
     feedbackPlaceholder:"Share your thoughts, suggestions or concerns...",
     feedbackSend:"Send Feedback",feedbackSent:"Feedback sent!",feedbackEmpty:"Please write something first",
     feedbackInbox:"Feedback Inbox",feedbackCount:"messages",feedbackNone:"No feedback yet",
@@ -421,7 +422,7 @@ const T={
     eachTechShare:"每位技师分担",overtimePct:"%超时",
     vehicles_tracker:"车辆时间追踪",vehicles_subtitle:"超时自动计算 · 最多4位技师 · 平均分担KPI",
     autoLabel:"自动",threshold:"达标门槛",
-    canViewAll:"可以查看全部部门",canViewAllShort:"全部部门",ownDeptOnly:"只看本部门",canScore:"可以打分",feedbackTitle:"匿名反馈",feedbackSubtitle:"您的留言完全匿名",
+    canViewAll:"可以查看全部部门",canViewAllShort:"全部部门",ownDeptOnly:"只看本部门",canScore:"可以打分",canResetPin:"可以重置员工密码",canAttendance:"可以管理出席记录",canVehicle:"可以管理车辆记录",techHead:"技术主管",feedbackTitle:"匿名反馈",feedbackSubtitle:"您的留言完全匿名",
     feedbackPlaceholder:"分享您的想法、建议或意见...",
     feedbackSend:"发送反馈",feedbackSent:"反馈已发送！",feedbackEmpty:"请先输入内容",
     feedbackInbox:"反馈收件箱",feedbackCount:"条留言",feedbackNone:"暂无反馈",
@@ -457,7 +458,7 @@ const T={
     eachTechShare:"Setiap teknisi kongsi",overtimePct:"% lebih masa",
     vehicles_tracker:"Penjejak Masa Kenderaan",vehicles_subtitle:"Kira lebih masa auto · Maks 4 teknisi · KPI dikongsi",
     autoLabel:"Auto",threshold:"Had Lulus",
-    canViewAll:"Boleh lihat semua jabatan",canViewAllShort:"Semua Jabatan",ownDeptOnly:"Jabatan Sendiri",canScore:"Boleh beri markah",feedbackTitle:"Maklum Balas Tanpa Nama",feedbackSubtitle:"Mesej anda adalah tanpa nama sepenuhnya",
+    canViewAll:"Boleh lihat semua jabatan",canViewAllShort:"Semua Jabatan",ownDeptOnly:"Jabatan Sendiri",canScore:"Boleh beri markah",canResetPin:"Boleh reset PIN pekerja",canAttendance:"Boleh urus kehadiran",canVehicle:"Boleh urus rekod kenderaan",techHead:"Ketua Teknikal",feedbackTitle:"Maklum Balas Tanpa Nama",feedbackSubtitle:"Mesej anda adalah tanpa nama sepenuhnya",
     feedbackPlaceholder:"Kongsi pendapat, cadangan atau kebimbangan anda...",
     feedbackSend:"Hantar Maklum Balas",feedbackSent:"Maklum balas dihantar!",feedbackEmpty:"Sila tulis sesuatu dahulu",
     feedbackInbox:"Peti Masuk Maklum Balas",feedbackCount:"mesej",feedbackNone:"Tiada maklum balas lagi",
@@ -493,7 +494,7 @@ const T={
     eachTechShare:"ช่างแต่ละคนรับผิดชอบ",overtimePct:"% ล่าช้า",
     vehicles_tracker:"ติดตามเวลายานพาหนะ",vehicles_subtitle:"คำนวณล่าช้าอัตโนมัติ · ช่างสูงสุด 4 คน · KPI แบ่งเท่าๆ",
     autoLabel:"อัตโนมัติ",threshold:"เกณฑ์ผ่าน",
-    canViewAll:"ดูได้ทุกแผนก",canViewAllShort:"ทุกแผนก",ownDeptOnly:"แผนกตัวเอง",canScore:"สามารถให้คะแนนได้",feedbackTitle:"ความคิดเห็นแบบไม่ระบุชื่อ",feedbackSubtitle:"ข้อความของคุณเป็นความลับ",
+    canViewAll:"ดูได้ทุกแผนก",canViewAllShort:"ทุกแผนก",ownDeptOnly:"แผนกตัวเอง",canScore:"สามารถให้คะแนนได้",canResetPin:"รีเซ็ต PIN พนักงานได้",canAttendance:"จัดการการเข้างานได้",canVehicle:"จัดการรถได้",techHead:"หัวหน้าช่าง",feedbackTitle:"ความคิดเห็นแบบไม่ระบุชื่อ",feedbackSubtitle:"ข้อความของคุณเป็นความลับ",
     feedbackPlaceholder:"แบ่งปันความคิด ข้อเสนอแนะ หรือความกังวลของคุณ...",
     feedbackSend:"ส่งความคิดเห็น",feedbackSent:"ส่งแล้ว!",feedbackEmpty:"กรุณาเขียนข้อความก่อน",
     feedbackInbox:"กล่องข้อความ",feedbackCount:"ข้อความ",feedbackNone:"ยังไม่มีความคิดเห็น",
@@ -529,7 +530,7 @@ const T={
     eachTechShare:"နည်းပညာတစ်ယောက်စီ",overtimePct:"% နောက်ကျ",
     vehicles_tracker:"ယာဉ်အချိန်ခြေရာခံ",vehicles_subtitle:"အလိုအလျောက်နောက်ကျတွက်ချက် · နည်းပညာ ၄ ယောက်",
     autoLabel:"အလိုအလျောက်",threshold:"ပြင်ဆင်ခြင်းနှုန်း",
-    canViewAll:"ဌာနအားလုံးကြည့်နိုင်",canViewAllShort:"ဌာနအားလုံး",ownDeptOnly:"မိမိဌာနသာ",canScore:"မှတ်ကြမ်းနိုင်သည်",feedbackTitle:"အမည်မဖော်ပြ အကြံပြုချက်",feedbackSubtitle:"သင်၏မက်ဆေ့ချ် လုံးဝလျှို့ဝှက်သည်",
+    canViewAll:"ဌာနအားလုံးကြည့်နိုင်",canViewAllShort:"ဌာနအားလုံး",ownDeptOnly:"မိမိဌာနသာ",canScore:"မှတ်ကြမ်းနိုင်သည်",canResetPin:"ဝန်ထမ်း PIN ပြန်လည်သတ်မှတ်နိုင်",canAttendance:"တက်ရောက်မှုစီမံနိုင်",canVehicle:"ယာဉ်မှတ်တမ်းစီမံနိုင်",techHead:"နည်းပညာအကြီး",feedbackTitle:"အမည်မဖော်ပြ အကြံပြုချက်",feedbackSubtitle:"သင်၏မက်ဆေ့ချ် လုံးဝလျှို့ဝှက်သည်",
     feedbackPlaceholder:"သင်၏အတွေးများ၊ အကြံဉာဏ်များ သို့မဟုတ် စိုးရိမ်မှုများ မျှဝေပါ...",
     feedbackSend:"အကြံပြုချက်ပို့မည်",feedbackSent:"ပို့ပြီးပါပြီ!",feedbackEmpty:"ကျေးဇူးပြု၍ ဦးစွာကိုယ်ချင်းစာပါ",
     feedbackInbox:"အကြံပြုချက်ပုံး",feedbackCount:"မက်ဆေ့ချ်",feedbackNone:"အကြံပြုချက်မရှိသေး",
@@ -861,7 +862,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
   const [uploading,setUploading]=useState(false);
   const [aiResult,setAiResult]=useState(null);
   const fRef=useRef();
-  const canEdit=user.role==="boss"||user.role==="manager"||user.canManage;
+  const canEdit=user.role==="boss"||user.role==="manager"||user.role==="tech_head"||user.canVehicle||user.canManage;
   const save=v=>{setVehicles(v);api.save("vehicles",v);};
 
   const toggleStaff=id=>{
@@ -1145,19 +1146,20 @@ function BonusConfig({bonusCfg,setBonusCfg}){
 }
 
 // ── SETTINGS ─────────────────────────────────────────
-function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,employees,setEmployees}){
+function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,employees,setEmployees}){
   const {t}=useLang();
   const [tab,setTab]=useState("users");
   const [editing,setEditing]=useState(null);
   const [ev,setEv]=useState({});
   const [saving,setSaving]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
-  const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false});
+  const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false});
   const lRef=useRef(),aRef=useRef();
 
   const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
   const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,...ev,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
   const resetPwd=async(uid,name)=>{
+    const upd_user=users.find(u=>u.id===uid);
     const newPwd=prompt(`重置 ${name} 的密码为：`);
     if(!newPwd||newPwd.length<4){alert("密码至少4位");return;}
     const upd=users.map(u=>u.id===uid?{...u,pin:newPwd}:u);
@@ -1165,7 +1167,7 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
     alert(`✅ ${name} 密码已重置`);
   };
   const delUser=async id=>{if(!confirm(t.confirmDelete))return;const target=users.find(u=>u.id===id);const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);if(target){const empUpd=employees.filter(e=>e.name!==target.name);setEmployees(empUpd);await api.save("employees",empUpd);}};
-  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false});};
+  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false});};
 
   return(
     <div>
@@ -1231,6 +1233,18 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
             <input type="checkbox" checked={nu.canScore||false} onChange={e=>setNu(p=>({...p,canScore:e.target.checked}))}/>
             <span style={{color:B.text,fontSize:11}}>{t.canScore}</span>
           </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canResetPin||false} onChange={e=>setNu(p=>({...p,canResetPin:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>{t.canResetPin}</span>
+          </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canAttendance||false} onChange={e=>setNu(p=>({...p,canAttendance:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>{t.canAttendance}</span>
+          </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canVehicle||false} onChange={e=>setNu(p=>({...p,canVehicle:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>{t.canVehicle}</span>
+          </label>
           <div style={{display:"flex",gap:7}}>
             <button onClick={addUser} style={{...S.btn(B.red)}}>{t.add}</button>
             <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
@@ -1250,36 +1264,48 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:9}}>
                     <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.name}</div><input value={ev.name} onChange={e=>setEv(v=>({...v,name:e.target.value}))} style={S.inp}/></div>
-                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.pin}</div><input value={ev.pin} maxLength={4} onChange={e=>setEv(v=>({...v,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>
+                    {user.role==="boss"&&<div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.pin}</div><input value={ev.pin} maxLength={4} onChange={e=>setEv(v=>({...v,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>}
                     <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.role}</div><select value={ev.role} onChange={e=>setEv(v=>({...v,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
                     {ev.role!=="boss"&&<div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{t.department}</div><select value={ev.dept||""} onChange={e=>setEv(v=>({...v,dept:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>}
                   </div>
-                  {ev.role!=="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
                     <input type="checkbox" checked={ev.canManage||false} onChange={e=>setEv(v=>({...v,canManage:e.target.checked}))}/>
                     <span style={{color:B.text,fontSize:11}}>{t.canManagePerm}</span>
                   </label>}
-                  {ev.role!=="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
                     <input type="checkbox" checked={ev.canViewAll||false} onChange={e=>setEv(v=>({...v,canViewAll:e.target.checked}))}/>
                     <span style={{color:B.text,fontSize:11}}>{t.canViewAll}</span>
                   </label>}
-                  {ev.role!=="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
                     <input type="checkbox" checked={ev.canScore||false} onChange={e=>setEv(v=>({...v,canScore:e.target.checked}))}/>
                     <span style={{color:B.text,fontSize:11}}>{t.canScore}</span>
+                  </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canResetPin||false} onChange={e=>setEv(v=>({...v,canResetPin:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>{t.canResetPin}</span>
+                  </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canAttendance||false} onChange={e=>setEv(v=>({...v,canAttendance:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>{t.canAttendance}</span>
+                  </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canVehicle||false} onChange={e=>setEv(v=>({...v,canVehicle:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>{t.canVehicle}</span>
                   </label>}
                   <div style={{display:"flex",gap:7}}>
                     <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?t.saving:t.save}</button>
                     <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>{t.cancel}</button>
                     {u.role!=="boss"&&<button onClick={()=>delUser(u.id)} style={{...S.btn("#2B0009","#E74C3C",{fontSize:12})}}>{t.delete}</button>}
-                    <button onClick={()=>resetPwd(u.id,u.name)} style={{...S.btn("#1A1A00","#F1C40F",{fontSize:12})}}>🔑 重置密码</button>
+                    {user.role==="boss"&&<button onClick={()=>resetPwd(u.id,u.name)} style={{...S.btn("#1A1A00","#F1C40F",{fontSize:12})}}>🔑 重置密码</button>}
                   </div>
                 </div>
               ):(
-                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false,canViewAll:u.canViewAll||false,canScore:u.canScore||false});}}
+                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false,canViewAll:u.canViewAll||false,canScore:u.canScore||false,canResetPin:u.canResetPin||false,canAttendance:u.canAttendance||false,canVehicle:u.canVehicle||false});}}
                   style={{...S.card(),padding:10,cursor:"pointer",display:"flex",alignItems:"center",gap:9,transition:"border .2s"}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
                   <Av src={u.avatar} name={u.name} dept={u.dept} size={38}/>
-                  <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div><div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (can manage)":""}{u.canViewAll?" · "+t.canViewAllShort:""}{u.canScore?" · ✏️":""}</div></div>
-                  <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>••••</div>
+                  <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div><div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (manage)":""}{u.canViewAll?" · "+t.canViewAllShort:""}{u.canScore?" · ✏️":""}{u.canResetPin?" · 🔑":""}{u.canAttendance?" · 📋":""}{u.canVehicle?" · 🚗":""}</div></div>
+                  <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>{user.role==="boss"?u.pin:"••••"}</div>
                 </div>
               )}
             </div>
@@ -1299,9 +1325,13 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
   const [showAddEmp,setShowAddEmp]=useState(false);
   const [ne,setNe]=useState({name:"",role:"Senior Tech"});
   const isBoss=user.role==="boss";
-  const canManage=isBoss||user.canManage;
+  const isTechHead=user.role==="tech_head";
+  const canManage=isBoss||user.role==="manager"||user.canManage;
   const canViewAll=isBoss||user.canViewAll;
   const isStaff=user.role==="staff";
+  const canAttendance=isBoss||user.canAttendance;
+  const canVehicle=isBoss||user.role==="manager"||isTechHead||user.canVehicle;
+  const canResetPin=isBoss||user.canResetPin;
   const vis=employees.filter(e=>canViewAll?true:canManage?e.role===user.dept:e.name===user.name);
   const scored=vis.filter(e=>e.total!=null);
   const mvp=scored.length?scored.reduce((a,b)=>a.total>b.total?a:b):null;
@@ -1310,9 +1340,10 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
   const tabs=[
     ["kpi",t.kpi],
     ["vehicle",t.vehicles],
-    ...(isStaff?[["mystats",t.myStats]]:[]),
+    ...(isStaff||isTechHead?[["mystats",t.myStats]]:[]),
     ["feedback",t.feedback],
-    ...(canManage?[["attendance","出席"],["history","历史"],["settings",t.settings]]:[]),
+    ...(canAttendance?[["attendance","出席"]]:[]),
+    ...(canManage?[["history","历史"],["settings",t.settings]]:[]),
   ];
 
   const [showChangePwd,setShowChangePwd]=useState(false);
@@ -1336,7 +1367,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     <div style={{minHeight:"100vh",background:B.dark}}>
       <div style={{background:"#0A0C10",borderBottom:`1px solid ${B.border}`,padding:"0 15px",position:"sticky",top:0,zIndex:10}}>
         <div style={{maxWidth:920,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:54}}>
-          {logoUrl?<img src={logoUrl} style={{height:30,objectFit:"contain",maxWidth:140}}/>:<svg width="96" height="22" viewBox="0 0 96 22"><text x="0" y="17" fontFamily="Arial Black" fontSize="20" fontWeight="900" fill="#D0021B" fontStyle="italic">KC</text><text x="37" y="12" fontFamily="Arial" fontSize="9" fontWeight="700" fill="#FFF" letterSpacing="1">AUTO</text><text x="37" y="20" fontFamily="Arial" fontSize="7" fontWeight="600" fill="#666" letterSpacing="1">WORKSHOP</text></svg>}
+          {logoUrl?<img src={logoUrl} style={{height:30,objectFit:"contain",maxWidth:140}}/>:<svg width="140" height="28" viewBox="0 0 140 28"><rect width="140" height="28" fill="#000" rx="4"/><text x="6" y="22" fontFamily="Arial Black,Impact,sans-serif" fontSize="22" fontWeight="900" fill="#D0021B" fontStyle="italic" letterSpacing="-1">KC</text><text x="52" y="14" fontFamily="Arial,sans-serif" fontSize="11" fontWeight="700" fill="#FFFFFF" letterSpacing="1" fontStyle="italic">AUTO</text><text x="52" y="25" fontFamily="Arial,sans-serif" fontSize="8" fontWeight="700" fill="#CCCCCC" letterSpacing="2">WORKSHOP</text></svg>}
           <div style={{display:"flex",gap:3,flexWrap:"wrap",justifyContent:"center"}}>
             {tabs.map(([tabKey,l])=>(
               <button key={tabKey} onClick={()=>setTab(tabKey)} style={{...S.btn(tab===tabKey?B.red:"transparent",tab===tabKey?"#fff":B.muted,{fontSize:11,padding:"5px 10px",position:"relative"})}}>
@@ -1355,11 +1386,11 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
       </div>
       <div style={{maxWidth:920,margin:"0 auto",padding:"15px 13px"}}>
         {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles} allUsers={users}/>}
-        {tab==="mystats"&&isStaff&&<PersonalStats user={user} vehicles={vehicles}/>}
+        {tab==="mystats"&&(isStaff||isTechHead)&&<PersonalStats user={user} vehicles={vehicles}/>}
         {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
-        {tab==="attendance"&&canManage&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
+        {tab==="attendance"&&canAttendance&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
         {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
-        {tab==="settings"&&canManage&&<SettingsPage users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} employees={employees} setEmployees={setEmployees}/>}
+        {tab==="settings"&&canManage&&<SettingsPage user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} employees={employees} setEmployees={setEmployees}/>}
         {tab==="kpi"&&<>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
             <select value={quarter} onChange={e=>setQuarter(e.target.value)} style={{background:B.card,border:`1px solid ${B.border}`,color:B.text,padding:"7px 11px",borderRadius:9,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
@@ -1626,7 +1657,7 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
   return(
     <div style={{minHeight:"100vh",background:B.dark,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{position:"absolute",top:16,right:16}}><LangSwitcher lang={lang} setLang={setLang}/></div>
-      <div style={{marginBottom:20}}>{logoUrl?<img src={logoUrl} style={{height:42,objectFit:"contain"}}/>:<svg width="120" height="28" viewBox="0 0 120 28"><text x="0" y="22" fontFamily="Arial Black" fontSize="26" fontWeight="900" fill="#D0021B" fontStyle="italic">KC</text><text x="48" y="16" fontFamily="Arial" fontSize="11" fontWeight="700" fill="#FFF" letterSpacing="1">AUTO</text><text x="48" y="25" fontFamily="Arial" fontSize="8" fontWeight="600" fill="#666" letterSpacing="2">WORKSHOP</text></svg>}</div>
+      <div style={{marginBottom:20}}>{logoUrl?<img src={logoUrl} style={{height:42,objectFit:"contain"}}/>:<svg width="180" height="36" viewBox="0 0 180 36"><rect width="180" height="36" fill="#000" rx="6"/><text x="8" y="28" fontFamily="Arial Black,Impact,sans-serif" fontSize="28" fontWeight="900" fill="#D0021B" fontStyle="italic" letterSpacing="-1">KC</text><text x="66" y="17" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#FFFFFF" letterSpacing="2" fontStyle="italic">AUTO</text><text x="66" y="30" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#CCCCCC" letterSpacing="2">WORKSHOP</text></svg>}</div>
       <div style={{...S.card(),padding:19,width:"100%",maxWidth:350}}>
         <div style={{color:B.muted,fontSize:10,letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>{t.selectAccount}</div>
         <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:13,maxHeight:270,overflowY:"auto"}}>
