@@ -31,8 +31,8 @@ const ROLES=["boss","manager","staff"];
 const RL={boss:"Boss",manager:"Manager",staff:"Staff"};
 
 const DEF_USERS=[
-  {id:"boss0",name:"Boss Katak",role:"boss",pin:"1234",dept:null,canManage:true,avatar:null},
-  {id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,avatar:null},
+  {id:"boss0",name:"Boss Katak",role:"boss",pin:"1234",dept:null,canManage:true,canViewAll:true,canScore:true,avatar:null},
+  {id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,canViewAll:true,canScore:true,avatar:null},
   {id:"mgr1",name:"Manager 1",role:"manager",pin:"1111",dept:"Senior Tech",canManage:true,avatar:null},
   {id:"emp1",name:"Staff 1",role:"staff",pin:"3333",dept:"Senior Tech",canManage:false,avatar:null},
   {id:"emp2",name:"Staff 2",role:"staff",pin:"4444",dept:"Tuner",canManage:false,avatar:null},
@@ -385,7 +385,7 @@ const T={
     eachTechShare:"Each tech shares",overtimePct:"% overtime",
     vehicles_tracker:"Vehicle Time Tracker",vehicles_subtitle:"Auto overtime calc · Up to 4 technicians · Shared KPI impact",
     autoLabel:"Auto",threshold:"Threshold",
-    feedbackTitle:"Anonymous Feedback",feedbackSubtitle:"Your message is completely anonymous",
+    canViewAll:"Can view all departments",canViewAllShort:"All Depts",ownDeptOnly:"Own Dept Only",canScore:"Can score staff KPI",feedbackTitle:"Anonymous Feedback",feedbackSubtitle:"Your message is completely anonymous",
     feedbackPlaceholder:"Share your thoughts, suggestions or concerns...",
     feedbackSend:"Send Feedback",feedbackSent:"Feedback sent!",feedbackEmpty:"Please write something first",
     feedbackInbox:"Feedback Inbox",feedbackCount:"messages",feedbackNone:"No feedback yet",
@@ -421,7 +421,7 @@ const T={
     eachTechShare:"每位技师分担",overtimePct:"%超时",
     vehicles_tracker:"车辆时间追踪",vehicles_subtitle:"超时自动计算 · 最多4位技师 · 平均分担KPI",
     autoLabel:"自动",threshold:"达标门槛",
-    feedbackTitle:"匿名反馈",feedbackSubtitle:"您的留言完全匿名",
+    canViewAll:"可以查看全部部门",canViewAllShort:"全部部门",ownDeptOnly:"只看本部门",canScore:"可以打分",feedbackTitle:"匿名反馈",feedbackSubtitle:"您的留言完全匿名",
     feedbackPlaceholder:"分享您的想法、建议或意见...",
     feedbackSend:"发送反馈",feedbackSent:"反馈已发送！",feedbackEmpty:"请先输入内容",
     feedbackInbox:"反馈收件箱",feedbackCount:"条留言",feedbackNone:"暂无反馈",
@@ -457,7 +457,7 @@ const T={
     eachTechShare:"Setiap teknisi kongsi",overtimePct:"% lebih masa",
     vehicles_tracker:"Penjejak Masa Kenderaan",vehicles_subtitle:"Kira lebih masa auto · Maks 4 teknisi · KPI dikongsi",
     autoLabel:"Auto",threshold:"Had Lulus",
-    feedbackTitle:"Maklum Balas Tanpa Nama",feedbackSubtitle:"Mesej anda adalah tanpa nama sepenuhnya",
+    canViewAll:"Boleh lihat semua jabatan",canViewAllShort:"Semua Jabatan",ownDeptOnly:"Jabatan Sendiri",canScore:"Boleh beri markah",feedbackTitle:"Maklum Balas Tanpa Nama",feedbackSubtitle:"Mesej anda adalah tanpa nama sepenuhnya",
     feedbackPlaceholder:"Kongsi pendapat, cadangan atau kebimbangan anda...",
     feedbackSend:"Hantar Maklum Balas",feedbackSent:"Maklum balas dihantar!",feedbackEmpty:"Sila tulis sesuatu dahulu",
     feedbackInbox:"Peti Masuk Maklum Balas",feedbackCount:"mesej",feedbackNone:"Tiada maklum balas lagi",
@@ -493,7 +493,7 @@ const T={
     eachTechShare:"ช่างแต่ละคนรับผิดชอบ",overtimePct:"% ล่าช้า",
     vehicles_tracker:"ติดตามเวลายานพาหนะ",vehicles_subtitle:"คำนวณล่าช้าอัตโนมัติ · ช่างสูงสุด 4 คน · KPI แบ่งเท่าๆ",
     autoLabel:"อัตโนมัติ",threshold:"เกณฑ์ผ่าน",
-    feedbackTitle:"ความคิดเห็นแบบไม่ระบุชื่อ",feedbackSubtitle:"ข้อความของคุณเป็นความลับ",
+    canViewAll:"ดูได้ทุกแผนก",canViewAllShort:"ทุกแผนก",ownDeptOnly:"แผนกตัวเอง",canScore:"สามารถให้คะแนนได้",feedbackTitle:"ความคิดเห็นแบบไม่ระบุชื่อ",feedbackSubtitle:"ข้อความของคุณเป็นความลับ",
     feedbackPlaceholder:"แบ่งปันความคิด ข้อเสนอแนะ หรือความกังวลของคุณ...",
     feedbackSend:"ส่งความคิดเห็น",feedbackSent:"ส่งแล้ว!",feedbackEmpty:"กรุณาเขียนข้อความก่อน",
     feedbackInbox:"กล่องข้อความ",feedbackCount:"ข้อความ",feedbackNone:"ยังไม่มีความคิดเห็น",
@@ -529,7 +529,7 @@ const T={
     eachTechShare:"နည်းပညာတစ်ယောက်စီ",overtimePct:"% နောက်ကျ",
     vehicles_tracker:"ယာဉ်အချိန်ခြေရာခံ",vehicles_subtitle:"အလိုအလျောက်နောက်ကျတွက်ချက် · နည်းပညာ ၄ ယောက်",
     autoLabel:"အလိုအလျောက်",threshold:"ပြင်ဆင်ခြင်းနှုန်း",
-    feedbackTitle:"အမည်မဖော်ပြ အကြံပြုချက်",feedbackSubtitle:"သင်၏မက်ဆေ့ချ် လုံးဝလျှို့ဝှက်သည်",
+    canViewAll:"ဌာနအားလုံးကြည့်နိုင်",canViewAllShort:"ဌာနအားလုံး",ownDeptOnly:"မိမိဌာနသာ",canScore:"မှတ်ကြမ်းနိုင်သည်",feedbackTitle:"အမည်မဖော်ပြ အကြံပြုချက်",feedbackSubtitle:"သင်၏မက်ဆေ့ချ် လုံးဝလျှို့ဝှက်သည်",
     feedbackPlaceholder:"သင်၏အတွေးများ၊ အကြံဉာဏ်များ သို့မဟုတ် စိုးရိမ်မှုများ မျှဝေပါ...",
     feedbackSend:"အကြံပြုချက်ပို့မည်",feedbackSent:"ပို့ပြီးပါပြီ!",feedbackEmpty:"ကျေးဇူးပြု၍ ဦးစွာကိုယ်ချင်းစာပါ",
     feedbackInbox:"အကြံပြုချက်ပုံး",feedbackCount:"မက်ဆေ့ချ်",feedbackNone:"အကြံပြုချက်မရှိသေး",
@@ -1025,7 +1025,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
   const ts=k=>ct.sec[k]||k;
   const tb=k=>ct.bonus[k]||k;
   const tbd=k=>ct.bonusDesc[k]||k;
-  const canScore=user.role==="boss"||(user.canManage&&user.dept===emp.role)||(user.role==="manager"&&user.dept===emp.role);
+  const canScore=user.role==="boss"||user.canScore||(user.canManage&&user.dept===emp.role)||(user.role==="manager"&&user.dept===emp.role);
   const empUserId=emp.userId||null;
   const init=()=>{
     const s={};
@@ -1145,7 +1145,7 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
   const [ev,setEv]=useState({});
   const [saving,setSaving]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
-  const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false});
+  const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false});
   const lRef=useRef(),aRef=useRef();
 
   const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
@@ -1181,7 +1181,21 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
       {tab==="users"&&<div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
           <span style={{color:B.muted,fontSize:11}}>{t.clickToEdit}</span>
-          <button onClick={()=>setShowAdd(true)} style={{...S.btn(B.red,"#fff",{fontSize:10,padding:"5px 10px"})}}>{t.addAccount}</button>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={()=>{
+              const toSync=users.filter(u=>u.role!=="boss"&&u.dept);
+              const existing=employees.map(e=>e.name);
+              const newEmps=toSync.filter(u=>!existing.includes(u.name)).map(u=>({id:Date.now()+Math.random(),name:u.name,role:u.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:u.id}));
+              if(newEmps.length===0){alert("✓ All accounts already synced!");return;}
+              const upd=[...employees,...newEmps];
+              setEmployees(upd);
+              api.save("employees",upd);
+              alert("✓ Synced "+newEmps.length+" staff to KPI!");
+            }} style={{...S.btn("#2ECC71","#fff",{fontSize:10,padding:"5px 10px"})}}>
+              🔄 Sync to KPI
+            </button>
+            <button onClick={()=>setShowAdd(true)} style={{...S.btn(B.red,"#fff",{fontSize:10,padding:"5px 10px"})}}>{t.addAccount}</button>
+          </div>
         </div>
         {showAdd&&<div style={{...S.card(),padding:13,marginBottom:9,border:`1px solid ${B.red}`}}>
           <div style={{color:B.text,fontWeight:700,marginBottom:9}}>{t.newAccount}</div>
@@ -1194,6 +1208,14 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
           <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
             <input type="checkbox" checked={nu.canManage} onChange={e=>setNu(p=>({...p,canManage:e.target.checked}))}/>
             <span style={{color:B.text,fontSize:11}}>{t.canManagePerm}</span>
+          </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canViewAll||false} onChange={e=>setNu(p=>({...p,canViewAll:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>{t.canViewAll}</span>
+          </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canScore||false} onChange={e=>setNu(p=>({...p,canScore:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>{t.canScore}</span>
           </label>
           <div style={{display:"flex",gap:7}}>
             <button onClick={addUser} style={{...S.btn(B.red)}}>{t.add}</button>
@@ -1222,6 +1244,14 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
                     <input type="checkbox" checked={ev.canManage||false} onChange={e=>setEv(v=>({...v,canManage:e.target.checked}))}/>
                     <span style={{color:B.text,fontSize:11}}>{t.canManagePerm}</span>
                   </label>}
+                  {ev.role!=="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canViewAll||false} onChange={e=>setEv(v=>({...v,canViewAll:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>{t.canViewAll}</span>
+                  </label>}
+                  {ev.role!=="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canScore||false} onChange={e=>setEv(v=>({...v,canScore:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>{t.canScore}</span>
+                  </label>}
                   <div style={{display:"flex",gap:7}}>
                     <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?t.saving:t.save}</button>
                     <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>{t.cancel}</button>
@@ -1229,11 +1259,11 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
                   </div>
                 </div>
               ):(
-                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false});}}
+                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false,canViewAll:u.canViewAll||false,canScore:u.canScore||false});}}
                   style={{...S.card(),padding:10,cursor:"pointer",display:"flex",alignItems:"center",gap:9,transition:"border .2s"}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
                   <Av src={u.avatar} name={u.name} dept={u.dept} size={38}/>
-                  <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div><div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (can manage)":""}</div></div>
+                  <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div><div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (can manage)":""}{u.canViewAll?" · "+t.canViewAllShort:""}{u.canScore?" · ✏️":""}</div></div>
                   <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>PIN: {u.pin}</div>
                 </div>
               )}
@@ -1255,8 +1285,9 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
   const [ne,setNe]=useState({name:"",role:"Senior Tech"});
   const isBoss=user.role==="boss";
   const canManage=isBoss||user.canManage;
+  const canViewAll=isBoss||user.canViewAll;
   const isStaff=user.role==="staff";
-  const vis=employees.filter(e=>isBoss?true:canManage?e.role===user.dept:e.name===user.name);
+  const vis=employees.filter(e=>canViewAll?true:canManage?e.role===user.dept:e.name===user.name);
   const scored=vis.filter(e=>e.total!=null);
   const mvp=scored.length?scored.reduce((a,b)=>a.total>b.total?a:b):null;
   const unreadFb=feedbacks.filter(f=>!f.read).length;
@@ -1317,7 +1348,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
             <div style={{flex:1}}><div style={{color:B.red,fontSize:9,fontWeight:700,letterSpacing:3}}>{t.quarterMvp}</div><div style={{color:B.text,fontSize:14,fontWeight:800}}>{mvp.name}</div><div style={{color:B.muted,fontSize:10}}>{mvp.role}</div></div>
             <div style={{color:B.red,fontSize:22,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{mvp.total}</div>
           </div>}
-          {DEPTS.filter(d=>isBoss||canManage?true:d===user.dept).map(dept=>{
+          {DEPTS.filter(d=>canViewAll?true:canManage?d===user.dept:d===user.dept).map(dept=>{
             const emps=vis.filter(e=>e.role===dept);if(!emps.length)return null;const dc=DC[dept];
             return(
               <div key={dept} style={{marginBottom:15}}>
@@ -1418,14 +1449,15 @@ function App(){
 
   useEffect(()=>{
     api.load().then(d=>{
-      setUsers(d.users||DEF_USERS);
-      setEmployees(d.employees||DEF_EMP);
+      // Only use defaults if server has NO data at all (first time setup)
+      setUsers(d.users&&d.users.length>0?d.users:DEF_USERS);
+      setEmployees(d.employees||[]);
       setVehicles(d.vehicles||[]);
       setLogoUrl(d.logoUrl||null);
       setBonusCfg(d.bonusConfig||DEF_BONUS);
       setFeedbacks(d.feedbacks||[]);
       setReady(true);
-    }).catch(()=>{setUsers(DEF_USERS);setEmployees(DEF_EMP);setReady(true);});
+    }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
   },[]);
 
   if(!ready)return<div style={{minHeight:"100vh",background:B.dark,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:B.red,fontWeight:700}}>Loading...</div></div>;
