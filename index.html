@@ -1794,7 +1794,13 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
           <div style={{display:"flex",alignItems:"center",gap:7}}>
             <LangSwitcher lang={lang} setLang={setLang}/>
             <button onClick={()=>setShowChangePwd(true)} title="改密码" style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>🔑</button>
-            <Av src={user.avatar} name={user.name} size={28}/>
+            <div style={{display:"flex",alignItems:"center",gap:6,background:B.card,border:`1px solid ${B.border}`,borderRadius:10,padding:"4px 10px 4px 6px"}}>
+              <Av src={user.avatar} name={user.name} dept={user.dept} size={26}/>
+              <div>
+                <div style={{color:B.text,fontSize:12,fontWeight:700,lineHeight:1.2}}>{user.name}</div>
+                <div style={{color:B.muted,fontSize:9,lineHeight:1.2}}>{RL[user.role]}{user.dept?" · "+user.dept:""}</div>
+              </div>
+            </div>
             <button onClick={onLogout} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>{t.logout}</button>
           </div>
         </div>
@@ -2158,7 +2164,7 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
   return(
     <div style={{minHeight:"100vh",background:B.dark,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{position:"absolute",top:16,right:16}}><LangSwitcher lang={lang} setLang={setLang}/></div>
-      <div style={{marginBottom:20}}>{logoUrl?<img src={logoUrl} style={{height:42,objectFit:"contain"}}/>:<svg width="180" height="36" viewBox="0 0 180 36"><rect width="180" height="36" fill="#000" rx="6"/><text x="8" y="28" fontFamily="Arial Black,Impact,sans-serif" fontSize="28" fontWeight="900" fill="#D0021B" fontStyle="italic" letterSpacing="-1">KC</text><text x="66" y="17" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#FFFFFF" letterSpacing="2" fontStyle="italic">AUTO</text><text x="66" y="30" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#CCCCCC" letterSpacing="2">WORKSHOP</text></svg>}</div>
+      <div style={{marginBottom:20}}>{logoUrl?<img src={logoUrl} style={{width:200,height:200,objectFit:"contain",borderRadius:16}}/>:<svg width="360" height="72" viewBox="0 0 180 36"><rect width="180" height="36" fill="#000" rx="6"/><text x="8" y="28" fontFamily="Arial Black,Impact,sans-serif" fontSize="28" fontWeight="900" fill="#D0021B" fontStyle="italic" letterSpacing="-1">KC</text><text x="66" y="17" fontFamily="Arial,sans-serif" fontSize="14" fontWeight="700" fill="#FFFFFF" letterSpacing="2" fontStyle="italic">AUTO</text><text x="66" y="30" fontFamily="Arial,sans-serif" fontSize="10" fontWeight="700" fill="#CCCCCC" letterSpacing="2">WORKSHOP</text></svg>}</div>
       <div style={{...S.card(),padding:19,width:"100%",maxWidth:350}}>
         <div style={{color:B.muted,fontSize:10,letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>{t.selectAccount}</div>
         <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:13,maxHeight:270,overflowY:"auto"}}>
