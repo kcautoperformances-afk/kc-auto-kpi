@@ -1322,8 +1322,416 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
   );
 }
 
+// ── GAMES PAGE ────────────────────────────────────────
+function GamesPage({user,gameLogs,setGameLogs,isBoss}){
+  const [activeGame,setActiveGame]=useState(null);
+  const [showLogs,setShowLogs]=useState(false);
+  const sessionStart=useRef(null);
+
+  const startGame=(name)=>{
+    sessionStart.current=Date.now();
+    setActiveGame(name);
+  };
+
+  const endGame=(name,score)=>{
+    if(!sessionStart.current)return;
+    const duration=Math.round((Date.now()-sessionStart.current)/1000);
+    const log={id:Date.now(),userId:user.id,userName:user.name,dept:user.dept||user.role,game:name,score:score||0,duration,time:new Date().toLocaleString()};
+    const upd=[log,...gameLogs];
+    setGameLogs(upd);
+    api.save("gameLogs",upd);
+    sessionStart.current=null;
+    setActiveGame(null);
+  };
+
+  if(activeGame==="snake") return <SnakeGame user={user} onExit={endGame}/>;
+  if(activeGame==="tetris") return <TetrisGame user={user} onExit={endGame}/>;
+  if(activeGame==="minesweeper") return <MinesweeperGame user={user} onExit={endGame}/>;
+
+  const fmtDur=s=>{if(s<60)return s+"s";const m=Math.floor(s/60);return m+"m "+(s%60)+"s";};
+  const myLogs=gameLogs.filter(l=>l.userId===user.id);
+  const allLogs=gameLogs;
+
+  return(
+    <div>
+      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:6}}>🎮 Games</div>
+      <div style={{color:B.muted,fontSize:11,marginBottom:16}}>玩游戏的时间会被记录 👀</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
+        {[
+          {id:"snake",icon:"🐍",name:"贪吃蛇",desc:"经典游戏"},
+          {id:"tetris",icon:"🧱",name:"俄罗斯方块",desc:"消除方块"},
+          {id:"minesweeper",icon:"💣",name:"扫雷",desc:"找出地雷"},
+        ].map(g=>(
+          <div key={g.id} onClick={()=>startGame(g.id)} style={{...S.card(),padding:16,textAlign:"center",cursor:"pointer",transition:"border .2s"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
+            <div style={{fontSize:32,marginBottom:6}}>{g.icon}</div>
+            <div style={{color:B.text,fontWeight:700,fontSize:13}}>{g.name}</div>
+            <div style={{color:B.muted,fontSize:10}}>{g.desc}</div>
+          </div>
+        ))}
+      </div>
+
+      {isBoss&&<div style={{marginBottom:14}}>
+        <button onClick={()=>setShowLogs(s=>!s)} style={{...S.btn(showLogs?B.red:B.border,showLogs?"#fff":B.muted,{fontSize:12,marginBottom:showLogs?12:0})}}>
+          👁️ Boss 游戏记录 ({allLogs.length})
+        </button>
+        {showLogs&&<div>
+          <div style={{color:B.muted,fontSize:10,marginBottom:8}}>所有员工玩游戏记录（最新50条）</div>
+          {allLogs.length===0
+            ?<div style={{...S.card(),padding:24,textAlign:"center",color:B.muted}}>还没有人玩过游戏 😇</div>
+            :allLogs.slice(0,50).map(l=>(
+              <div key={l.id} style={{...S.card(),padding:"9px 13px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
+                <div style={{fontSize:20}}>{l.game==="snake"?"🐍":l.game==="tetris"?"🧱":"💣"}</div>
+                <div style={{flex:1}}>
+                  <div style={{color:B.text,fontWeight:700,fontSize:12}}>{l.userName} <span style={{color:B.muted,fontWeight:400}}>({l.dept})</span></div>
+                  <div style={{color:B.muted,fontSize:10}}>{l.time}</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{color:"#F1C40F",fontWeight:800,fontSize:12}}>{fmtDur(l.duration)}</div>
+                  <div style={{color:B.muted,fontSize:10}}>分数: {l.score}</div>
+                </div>
+              </div>
+            ))
+          }
+        </div>}
+      </div>}
+
+      <div style={{...S.card(),padding:14}}>
+        <div style={{color:B.text,fontWeight:700,marginBottom:10,fontSize:13}}>我的游戏记录</div>
+        {myLogs.length===0
+          ?<div style={{color:B.muted,fontSize:11,textAlign:"center",padding:16}}>你还没有玩过游戏</div>
+          :myLogs.slice(0,20).map(l=>(
+            <div key={l.id} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:`1px solid ${B.border}`}}>
+              <div style={{fontSize:18}}>{l.game==="snake"?"🐍":l.game==="tetris"?"🧱":"💣"}</div>
+              <div style={{flex:1}}>
+                <div style={{color:B.text,fontSize:12}}>{l.game==="snake"?"贪吃蛇":l.game==="tetris"?"俄罗斯方块":"扫雷"}</div>
+                <div style={{color:B.muted,fontSize:10}}>{l.time}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{color:"#F1C40F",fontWeight:800,fontSize:12}}>{fmtDur(l.duration)}</div>
+                <div style={{color:B.muted,fontSize:10}}>分数: {l.score}</div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  );
+}
+
+// ── SNAKE GAME ────────────────────────────────────────
+function SnakeGame({user,onExit}){
+  const canvasRef=useRef(null);
+  const gameRef=useRef({running:false,score:0});
+  const [score,setScore]=useState(0);
+  const [dead,setDead]=useState(false);
+  const SZ=20,COLS=16,ROWS=20;
+
+  useEffect(()=>{
+    const canvas=canvasRef.current;
+    const ctx=canvas.getContext("2d");
+    let snake=[{x:8,y:10},{x:7,y:10},{x:6,y:10}];
+    let dir={x:1,y:0};
+    let nextDir={x:1,y:0};
+    let food=randomFood(snake);
+    let sc=0;
+    let interval;
+    gameRef.current.running=true;
+
+    function randomFood(s){
+      let f;
+      do{f={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}
+      while(s.some(b=>b.x===f.x&&b.y===f.y));
+      return f;
+    }
+
+    function draw(){
+      ctx.fillStyle="#0F1117";ctx.fillRect(0,0,canvas.width,canvas.height);
+      // food
+      ctx.fillStyle="#D0021B";ctx.beginPath();ctx.arc(food.x*SZ+SZ/2,food.y*SZ+SZ/2,SZ/2-2,0,Math.PI*2);ctx.fill();
+      // snake
+      snake.forEach((b,i)=>{
+        ctx.fillStyle=i===0?"#2ECC71":"#27AE60";
+        ctx.fillRect(b.x*SZ+1,b.y*SZ+1,SZ-2,SZ-2);
+      });
+    }
+
+    function step(){
+      dir=nextDir;
+      const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+      if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(b=>b.x===head.x&&b.y===head.y)){
+        clearInterval(interval);
+        gameRef.current.running=false;
+        setDead(true);
+        return;
+      }
+      snake.unshift(head);
+      if(head.x===food.x&&head.y===food.y){
+        sc++;setScore(sc);gameRef.current.score=sc;
+        food=randomFood(snake);
+      } else {snake.pop();}
+      draw();
+    }
+
+    draw();
+    interval=setInterval(step,150);
+
+    const handleKey=e=>{
+      if(e.key==="ArrowUp"&&dir.y===0)nextDir={x:0,y:-1};
+      else if(e.key==="ArrowDown"&&dir.y===0)nextDir={x:0,y:1};
+      else if(e.key==="ArrowLeft"&&dir.x===0)nextDir={x:-1,y:0};
+      else if(e.key==="ArrowRight"&&dir.x===0)nextDir={x:1,y:0};
+    };
+    window.addEventListener("keydown",handleKey);
+    return()=>{clearInterval(interval);window.removeEventListener("keydown",handleKey);};
+  },[]);
+
+  const handleSwipe=(()=>{
+    let sx=0,sy=0;
+    return{
+      start:e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},
+      end:e=>{
+        const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+        const el=canvasRef.current;
+        if(!el)return;
+        const ev=new KeyboardEvent("keydown",{key:Math.abs(dx)>Math.abs(dy)?(dx>0?"ArrowRight":"ArrowLeft"):(dy>0?"ArrowDown":"ArrowUp")});
+        window.dispatchEvent(ev);
+      }
+    };
+  })();
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:COLS*SZ,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>🐍 贪吃蛇</span>
+        <span style={{color:"#2ECC71",fontWeight:900,fontFamily:"monospace",fontSize:18}}>分数: {score}</span>
+      </div>
+      <canvas ref={canvasRef} width={COLS*SZ} height={ROWS*SZ}
+        style={{border:`2px solid ${B.border}`,borderRadius:8}}
+        onTouchStart={handleSwipe.start} onTouchEnd={handleSwipe.end}/>
+      <div style={{color:B.muted,fontSize:11,marginTop:8}}>手机滑动 / 键盘方向键控制</div>
+      {dead&&<div style={{marginTop:12,textAlign:"center"}}>
+        <div style={{color:B.red,fontWeight:800,fontSize:18,marginBottom:8}}>💀 游戏结束！分数: {score}</div>
+        <button onClick={()=>onExit("snake",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!dead&&<button onClick={()=>onExit("snake",score)} style={{...S.btn(B.border,B.muted,{marginTop:12,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
+// ── TETRIS GAME ───────────────────────────────────────
+function TetrisGame({user,onExit}){
+  const canvasRef=useRef(null);
+  const [score,setScore]=useState(0);
+  const [dead,setDead]=useState(false);
+  const stateRef=useRef({score:0,running:true});
+  const SZ=24,COLS=10,ROWS=20;
+  const PIECES=[
+    [[1,1,1,1]],
+    [[1,1],[1,1]],
+    [[0,1,0],[1,1,1]],
+    [[1,0],[1,0],[1,1]],
+    [[0,1],[0,1],[1,1]],
+    [[1,1,0],[0,1,1]],
+    [[0,1,1],[1,1,0]],
+  ];
+  const COLORS=["#00CFCF","#F1C40F","#9B59B6","#E67E22","#3498DB","#D0021B","#2ECC71"];
+
+  useEffect(()=>{
+    const canvas=canvasRef.current;
+    const ctx=canvas.getContext("2d");
+    const board=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+    const boardColors=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    let sc=0;
+    let piece,pieceX,pieceY,pieceColor;
+    let interval;
+
+    function newPiece(){
+      const idx=Math.floor(Math.random()*PIECES.length);
+      piece=PIECES[idx];pieceColor=COLORS[idx];
+      pieceX=Math.floor(COLS/2)-Math.floor(piece[0].length/2);pieceY=0;
+      if(!valid(piece,pieceX,pieceY)){stateRef.current.running=false;clearInterval(interval);setDead(true);}
+    }
+
+    function valid(p,ox,oy){
+      return p.every((row,r)=>row.every((c,col)=>!c||
+        (oy+r>=0&&oy+r<ROWS&&ox+col>=0&&ox+col<COLS&&!board[oy+r][ox+col])));
+    }
+
+    function merge(){
+      piece.forEach((row,r)=>row.forEach((c,col)=>{
+        if(c){board[pieceY+r][pieceX+col]=1;boardColors[pieceY+r][pieceX+col]=pieceColor;}
+      }));
+      // clear lines
+      let cleared=0;
+      for(let r=ROWS-1;r>=0;r--){
+        if(board[r].every(c=>c)){
+          board.splice(r,1);board.unshift(Array(COLS).fill(0));
+          boardColors.splice(r,1);boardColors.unshift(Array(COLS).fill(null));
+          cleared++;r++;
+        }
+      }
+      if(cleared){sc+=cleared*100;stateRef.current.score=sc;setScore(sc);}
+    }
+
+    function draw(){
+      ctx.fillStyle="#0F1117";ctx.fillRect(0,0,canvas.width,canvas.height);
+      board.forEach((row,r)=>row.forEach((c,col)=>{
+        if(c){ctx.fillStyle=boardColors[r][col];ctx.fillRect(col*SZ+1,r*SZ+1,SZ-2,SZ-2);}
+      }));
+      piece&&piece.forEach((row,r)=>row.forEach((c,col)=>{
+        if(c){ctx.fillStyle=pieceColor;ctx.fillRect((pieceX+col)*SZ+1,(pieceY+r)*SZ+1,SZ-2,SZ-2);}
+      }));
+    }
+
+    function step(){if(!stateRef.current.running)return;
+      if(valid(piece,pieceX,pieceY+1)){pieceY++;}
+      else{merge();newPiece();}draw();
+    }
+
+    const handleKey=e=>{
+      if(!stateRef.current.running)return;
+      if(e.key==="ArrowLeft"&&valid(piece,pieceX-1,pieceY))pieceX--;
+      else if(e.key==="ArrowRight"&&valid(piece,pieceX+1,pieceY))pieceX++;
+      else if(e.key==="ArrowDown"&&valid(piece,pieceX,pieceY+1))pieceY++;
+      else if(e.key==="ArrowUp"){
+        const rot=piece[0].map((_,i)=>piece.map(row=>row[i]).reverse());
+        if(valid(rot,pieceX,pieceY))piece=rot;
+      }
+      draw();
+    };
+
+    newPiece();draw();
+    interval=setInterval(step,500);
+    window.addEventListener("keydown",handleKey);
+    return()=>{clearInterval(interval);window.removeEventListener("keydown",handleKey);stateRef.current.running=false;};
+  },[]);
+
+  const handleKey2=(dir)=>{
+    const ev=new KeyboardEvent("keydown",{key:dir});window.dispatchEvent(ev);
+  };
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:COLS*SZ,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>🧱 俄罗斯方块</span>
+        <span style={{color:"#F1C40F",fontWeight:900,fontFamily:"monospace",fontSize:18}}>{score}</span>
+      </div>
+      <canvas ref={canvasRef} width={COLS*SZ} height={ROWS*SZ} style={{border:`2px solid ${B.border}`,borderRadius:8}}/>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,44px)",gap:5,marginTop:12}}>
+        <div/><button onTouchStart={()=>handleKey2("ArrowUp")} onClick={()=>handleKey2("ArrowUp")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>↺</button><div/>
+        <button onTouchStart={()=>handleKey2("ArrowLeft")} onClick={()=>handleKey2("ArrowLeft")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>←</button>
+        <button onTouchStart={()=>handleKey2("ArrowDown")} onClick={()=>handleKey2("ArrowDown")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>↓</button>
+        <button onTouchStart={()=>handleKey2("ArrowRight")} onClick={()=>handleKey2("ArrowRight")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>→</button>
+      </div>
+      {dead&&<div style={{marginTop:12,textAlign:"center"}}>
+        <div style={{color:B.red,fontWeight:800,fontSize:18,marginBottom:8}}>💀 游戏结束！分数: {score}</div>
+        <button onClick={()=>onExit("tetris",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!dead&&<button onClick={()=>onExit("tetris",score)} style={{...S.btn(B.border,B.muted,{marginTop:10,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
+// ── MINESWEEPER GAME ──────────────────────────────────
+function MinesweeperGame({user,onExit}){
+  const ROWS=9,COLS=9,MINES=10;
+  const [board,setBoard]=useState(null);
+  const [revealed,setRevealed]=useState(null);
+  const [flagged,setFlagged]=useState(null);
+  const [dead,setDead]=useState(false);
+  const [won,setWon]=useState(false);
+  const [score,setScore]=useState(0);
+  const [started,setStarted]=useState(false);
+
+  const init=(firstR,firstC)=>{
+    const mines=new Set();
+    while(mines.size<MINES){
+      const r=Math.floor(Math.random()*ROWS),c=Math.floor(Math.random()*COLS);
+      if(r===firstR&&c===firstC)continue;
+      mines.add(r*COLS+c);
+    }
+    const b=Array.from({length:ROWS},(_,r)=>Array.from({length:COLS},(_,c)=>({
+      mine:mines.has(r*COLS+c),
+      adj:[...mines].filter(m=>{const mr=Math.floor(m/COLS),mc=m%COLS;return Math.abs(mr-r)<=1&&Math.abs(mc-c)<=1&&!(mr===r&&mc===c);}).length,
+    })));
+    const rev=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    const flg=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+    floodReveal(b,rev,firstR,firstC);
+    setBoard(b);setRevealed(rev);setFlagged(flg);setStarted(true);
+  };
+
+  const floodReveal=(b,rev,r,c)=>{
+    if(r<0||r>=ROWS||c<0||c>=COLS||rev[r][c]||b[r][c].mine)return;
+    rev[r][c]=true;
+    if(b[r][c].adj===0){
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)floodReveal(b,rev,r+dr,c+dc);
+    }
+  };
+
+  const reveal=(r,c)=>{
+    if(!started){init(r,c);return;}
+    if(dead||won||revealed[r][c]||flagged[r][c])return;
+    const newRev=revealed.map(row=>[...row]);
+    if(board[r][c].mine){newRev[r][c]=true;setRevealed(newRev);setDead(true);return;}
+    floodReveal(board,newRev,r,c);
+    const totalSafe=ROWS*COLS-MINES;
+    const revCount=newRev.flat().filter(Boolean).length;
+    if(revCount>=totalSafe){setWon(true);setScore(100);setRevealed(newRev);}
+    else setRevealed(newRev);
+  };
+
+  const flag=(e,r,c)=>{
+    e.preventDefault();
+    if(dead||won||revealed[r][c])return;
+    const newFlg=flagged.map(row=>[...row]);
+    newFlg[r][c]=!newFlg[r][c];
+    setFlagged(newFlg);
+  };
+
+  const cellColor=(r,c)=>{
+    if(!revealed||!revealed[r][c])return B.card2;
+    if(board[r][c].mine)return"#D0021B";
+    return B.dark;
+  };
+
+  const adjColors=["","#3498DB","#2ECC71","#E74C3C","#1A237E","#7B1FA2","#00838F","#000","#555"];
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:COLS*36,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>💣 扫雷</span>
+        <span style={{color:B.muted,fontSize:11}}>{MINES}个地雷</span>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:`repeat(${COLS},36px)`,gap:2}}>
+        {Array.from({length:ROWS},(_,r)=>Array.from({length:COLS},(_,c)=>(
+          <div key={r*COLS+c} onClick={()=>reveal(r,c)} onContextMenu={e=>flag(e,r,c)}
+            onTouchStart={e=>{e.currentTarget._t=setTimeout(()=>flag(e,r,c),500);}}
+            onTouchEnd={e=>{clearTimeout(e.currentTarget._t);}}
+            style={{width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",
+              background:cellColor(r,c),border:`1px solid ${B.border}`,borderRadius:4,
+              cursor:"pointer",fontSize:13,fontWeight:800,userSelect:"none"}}>
+            {flagged&&flagged[r][c]&&(!revealed||!revealed[r][c])?"🚩":
+             revealed&&revealed[r][c]?
+               board[r][c].mine?"💣":
+               board[r][c].adj>0?<span style={{color:adjColors[board[r][c].adj]}}>{board[r][c].adj}</span>:"":""}
+          </div>
+        )))}
+      </div>
+      <div style={{color:B.muted,fontSize:10,marginTop:8}}>长按 = 插旗 | 电脑右键 = 插旗</div>
+      {(dead||won)&&<div style={{marginTop:12,textAlign:"center"}}>
+        <div style={{color:dead?B.red:"#2ECC71",fontWeight:800,fontSize:18,marginBottom:8}}>
+          {dead?"💥 踩到地雷！":"🎉 过关！分数: "+score}
+        </div>
+        <button onClick={()=>onExit("minesweeper",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!dead&&!won&&<button onClick={()=>onExit("minesweeper",score)} style={{...S.btn(B.border,B.muted,{marginTop:12,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
 // ── DASHBOARD ────────────────────────────────────────
-function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,onLogout}){
+function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,gameLogs,setGameLogs,onLogout}){
   const {lang,t,setLang}=useLang();
   const [tab,setTab]=useState("kpi");
   const [sel,setSel]=useState(null);
@@ -1348,6 +1756,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ["vehicle",t.vehicles],
     ...(isStaff||isTechHead?[["mystats",t.myStats]]:[]),
     ["feedback",t.feedback],
+    ["games","🎮"],
     ...(canAttendance?[["attendance","出席"]]:[]),
     ...(canManage?[["history","历史"],["settings",t.settings]]:[]),
   ];
@@ -1394,6 +1803,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
         {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles} allUsers={users}/>}
         {tab==="mystats"&&(isStaff||isTechHead)&&<PersonalStats user={user} vehicles={vehicles}/>}
         {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
+        {tab==="games"&&<GamesPage user={user} gameLogs={gameLogs} setGameLogs={setGameLogs} isBoss={isBoss}/>}
         {tab==="attendance"&&canAttendance&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
         {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
         {tab==="settings"&&canManage&&<SettingsPage user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} employees={employees} setEmployees={setEmployees}/>}
@@ -1827,6 +2237,7 @@ function App(){
   const [bonusCfg,setBonusCfg]=useState(DEF_BONUS);
   const [feedbacks,setFeedbacks]=useState([]);
   const [attendance,setAttendance]=useState({});
+  const [gameLogs,setGameLogs]=useState([]);
 
   useEffect(()=>{
     api.load().then(d=>{
@@ -1838,6 +2249,7 @@ function App(){
       setBonusCfg(d.bonusConfig||DEF_BONUS);
       setFeedbacks(d.feedbacks||[]);
       setAttendance(d.attendance||{});
+      setGameLogs(d.gameLogs||[]);
       setReady(true);
     }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
   },[]);
@@ -1851,6 +2263,7 @@ function App(){
             employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles}
             bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} feedbacks={feedbacks} setFeedbacks={setFeedbacks}
             attendance={attendance} setAttendance={setAttendance}
+            gameLogs={gameLogs} setGameLogs={setGameLogs}
             onLogout={()=>setUser(null)}/>}
     </LangContext.Provider>
   );
