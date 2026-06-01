@@ -1,458 +1,1070 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KC Auto Workshop — KPI System</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet"/>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#111318;font-family:'Plus Jakarta Sans',sans-serif}
-    select option{background:#1A1D24}
-    input[type=number]::-webkit-inner-spin-button{opacity:1}
-    ::-webkit-scrollbar{width:6px;height:6px}
-    ::-webkit-scrollbar-track{background:#111318}
-    ::-webkit-scrollbar-thumb{background:#2A2D35;border-radius:99px}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KC Auto Workshop KPI v5</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0F1117;font-family:"Plus Jakarta Sans",sans-serif;color:#F0F0F0}
+select option{background:#1A1D24}
+input[type=number]::-webkit-inner-spin-button{opacity:1}
+input[type=date]{color-scheme:dark}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#0F1117}
+::-webkit-scrollbar-thumb{background:#2A2D35;border-radius:99px}
+</style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useRef} = React;
+const {useState,useEffect,useRef,useMemo}=React;
 
-const api = {
-  load: ()=>fetch("/api/data").then(r=>r.json()),
-  save: (key,body)=>fetch("/api/"+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),
-};
-
-const B={red:"#D0021B",black:"#0A0A0A",dark:"#111318",card:"#1A1D24",border:"#2A2D35",text:"#F0F0F0",muted:"#8A8E9A"};
+const B={red:"#D0021B",dark:"#0F1117",card:"#16191F",card2:"#1E2128",border:"#252830",text:"#F0F0F0",muted:"#7A7F8E"};
 const DEPTS=["Tech Intern","Senior Tech","Tuner","Admin","Store","Media"];
-const DC={"Tech Intern":"#2980B9","Senior Tech":"#D4AC0D","Tuner":"#D0021B","Admin":"#1E8449","Store":"#CA6F1E","Media":"#7D3C98"};
-const RL={boss:"👑 Boss",manager:"🔑 Manager",staff:"👤 Staff"};
+const DC={"Tech Intern":"#3498DB","Senior Tech":"#F1C40F","Tuner":"#E74C3C","Admin":"#2ECC71","Store":"#E67E22","Media":"#9B59B6"};
+const ROLES=["boss","manager","staff"];
+const RL={boss:"Boss",manager:"Manager",staff:"Staff"};
+
+const DEF_USERS=[
+  {id:"boss0",name:"Boss Katak",role:"boss",pin:"1234",dept:null,canManage:true,avatar:null},
+  {id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,avatar:null},
+  {id:"mgr1",name:"Manager 1",role:"manager",pin:"1111",dept:"Senior Tech",canManage:true,avatar:null},
+  {id:"emp1",name:"Staff 1",role:"staff",pin:"3333",dept:"Senior Tech",canManage:false,avatar:null},
+  {id:"emp2",name:"Staff 2",role:"staff",pin:"4444",dept:"Tuner",canManage:false,avatar:null},
+  {id:"emp3",name:"Staff 3",role:"staff",pin:"5555",dept:"Admin",canManage:false,avatar:null},
+  {id:"emp4",name:"Staff 4",role:"staff",pin:"6666",dept:"Tech Intern",canManage:false,avatar:null},
+  {id:"emp5",name:"Staff 5",role:"staff",pin:"7777",dept:"Store",canManage:false,avatar:null},
+  {id:"emp6",name:"Staff 6",role:"staff",pin:"8888",dept:"Media",canManage:false,avatar:null},
+];
+const DEF_EMP=[
+  {id:1,name:"Staff 1",role:"Senior Tech",quarter:"Q2 2026",total:null,scores:{},avatar:null},
+  {id:2,name:"Staff 2",role:"Tuner",quarter:"Q2 2026",total:null,scores:{},avatar:null},
+  {id:3,name:"Staff 3",role:"Admin",quarter:"Q2 2026",total:null,scores:{},avatar:null},
+  {id:4,name:"Staff 4",role:"Tech Intern",quarter:"Q2 2026",total:null,scores:{},avatar:null},
+  {id:5,name:"Staff 5",role:"Store",quarter:"Q2 2026",total:null,scores:{},avatar:null},
+  {id:6,name:"Staff 6",role:"Media",quarter:"Q2 2026",total:null,scores:{},avatar:null},
+];
+const DEF_BONUS={type:"fixed",tiers:[
+  {label:"Excellent",minScore:90,amount:300,color:"#2ECC71"},
+  {label:"Good",minScore:75,amount:150,color:"#F1C40F"},
+  {label:"Pass",minScore:60,amount:80,color:"#3498DB"},
+  {label:"Fail",minScore:0,amount:0,color:"#E74C3C"},
+]};
 
 const CRIT={
   "Tech Intern":{t:55,s:[
-    {n:"😊 态度",c:"#1A5276",i:[{n:"学习积极主动",d:"主动问问题，不躲懒",m:15},{n:"服从指示",d:"按Senior/Tuner指示执行",m:15}]},
-    {n:"🔧 技术",c:"#117A65",i:[{n:"基础操作正确率",d:"简单工序失误率低",m:20},{n:"工具使用与维护",d:"正确使用工具并归位",m:10}]},
-    {n:"⚡ 效率",c:"#784212",i:[{n:"任务完成及时",d:"交办任务按时完成",m:12,at:true},{n:"工位整洁度",d:"工作区干净",m:8}]},
-    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=20|95-99%=16|90-94%=12|<85%=0",m:20}]},
+    {n:"Attitude",c:"#1A5276",i:[{n:"Proactive Learning",d:"Ask questions, stay engaged",m:15},{n:"Follow Instructions",d:"Follow Senior/Tuner guidance",m:15}]},
+    {n:"Technical",c:"#117A65",i:[{n:"Task Accuracy",d:"Low error rate",m:20},{n:"Tool Usage",d:"Correct tool usage & return",m:10}]},
+    {n:"Efficiency",c:"#784212",i:[{n:"On-Time Delivery",d:"Auto: Full 12pts, -0.12pt per 1% overtime",m:12,auto:true},{n:"Workstation Tidiness",d:"Clean & organized workspace",m:8}]},
+    {n:"Attendance",c:"#4A235B",i:[{n:"Attendance Rate",d:"100%=20|95-99%=16|<85%=0",m:20}]},
   ]},
   "Senior Tech":{t:60,s:[
-    {n:"😊 态度",c:"#1A5276",i:[{n:"工作积极主动",d:"主动接单，不推诿",m:10},{n:"团队合作",d:"愿意帮助同事",m:10}]},
-    {n:"🔧 技术",c:"#117A65",i:[{n:"维修质量",d:"返工率低于5%",m:20},{n:"技术独立性",d:"无需频繁请示",m:12},{n:"带领Intern",d:"有效指导初级员工",m:8}]},
-    {n:"⚡ 效率",c:"#784212",i:[{n:"按时交车率",d:"承诺时间内完工",m:15,at:true},{n:"工位整洁度",d:"工作区干净",m:10}]},
-    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=15|95-99%=12|90-94%=9|<85%=0",m:15}]},
+    {n:"Attitude",c:"#1A5276",i:[{n:"Proactive Work",d:"Take jobs without being told",m:10},{n:"Teamwork",d:"Help teammates",m:10}]},
+    {n:"Technical",c:"#117A65",i:[{n:"Repair Quality",d:"Rework rate <5%",m:20},{n:"Technical Independence",d:"Work without frequent supervision",m:12},{n:"Mentoring Intern",d:"Guide junior staff",m:8}]},
+    {n:"Efficiency",c:"#784212",i:[{n:"On-Time Delivery",d:"Auto: Full 15pts, -0.15pt per 1% overtime",m:15,auto:true},{n:"Workstation Tidiness",d:"Clean workspace",m:10}]},
+    {n:"Attendance",c:"#4A235B",i:[{n:"Attendance Rate",d:"100%=15|95-99%=12|<85%=0",m:15}]},
   ]},
   "Tuner":{t:60,s:[
-    {n:"😊 态度",c:"#1A5276",i:[{n:"专业责任感",d:"对tune结果负责",m:12},{n:"客户沟通",d:"清楚解释tune方案",m:8}]},
-    {n:"🔧 技术",c:"#117A65",i:[{n:"Tune质量与安全",d:"无因tune失误导致问题",m:25},{n:"一般维修质量",d:"普通维修返工率低",m:15}]},
-    {n:"⚡ 效率",c:"#784212",i:[{n:"按时交车率",d:"Tune工单按时完成",m:15,at:true},{n:"客户满意度",d:"客户复回率/好评",m:10}]},
-    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=15|95-99%=12|90-94%=9|<85%=0",m:15}]},
+    {n:"Attitude",c:"#1A5276",i:[{n:"Professionalism",d:"Own results, no shortcuts",m:12},{n:"Customer Communication",d:"Explain tune plan clearly",m:8}]},
+    {n:"Technical",c:"#117A65",i:[{n:"Tune Quality & Safety",d:"Zero tune-related issues",m:25},{n:"General Repair Quality",d:"Low rework rate",m:15}]},
+    {n:"Efficiency",c:"#784212",i:[{n:"On-Time Delivery",d:"Auto: Full 15pts, -0.15pt per 1% overtime",m:15,auto:true},{n:"Customer Satisfaction",d:"Return rate / good reviews",m:10}]},
+    {n:"Attendance",c:"#4A235B",i:[{n:"Attendance Rate",d:"100%=15|95-99%=12|<85%=0",m:15}]},
   ]},
   "Admin":{t:60,s:[
-    {n:"😊 态度",c:"#1A5276",i:[{n:"客户接待态度",d:"对客礼貌耐心",m:15},{n:"团队协调",d:"信息传达准确及时",m:10}]},
-    {n:"📋 专业",c:"#117A65",i:[{n:"单据/文件准确性",d:"发票记录无错误",m:15},{n:"财务/账目整洁",d:"对账无误差",m:10}]},
-    {n:"⚡ 效率",c:"#784212",i:[{n:"任务完成及时率",d:"老板交办按时完成",m:15,at:true},{n:"客户回复速度",d:"1小时内回复",m:10}]},
-    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=25|95-99%=20|90-94%=15|<85%=0",m:25}]},
+    {n:"Attitude",c:"#1A5276",i:[{n:"Customer Service",d:"Polite & patient",m:15},{n:"Team Coordination",d:"Accurate information relay",m:10}]},
+    {n:"Professional",c:"#117A65",i:[{n:"Document Accuracy",d:"Zero errors in invoices",m:15},{n:"Accounts Tidiness",d:"Clean reconciliation",m:10}]},
+    {n:"Efficiency",c:"#784212",i:[{n:"On-Time Completion",d:"Auto: Full 15pts, -0.15pt per 1% overtime",m:15,auto:true},{n:"Response Speed",d:"Reply within 1 hour",m:10}]},
+    {n:"Attendance",c:"#4A235B",i:[{n:"Attendance Rate",d:"100%=25|95-99%=20|<85%=0",m:25}]},
   ]},
   "Store":{t:60,s:[
-    {n:"😊 态度",c:"#1A5276",i:[{n:"工作主动性",d:"主动备货不等人催",m:15},{n:"部门配合度",d:"配合技术部及时出货",m:10}]},
-    {n:"📦 专业",c:"#117A65",i:[{n:"库存准确率",d:"实物与系统记录一致",m:15},{n:"仓库整洁有序",d:"分类清晰易取易找",m:15}]},
-    {n:"⚡ 效率",c:"#784212",i:[{n:"出货/备件及时率",d:"等零件≤15分钟",m:15,at:true},{n:"缺货预警及时",d:"提前通知补货",m:10}]},
-    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=20|95-99%=16|90-94%=12|<85%=0",m:20}]},
+    {n:"Attitude",c:"#1A5276",i:[{n:"Proactive Stock",d:"Restock without waiting",m:15},{n:"Dept Cooperation",d:"Support tech team",m:10}]},
+    {n:"Professional",c:"#117A65",i:[{n:"Inventory Accuracy",d:"Match system records",m:15},{n:"Warehouse Order",d:"Clear categorization",m:15}]},
+    {n:"Efficiency",c:"#784212",i:[{n:"Parts Delivery Speed",d:"Auto: Full 15pts, -0.15pt per 1% overtime",m:15,auto:true},{n:"Stockout Warning",d:"Notify before running out",m:10}]},
+    {n:"Attendance",c:"#4A235B",i:[{n:"Attendance Rate",d:"100%=20|95-99%=16|<85%=0",m:20}]},
   ]},
   "Media":{t:60,s:[
-    {n:"😊 态度",c:"#1A5276",i:[{n:"创意主动性",d:"主动提案新内容",m:15},{n:"跨部门配合",d:"配合拍摄宣传工作",m:10}]},
-    {n:"🎨 专业",c:"#117A65",i:[{n:"内容质量",d:"画面清晰文案专业",m:20},{n:"内容发布频率",d:"每周达标",m:15}]},
-    {n:"⚡ 效率",c:"#784212",i:[{n:"互动/增粉数据",d:"季度增长达标",m:15},{n:"询单转化配合",d:"DM询单及时转接",m:10}]},
-    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=15|95-99%=12|90-94%=9|<85%=0",m:15}]},
+    {n:"Attitude",c:"#1A5276",i:[{n:"Creative Initiative",d:"Propose new content ideas",m:15},{n:"Cross-Dept Support",d:"Support shoots & promos",m:10}]},
+    {n:"Professional",c:"#117A65",i:[{n:"Content Quality",d:"Clear visuals, professional copy",m:20},{n:"Posting Frequency",d:"Hit weekly targets",m:15}]},
+    {n:"Efficiency",c:"#784212",i:[{n:"Engagement / Growth",d:"Quarter-on-quarter growth",m:15},{n:"Lead Conversion",d:"Pass DM enquiries promptly",m:10}]},
+    {n:"Attendance",c:"#4A235B",i:[{n:"Attendance Rate",d:"100%=15|95-99%=12|<85%=0",m:15}]},
   ]},
 };
+const BONUS_ITEMS=[{n:"Customer Compliment",d:"+2 each",m:6},{n:"New Customer Referral",d:"+3 each",m:9},{n:"Zero Complaints",d:"+3",m:3},{n:"Helped Other Depts",d:"+2",m:2}];
 
-const BONUS=[{n:"客户主动好评",d:"+2/次",m:6},{n:"介绍新客户成交",d:"+3/单",m:9},{n:"季度零投诉",d:"+3",m:3},{n:"主动帮助其他部门",d:"+2",m:2}];
 
-const grade=(s,t)=>{
-  if(s>=90)return{l:"⭐⭐⭐ 优秀",b:"RM 300",c:"#1E8449",bg:"#0D2B19"};
-  if(s>=75)return{l:"⭐⭐ 良好",b:"RM 150",c:"#D4AC0D",bg:"#2B2200"};
-  if(s>=t)return{l:"⭐ 合格",b:"RM 80",c:"#2980B9",bg:"#0D1F2B"};
-  return{l:"❌ 不达标",b:"无红包",c:"#D0021B",bg:"#2B0009"};
+// ── I18N ─────────────────────────────────────────────
+const LANGS={
+  en:{code:"en",flag:"🇬🇧",name:"English"},
+  zh:{code:"zh",flag:"🇨🇳",name:"中文"},
+  ms:{code:"ms",flag:"🇲🇾",name:"Bahasa"},
+  th:{code:"th",flag:"🇹🇭",name:"ภาษาไทย"},
+  my:{code:"my",flag:"🇲🇲",name:"မြန်မာ"},
 };
 
-const card={background:B.card,borderRadius:16,border:`1px solid ${B.border}`};
-const btn=(bg,color="#fff")=>({background:bg,color,border:"none",borderRadius:10,padding:"10px 18px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"});
-const inp={width:"100%",background:B.dark,border:`1px solid ${B.border}`,borderRadius:8,padding:"10px 12px",color:B.text,fontSize:13,fontFamily:"inherit",boxSizing:"border-box"};
+const T={
+  en:{
+    selectAccount:"Select Account",enterPin:"Enter 4-digit PIN",wrongPin:"Wrong PIN",logout:"Logout",
+    kpi:"KPI",vehicles:"Vehicles",myStats:"My Stats",settings:"Settings",
+    addStaff:"+ Add Staff",score:"Score",pending:"Pending...",tapToScore:"Tap to score",
+    quarterMvp:"QUARTER MVP",staff:"Staff",scored:"Scored",pass:"Pass",excellent:"Excellent",
+    addRecord:"Add Vehicle Record",editRecord:"Edit Record",saveRecord:"Save",cancel:"Cancel",
+    date:"Date",plate:"Plate No.",model:"Model",checkIn:"Check-In",startRepair:"Start Repair",
+    expectedOut:"Expected Out",actualOut:"Actual Out",assignedTech:"Assigned Technicians (max 4)",
+    selected:"Selected",overtime:"Overtime",onTime:"On time",status:"Status",technicians:"Technicians",
+    noRecords:"No records",confirmDelete:"Delete this record?",
+    uploadSheet:"Upload Sheet",addRecordBtn:"+ Add Record",aiReading:"AI reading...",
+    aiConfirm:"AI detected",records:"records — confirm to import",confirmImport:"Confirm Import",
+    myEfficiency:"My Efficiency Dashboard",today:"Today",thisWeek:"This Week",thisMonth:"This Month",custom:"Custom",
+    from:"From",to:"To",totalVehicles:"Total Vehicles",totalWorkTime:"Total Work Time",
+    totalOvertime:"Total Overtime",onTimeRate:"On-Time Rate",noOvertime:"None",
+    autoKpiTitle:"On-Time Delivery — Auto KPI Score",avgOvertime:"Avg Overtime",deduction:"Deduction",
+    autoFormula:"Formula: 15pts full, -0.15pt per 1% overtime (shared equally)",
+    myVehicleRecords:"My Vehicle Records",noPeriod:"No records in this period",
+    backBtn:"Back",viewOnly:"View only — no scoring permission",bonusItems:"Bonus Items (max +10)",
+    saveScore:"Save Score",accounts:"Accounts",logo:"Logo",bonus:"Bonus",
+    companyLogo:"Company Logo",noLogo:"No Logo",uploadLogo:"Upload Logo",remove:"Remove",
+    bonusConfig:"Bonus Configuration",bonusType:"Bonus Type",fixedRM:"Fixed RM",salaryPct:"Salary %",
+    gradeTiers:"Grade Tiers",minScore:"Min Score",addTier:"+ Add",saveBonus:"Save Bonus Settings",
+    clickToEdit:"Click to edit",addAccount:"+ Add Account",newAccount:"New Account",
+    name:"Name",pin:"PIN (4 digits)",role:"Role",department:"Department",canManagePerm:"Can manage staff permissions",
+    add:"Add",changePhoto:"Change Photo",delete:"Delete",saving:"Saving...",save:"Save",
+    noPeriodData:"No records in this period",
+    eachTechShare:"Each tech shares",overtimePct:"% overtime",
+    vehicles_tracker:"Vehicle Time Tracker",vehicles_subtitle:"Auto overtime calc · Up to 4 technicians · Shared KPI impact",
+    addStaffMember:"Add Staff",addStaffName:"Name",addStaffDept:"Department",confirm:"Confirm",
+    autoLabel:"Auto",threshold:"Threshold",
+  },
+  zh:{
+    selectAccount:"选择账号",enterPin:"输入4位PIN",wrongPin:"PIN错误",logout:"登出",
+    kpi:"KPI",vehicles:"车辆",myStats:"我的数据",settings:"设置",
+    addStaff:"+ 添加员工",score:"总分",pending:"等待评分",tapToScore:"点击评分",
+    quarterMvp:"季度MVP",staff:"员工",scored:"已评分",pass:"达标",excellent:"优秀",
+    addRecord:"添加车辆记录",editRecord:"编辑记录",saveRecord:"保存",cancel:"取消",
+    date:"日期",plate:"车牌",model:"车型",checkIn:"进车时间",startRepair:"开始维修",
+    expectedOut:"预计出车",actualOut:"实际完成",assignedTech:"负责技师（最多4位）",
+    selected:"已选",overtime:"超时",onTime:"准时",status:"状态",technicians:"技师",
+    noRecords:"暂无记录",confirmDelete:"确认删除此记录？",
+    uploadSheet:"上传表格",addRecordBtn:"+ 添加记录",aiReading:"AI读取中...",
+    aiConfirm:"AI识别到",records:"条记录，确认导入",confirmImport:"确认导入",
+    myEfficiency:"我的效率分析",today:"今天",thisWeek:"本周",thisMonth:"本月",custom:"自定义",
+    from:"开始日期",to:"结束日期",totalVehicles:"总维修车辆",totalWorkTime:"总工作时间",
+    totalOvertime:"总超时时间",onTimeRate:"准时率",noOvertime:"无超时",
+    autoKpiTitle:"按时交车率 — 自动KPI分数",avgOvertime:"平均超时",deduction:"扣分",
+    autoFormula:"满分15分，每超时1%（平均分担）扣0.15分",
+    myVehicleRecords:"我参与的记录",noPeriod:"此时段暂无记录",
+    backBtn:"返回",viewOnly:"只能查看，无评分权限",bonusItems:"加分项（上限+10）",
+    saveScore:"保存评分",accounts:"账号",logo:"Logo",bonus:"奖金",
+    companyLogo:"公司Logo",noLogo:"无Logo",uploadLogo:"上传Logo",remove:"删除",
+    bonusConfig:"奖金设置",bonusType:"奖励类型",fixedRM:"固定RM",salaryPct:"工资%",
+    gradeTiers:"奖励等级",minScore:"最低分",addTier:"+ 添加",saveBonus:"保存奖金设置",
+    clickToEdit:"点击账号编辑",addAccount:"+ 添加账号",newAccount:"添加新账号",
+    name:"姓名",pin:"PIN（4位数字）",role:"角色",department:"岗位",canManagePerm:"可以管理其他员工权限",
+    add:"确认添加",changePhoto:"换头像",delete:"删除",saving:"保存中...",save:"保存",
+    noPeriodData:"此时段暂无记录",
+    eachTechShare:"每位技师分担",overtimePct:"%超时",
+    vehicles_tracker:"车辆时间追踪",vehicles_subtitle:"超时自动计算 · 最多4位技师 · 平均分担KPI",
+    addStaffMember:"添加员工",addStaffName:"员工姓名",addStaffDept:"岗位",confirm:"确认添加",
+    autoLabel:"自动",threshold:"达标门槛",
+  },
+  ms:{
+    selectAccount:"Pilih Akaun",enterPin:"Masukkan PIN 4 digit",wrongPin:"PIN Salah",logout:"Log Keluar",
+    kpi:"KPI",vehicles:"Kenderaan",myStats:"Statistik Saya",settings:"Tetapan",
+    addStaff:"+ Tambah Pekerja",score:"Markah",pending:"Menunggu...",tapToScore:"Klik untuk nilai",
+    quarterMvp:"MVP SUKU TAHUN",staff:"Pekerja",scored:"Dinilai",pass:"Lulus",excellent:"Cemerlang",
+    addRecord:"Tambah Rekod Kenderaan",editRecord:"Edit Rekod",saveRecord:"Simpan",cancel:"Batal",
+    date:"Tarikh",plate:"No. Plat",model:"Model",checkIn:"Masa Masuk",startRepair:"Mula Baiki",
+    expectedOut:"Jangka Keluar",actualOut:"Keluar Sebenar",assignedTech:"Teknisi (maks 4)",
+    selected:"Dipilih",overtime:"Lebih Masa",onTime:"Tepat masa",status:"Status",technicians:"Teknisi",
+    noRecords:"Tiada rekod",confirmDelete:"Padam rekod ini?",
+    uploadSheet:"Muat Naik",addRecordBtn:"+ Tambah Rekod",aiReading:"AI membaca...",
+    aiConfirm:"AI kesan",records:"rekod — sahkan import",confirmImport:"Sahkan Import",
+    myEfficiency:"Dashboard Kecekapan Saya",today:"Hari Ini",thisWeek:"Minggu Ini",thisMonth:"Bulan Ini",custom:"Pilihan",
+    from:"Dari",to:"Hingga",totalVehicles:"Jumlah Kenderaan",totalWorkTime:"Jumlah Masa Kerja",
+    totalOvertime:"Jumlah Lebih Masa",onTimeRate:"Kadar Tepat Masa",noOvertime:"Tiada",
+    autoKpiTitle:"Kadar Penghantaran Tepat — Markah KPI Auto",avgOvertime:"Purata Lebih Masa",deduction:"Potongan",
+    autoFormula:"Markah penuh 15, -0.15 setiap 1% lebih masa (dikongsi sama rata)",
+    myVehicleRecords:"Rekod Kenderaan Saya",noPeriod:"Tiada rekod dalam tempoh ini",
+    backBtn:"Kembali",viewOnly:"Hanya lihat — tiada kebenaran nilai",bonusItems:"Bonus (maks +10)",
+    saveScore:"Simpan Markah",accounts:"Akaun",logo:"Logo",bonus:"Bonus",
+    companyLogo:"Logo Syarikat",noLogo:"Tiada Logo",uploadLogo:"Muat Naik Logo",remove:"Buang",
+    bonusConfig:"Tetapan Bonus",bonusType:"Jenis Bonus",fixedRM:"Tetap RM",salaryPct:"% Gaji",
+    gradeTiers:"Tahap Gred",minScore:"Markah Min",addTier:"+ Tambah",saveBonus:"Simpan Tetapan Bonus",
+    clickToEdit:"Klik untuk edit",addAccount:"+ Tambah Akaun",newAccount:"Akaun Baru",
+    name:"Nama",pin:"PIN (4 digit)",role:"Peranan",department:"Jabatan",canManagePerm:"Boleh urus kebenaran pekerja",
+    add:"Tambah",changePhoto:"Tukar Foto",delete:"Padam",saving:"Menyimpan...",save:"Simpan",
+    noPeriodData:"Tiada rekod dalam tempoh ini",
+    eachTechShare:"Setiap teknisi kongsi",overtimePct:"% lebih masa",
+    vehicles_tracker:"Penjejak Masa Kenderaan",vehicles_subtitle:"Kira lebih masa auto · Maks 4 teknisi · KPI dikongsi",
+    addStaffMember:"Tambah Pekerja",addStaffName:"Nama",addStaffDept:"Jabatan",confirm:"Sahkan",
+    autoLabel:"Auto",threshold:"Had Lulus",
+  },
+  th:{
+    selectAccount:"เลือกบัญชี",enterPin:"ใส่ PIN 4 หลัก",wrongPin:"PIN ผิด",logout:"ออกจากระบบ",
+    kpi:"KPI",vehicles:"ยานพาหนะ",myStats:"ข้อมูลของฉัน",settings:"การตั้งค่า",
+    addStaff:"+ เพิ่มพนักงาน",score:"คะแนน",pending:"รอการให้คะแนน",tapToScore:"แตะเพื่อให้คะแนน",
+    quarterMvp:"MVP ไตรมาส",staff:"พนักงาน",scored:"ให้คะแนนแล้ว",pass:"ผ่าน",excellent:"ยอดเยี่ยม",
+    addRecord:"เพิ่มบันทึกยานพาหนะ",editRecord:"แก้ไขบันทึก",saveRecord:"บันทึก",cancel:"ยกเลิก",
+    date:"วันที่",plate:"ทะเบียนรถ",model:"รุ่น",checkIn:"เวลาเข้า",startRepair:"เริ่มซ่อม",
+    expectedOut:"คาดออก",actualOut:"ออกจริง",assignedTech:"ช่าง (สูงสุด 4 คน)",
+    selected:"เลือกแล้ว",overtime:"ล่าช้า",onTime:"ตรงเวลา",status:"สถานะ",technicians:"ช่าง",
+    noRecords:"ไม่มีบันทึก",confirmDelete:"ลบบันทึกนี้?",
+    uploadSheet:"อัปโหลดตาราง",addRecordBtn:"+ เพิ่มบันทึก",aiReading:"AI กำลังอ่าน...",
+    aiConfirm:"AI พบ",records:"รายการ — ยืนยันนำเข้า",confirmImport:"ยืนยันนำเข้า",
+    myEfficiency:"แดชบอร์ดประสิทธิภาพ",today:"วันนี้",thisWeek:"สัปดาห์นี้",thisMonth:"เดือนนี้",custom:"กำหนดเอง",
+    from:"จาก",to:"ถึง",totalVehicles:"รถทั้งหมด",totalWorkTime:"เวลาทำงานรวม",
+    totalOvertime:"เวลาล่าช้ารวม",onTimeRate:"อัตราตรงเวลา",noOvertime:"ไม่มี",
+    autoKpiTitle:"คะแนน KPI อัตโนมัติ",avgOvertime:"ล่าช้าเฉลี่ย",deduction:"หักคะแนน",
+    autoFormula:"เต็ม 15 คะแนน หักล่าช้า 1% = 0.15 คะแนน (แบ่งเท่าๆ กัน)",
+    myVehicleRecords:"บันทึกของฉัน",noPeriod:"ไม่มีข้อมูลในช่วงนี้",
+    backBtn:"กลับ",viewOnly:"ดูอย่างเดียว — ไม่มีสิทธิ์ให้คะแนน",bonusItems:"โบนัส (สูงสุด +10)",
+    saveScore:"บันทึกคะแนน",accounts:"บัญชี",logo:"โลโก้",bonus:"โบนัส",
+    companyLogo:"โลโก้บริษัท",noLogo:"ไม่มีโลโก้",uploadLogo:"อัปโหลดโลโก้",remove:"ลบ",
+    bonusConfig:"ตั้งค่าโบนัส",bonusType:"ประเภทโบนัส",fixedRM:"RM คงที่",salaryPct:"% เงินเดือน",
+    gradeTiers:"ระดับโบนัส",minScore:"คะแนนขั้นต่ำ",addTier:"+ เพิ่ม",saveBonus:"บันทึกการตั้งค่า",
+    clickToEdit:"คลิกเพื่อแก้ไข",addAccount:"+ เพิ่มบัญชี",newAccount:"บัญชีใหม่",
+    name:"ชื่อ",pin:"PIN (4 หลัก)",role:"บทบาท",department:"แผนก",canManagePerm:"จัดการสิทธิ์พนักงานได้",
+    add:"เพิ่ม",changePhoto:"เปลี่ยนรูป",delete:"ลบ",saving:"กำลังบันทึก...",save:"บันทึก",
+    noPeriodData:"ไม่มีข้อมูลในช่วงนี้",
+    eachTechShare:"ช่างแต่ละคนรับผิดชอบ",overtimePct:"% ล่าช้า",
+    vehicles_tracker:"ติดตามเวลายานพาหนะ",vehicles_subtitle:"คำนวณล่าช้าอัตโนมัติ · ช่างสูงสุด 4 คน · KPI แบ่งเท่าๆ",
+    addStaffMember:"เพิ่มพนักงาน",addStaffName:"ชื่อ",addStaffDept:"แผนก",confirm:"ยืนยัน",
+    autoLabel:"อัตโนมัติ",threshold:"เกณฑ์ผ่าน",
+  },
+  my:{
+    selectAccount:"အကောင့်ရွေးချယ်ပါ",enterPin:"PIN ၄ လုံးထည့်ပါ",wrongPin:"PIN မမှန်ပါ",logout:"ထွက်မည်",
+    kpi:"KPI",vehicles:"ယာဉ်",myStats:"ကျွန်ုပ်၏ဒေတာ",settings:"ဆက်တင်",
+    addStaff:"+ ဝန်ထမ်းထည့်မည်",score:"မှတ်",pending:"စောင့်ဆိုင်းနေသည်",tapToScore:"နှိပ်ပြီးမှတ်ကြမ်း",
+    quarterMvp:"တာဝန်မှတ်မှ MVP",staff:"ဝန်ထမ်း",scored:"မှတ်ကြမ်းပြီး",pass:"အောင်",excellent:"ထူးချွန်",
+    addRecord:"ယာဉ်မှတ်တမ်းထည့်မည်",editRecord:"မှတ်တမ်းပြင်မည်",saveRecord:"သိမ်းမည်",cancel:"ပယ်ဖျက်",
+    date:"ရက်စွဲ",plate:"ယာဉ်ဆိုင်းဘုတ်",model:"ပုံစံ",checkIn:"ဝင်ချိန်",startRepair:"ပြင်ဆင်မှုစတင်",
+    expectedOut:"မျှော်မှန်းထွက်ချိန်",actualOut:"တကယ်ထွက်ချိန်",assignedTech:"နည်းပညာ (အများဆုံး ၄)",
+    selected:"ရွေးချယ်ပြီး",overtime:"နောက်ကျ",onTime:"အချိန်မီ",status:"အခြေအနေ",technicians:"နည်းပညာ",
+    noRecords:"မှတ်တမ်းမရှိ",confirmDelete:"ဖျက်မည်လား?",
+    uploadSheet:"ဖိုင်တင်မည်",addRecordBtn:"+ မှတ်တမ်းထည့်မည်",aiReading:"AI ဖတ်နေသည်...",
+    aiConfirm:"AI တွေ့ရှိ",records:"မှတ်တမ်း — တင်သွင်းမည်",confirmImport:"အတည်ပြုတင်မည်",
+    myEfficiency:"ကျွန်ုပ်၏ထိရောက်မှုဒေတာ",today:"ယနေ့",thisWeek:"ဤသီတင်းပတ်",thisMonth:"ဤလ",custom:"သတ်မှတ်ရက်",
+    from:"မှ",to:"အထိ",totalVehicles:"ယာဉ်စုစုပေါင်း",totalWorkTime:"စုစုပေါင်းအလုပ်ချိန်",
+    totalOvertime:"စုစုပေါင်းနောက်ကျချိန်",onTimeRate:"အချိန်မီနှုန်း",noOvertime:"မရှိ",
+    autoKpiTitle:"အလိုအလျောက် KPI မှတ်",avgOvertime:"ပျမ်းမျှနောက်ကျ",deduction:"နုတ်ယူ",
+    autoFormula:"ပြည့်မှတ် 15၊ နောက်ကျ 1% တိုင်း 0.15 မှတ်နုတ်",
+    myVehicleRecords:"ကျွန်ုပ်၏ယာဉ်မှတ်တမ်း",noPeriod:"ဤကာလတွင် မှတ်တမ်းမရှိ",
+    backBtn:"နောက်သို့",viewOnly:"ကြည့်သာ — မှတ်ကြမ်းခွင့်မရှိ",bonusItems:"ဆုကြေး (အများဆုံး +10)",
+    saveScore:"မှတ်သိမ်းမည်",accounts:"အကောင့်",logo:"လိုဂို",bonus:"ဆုကြေး",
+    companyLogo:"ကုမ္ပဏီလိုဂို",noLogo:"လိုဂိုမရှိ",uploadLogo:"လိုဂိုတင်မည်",remove:"ဖျက်မည်",
+    bonusConfig:"ဆုကြေးဆက်တင်",bonusType:"ဆုကြေးအမျိုးအစား",fixedRM:"RM သတ်မှတ်",salaryPct:"လစာ%",
+    gradeTiers:"အဆင့်သတ်မှတ်",minScore:"အနည်းဆုံးမှတ်",addTier:"+ ထည့်",saveBonus:"ဆုကြေးဆက်တင်သိမ်း",
+    clickToEdit:"ကလစ်နှိပ်ပြင်မည်",addAccount:"+ အကောင့်ထည့်",newAccount:"အကောင့်အသစ်",
+    name:"နာမည်",pin:"PIN (၄ လုံး)",role:"အခန်းကဏ္ဍ",department:"ဌာန",canManagePerm:"ဝန်ထမ်းခွင့်ပြုချက်စီမံနိုင်",
+    add:"ထည့်မည်",changePhoto:"ဓာတ်ပုံပြောင်းမည်",delete:"ဖျက်မည်",saving:"သိမ်းနေသည်...",save:"သိမ်းမည်",
+    noPeriodData:"ဤကာလတွင် မှတ်တမ်းမရှိ",
+    eachTechShare:"နည်းပညာတစ်ယောက်စီ",overtimePct:"% နောက်ကျ",
+    vehicles_tracker:"ယာဉ်အချိန်ခြေရာခံ",vehicles_subtitle:"အလိုအလျောက်နောက်ကျတွက်ချက် · နည်းပညာ ၄ ယောက်",
+    addStaffMember:"ဝန်ထမ်းထည့်မည်",addStaffName:"နာမည်",addStaffDept:"ဌာန",confirm:"အတည်ပြု",
+    autoLabel:"အလိုအလျောက်",threshold:"ပြင်ဆင်ခြင်းနှုန်း",
+  },
+};
 
-function Logo({url}){
-  if(url)return <img src={url} alt="Logo" style={{height:40,objectFit:"contain",maxWidth:180}}/>;
-  return(<svg width="120" height="28" viewBox="0 0 120 28">
-    <text x="0" y="22" fontFamily="Arial Black" fontSize="26" fontWeight="900" fill="#D0021B" fontStyle="italic">KC</text>
-    <text x="48" y="16" fontFamily="Arial" fontSize="11" fontWeight="700" fill="#FFF" letterSpacing="1">AUTO</text>
-    <text x="48" y="26" fontFamily="Arial" fontSize="9" fontWeight="600" fill="#888" letterSpacing="2">WORKSHOP</text>
-  </svg>);
+const LangContext=React.createContext({lang:"en",t:T.en,setLang:()=>{}});
+const useLang=()=>React.useContext(LangContext);
+
+function LangSwitcher({lang,setLang}){
+  const [open,setOpen]=useState(false);
+  return(
+    <div style={{position:"relative"}}>
+      <button onClick={()=>setOpen(o=>!o)} style={{background:"#1E2128",border:"1px solid #252830",borderRadius:8,padding:"5px 10px",color:"#F0F0F0",cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",gap:5}}>
+        {LANGS[lang].flag} <span style={{fontSize:10,color:"#7A7F8E"}}>{LANGS[lang].name}</span>
+      </button>
+      {open&&<div style={{position:"absolute",right:0,top:"110%",background:"#16191F",border:"1px solid #252830",borderRadius:10,padding:6,zIndex:200,minWidth:140,boxShadow:"0 8px 24px rgba(0,0,0,0.5)"}}>
+        {Object.values(LANGS).map(l=>(
+          <button key={l.code} onClick={()=>{setLang(l.code);setOpen(false);}}
+            style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"7px 10px",background:lang===l.code?"#D0021B22":"transparent",border:"none",borderRadius:7,color:lang===l.code?"#D0021B":"#F0F0F0",cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:lang===l.code?700:400}}>
+            {l.flag} {l.name}
+          </button>
+        ))}
+      </div>}
+    </div>
+  );
 }
 
-function ScoreInput({value,max,onChange,locked}){
+// ── HELPERS ─────────────────────────────────────────
+const api={
+  load:()=>fetch("/api/data").then(r=>r.json()),
+  save:(k,b)=>fetch("/api/"+k,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}),
+};
+const toMin=t=>{if(!t||!t.includes(":"))return null;const[h,m]=t.split(":").map(Number);return h*60+m;};
+const calcOT=r=>{
+  const s=toMin(r.timeStart),e=toMin(r.timeExpected),a=toMin(r.timeActual);
+  if(s===null||e===null||a===null)return null;
+  const planned=e-s,actual=a-s;
+  if(planned<=0)return null;
+  const overMin=actual-planned;
+  return{overMin,overPct:parseFloat(((overMin/planned)*100).toFixed(1)),planned,actual,isOver:overMin>0};
+};
+const autoStatus=ot=>{if(!ot)return"PENDING";if(!ot.isOver)return"GOOD";if(ot.overPct<=15)return"OK";return"LATE";};
+const scColor=s=>s==="GOOD"?"#2ECC71":s==="OK"?"#F1C40F":s==="LATE"?"#E74C3C":"#7A7F8E";
+
+// Per-staff auto KPI score: avg overtime% across their jobs, deduct 0.15pt per 1%
+const calcAutoScore=(staffId,vehicles,maxScore)=>{
+  const mine=vehicles.filter(v=>(v.staffIds||[]).includes(staffId)&&v.timeStart&&v.timeExpected&&v.timeActual);
+  if(!mine.length)return maxScore;
+  let totalPct=0;
+  mine.forEach(v=>{
+    const ot=calcOT(v);
+    if(ot&&ot.isOver){
+      // each staff member shares the overtime equally
+      const share=(v.staffIds||[]).length||1;
+      totalPct+=ot.overPct/share;
+    }
+  });
+  const avgPct=totalPct/mine.length;
+  return Math.max(0,parseFloat((maxScore-avgPct*0.15).toFixed(1)));
+};
+
+const getGrade=(score,threshold,bonusCfg)=>{
+  const tiers=[...bonusCfg.tiers].sort((a,b)=>b.minScore-a.minScore);
+  for(const t of tiers){if(score>=t.minScore)return t;}
+  return{...tiers[tiers.length-1],amount:0};
+};
+
+const S={
+  card:(e={})=>({background:B.card,borderRadius:14,border:`1px solid ${B.border}`,...e}),
+  btn:(bg,color,e={})=>({background:bg,color:color||"#fff",border:"none",borderRadius:10,padding:"9px 16px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit",...e}),
+  inp:{width:"100%",background:B.dark,border:`1px solid ${B.border}`,borderRadius:8,padding:"9px 12px",color:B.text,fontSize:13,fontFamily:"inherit",boxSizing:"border-box",outline:"none"},
+};
+
+// ── AVATAR ───────────────────────────────────────────
+function Av({src,name,size,dept}){
+  size=size||36;
+  const c=dept?DC[dept]:"#555";
+  if(src)return React.createElement("img",{src,alt:name,style:{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:`2px solid ${c}`,flexShrink:0}});
+  const ini=(name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  return React.createElement("div",{style:{width:size,height:size,borderRadius:"50%",background:`${c}22`,border:`2px solid ${c}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*0.34,fontWeight:800,color:c,flexShrink:0}},ini);
+}
+
+// ── SCORE INPUT ──────────────────────────────────────
+function SI({value,max,onChange,locked}){
   const p=max>0?Math.min(value/max,1):0;
-  const c=p>=0.8?"#1E8449":p>=0.5?"#D4AC0D":"#D0021B";
-  return(<div style={{display:"flex",alignItems:"center",gap:8}}>
-    <input type="number" min={0} max={max} value={value} disabled={locked}
-      onChange={e=>!locked&&onChange(Math.min(max,Math.max(0,Number(e.target.value))))}
-      style={{width:56,padding:"6px",borderRadius:8,border:`2px solid ${locked?B.border:c}`,background:locked?B.border:B.dark,color:locked?B.muted:c,fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,textAlign:"center",outline:"none"}}/>
-    <div style={{flex:1,height:5,background:B.border,borderRadius:99,overflow:"hidden",minWidth:36}}>
-      <div style={{width:`${p*100}%`,height:"100%",background:c,borderRadius:99,transition:"width .3s"}}/>
+  const c=p>=0.8?"#2ECC71":p>=0.5?"#F1C40F":"#E74C3C";
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:7}}>
+      <input type="number" min={0} max={max} value={value} disabled={locked}
+        onChange={e=>!locked&&onChange(Math.min(max,Math.max(0,Number(e.target.value))))}
+        style={{...S.inp,width:54,padding:"5px",fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,textAlign:"center",border:`2px solid ${locked?B.border:c}`,background:locked?B.border:B.dark,color:locked?B.muted:c}}/>
+      <div style={{flex:1,height:4,background:B.border,borderRadius:99,overflow:"hidden",minWidth:32}}>
+        <div style={{width:`${p*100}%`,height:"100%",background:c,borderRadius:99}}/>
+      </div>
+      <span style={{fontSize:10,color:B.muted,minWidth:20,fontFamily:"monospace"}}>/{max}</span>
     </div>
-    <span style={{fontSize:10,color:B.muted,minWidth:22,fontFamily:"monospace"}}>/{max}</span>
-  </div>);
+  );
 }
 
-function ScoringPage({user,emp,onBack,onSave}){
-  const cr=CRIT[emp.role]; const dc=DC[emp.role];
-  const canScore=user.role==="boss"||(user.role==="manager"&&user.dept===emp.role);
-  const init=()=>{const s={};cr.s.forEach(sec=>sec.i.forEach(it=>{s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??0;}));BONUS.forEach(b=>{s["B__"+b.n]=emp.scores?.["B__"+b.n]??0;});return s;};
-  const [sc,setSc]=useState(init);
-  const set=(k,v)=>setSc(s=>({...s,[k]:v}));
-  const base=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+(sc[sec.n+"__"+it.n]||0),0),0);
-  const bon=Math.min(10,BONUS.reduce((a,b)=>a+(sc["B__"+b.n]||0),0));
-  const total=base+bon;
-  const mxBase=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+it.m,0),0);
-  const g=grade(total,cr.t);
-  return(<div style={{minHeight:"100vh",background:B.dark}}>
-    <div style={{background:B.black,borderBottom:`1px solid ${B.border}`,padding:"14px 20px",position:"sticky",top:0,zIndex:10}}>
-      <div style={{maxWidth:680,margin:"0 auto",display:"flex",alignItems:"center",gap:12}}>
-        <button onClick={onBack} style={{...btn(B.border,B.muted),padding:"8px 14px"}}>←</button>
-        <div style={{flex:1}}>
-          <div style={{color:B.muted,fontSize:11,letterSpacing:2}}>{emp.role} · {emp.quarter}</div>
-          <div style={{color:B.text,fontSize:18,fontWeight:800}}>{emp.name}</div>
-        </div>
-        <div style={{textAlign:"right"}}>
-          <div style={{color:dc,fontSize:28,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{total}</div>
-          <div style={{color:B.muted,fontSize:10}}>/ {mxBase+10}</div>
-        </div>
-      </div>
-    </div>
-    <div style={{maxWidth:680,margin:"0 auto",padding:"20px 16px"}}>
-      <div style={{...card,padding:"14px 18px",marginBottom:14,background:g.bg,border:`1px solid ${g.c}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div><div style={{color:g.c,fontWeight:800,fontSize:18}}>{g.l}</div><div style={{color:B.muted,fontSize:11,marginTop:2}}>达标门槛：{cr.t}分</div></div>
-        <div style={{background:g.c,color:"#fff",borderRadius:10,padding:"8px 16px",fontWeight:900,fontSize:16}}>{g.b}</div>
-      </div>
-      {!canScore&&<div style={{...card,padding:12,marginBottom:14,textAlign:"center",color:B.muted,fontSize:13}}>🔒 只能查看，无评分权限</div>}
-      {cr.s.map(sec=>(
-        <div key={sec.n} style={{...card,marginBottom:12,overflow:"hidden"}}>
-          <div style={{background:sec.c,padding:"10px 16px"}}><span style={{color:"#fff",fontWeight:700,fontSize:12}}>{sec.n}</span></div>
-          {sec.i.map(it=>(
-            <div key={it.n} style={{padding:"12px 16px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
-              <div style={{flex:1}}>
-                <div style={{color:B.text,fontWeight:700,fontSize:13}}>{it.n}{it.at&&<span style={{color:B.red,fontSize:10,marginLeft:6}}>⏱️ 自动追踪</span>}</div>
-                <div style={{color:B.muted,fontSize:11,marginTop:2}}>{it.d}</div>
-              </div>
-              <ScoreInput value={sc[sec.n+"__"+it.n]||0} max={it.m} onChange={v=>set(sec.n+"__"+it.n,v)} locked={!canScore}/>
-            </div>
+// ── PERSONAL STATS ───────────────────────────────────
+function PersonalStats({user,vehicles}){
+  const {t}=useLang();
+  const today=new Date().toISOString().split("T")[0];
+  const [range,setRange]=useState("month");
+  const [custom,setCustom]=useState({from:today,to:today});
+
+  const parseDate=d=>{
+    if(!d)return null;
+    if(d.includes("-"))return new Date(d);
+    const[dd,mm,yyyy]=d.split(".");
+    if(!yyyy)return null;
+    return new Date(`${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`);
+  };
+
+  const getRangeDates=()=>{
+    const now=new Date();
+    if(range==="today"){const s=new Date(now);s.setHours(0,0,0,0);return{from:s,to:now};}
+    if(range==="week"){const s=new Date(now);s.setDate(now.getDate()-7);return{from:s,to:now};}
+    if(range==="month"){const s=new Date(now.getFullYear(),now.getMonth(),1);return{from:s,to:now};}
+    return{from:new Date(custom.from),to:new Date(custom.to+"T23:59:59")};
+  };
+
+  const myVehicles=useMemo(()=>{
+    const{from,to}=getRangeDates();
+    return vehicles.filter(v=>{
+      if(!(v.staffIds||[]).includes(user.id))return false;
+      const d=parseDate(v.date);
+      if(!d)return true;
+      return d>=from&&d<=to;
+    });
+  },[vehicles,range,custom,user.id]);
+
+  const stats=useMemo(()=>{
+    let totalWorkMin=0,totalOTMin=0,totalOTPct=0,onTime=0;
+    myVehicles.forEach(v=>{
+      const ot=calcOT(v);
+      if(ot){
+        totalWorkMin+=ot.actual;
+        const share=(v.staffIds||[]).length||1;
+        if(ot.isOver){totalOTMin+=ot.overMin/share;totalOTPct+=ot.overPct/share;}
+        else onTime++;
+      }
+    });
+    const avgOTPct=myVehicles.length>0?totalOTPct/myVehicles.length:0;
+    const autoScore=Math.max(0,parseFloat((15-avgOTPct*0.15).toFixed(1)));
+    const onTimeRate=myVehicles.length>0?Math.round((onTime/myVehicles.length)*100):100;
+    return{total:myVehicles.length,totalWorkMin:Math.round(totalWorkMin),totalOTMin:Math.round(totalOTMin),avgOTPct:avgOTPct.toFixed(1),autoScore,onTimeRate};
+  },[myVehicles]);
+
+  const fmtMin=m=>{const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`;};
+
+  return(
+    <div>
+      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:14}}>My Efficiency Dashboard</div>
+      <div style={{...S.card(),padding:13,marginBottom:14}}>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:range==="custom"?12:0}}>
+          {[["today",t.today],["week",t.thisWeek],["month",t.thisMonth],["custom",t.custom]].map(([v,l])=>(
+            <button key={v} onClick={()=>setRange(v)} style={{...S.btn(range===v?B.red:B.border,range===v?"#fff":B.muted,{fontSize:11,padding:"5px 11px"})}}>{l}</button>
           ))}
         </div>
-      ))}
-      <div style={{...card,marginBottom:16,overflow:"hidden"}}>
-        <div style={{background:"#7D5A00",padding:"10px 16px",display:"flex",justifyContent:"space-between"}}>
-          <span style={{color:"#FFD700",fontWeight:700,fontSize:12}}>➕ 加分项（上限 +10分）</span>
-          <span style={{color:"#FFD700",fontWeight:900}}>+{bon}</span>
-        </div>
-        {BONUS.map(b=>(
-          <div key={b.n} style={{padding:"12px 16px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
-            <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{b.n}</div><div style={{color:B.muted,fontSize:11}}>{b.d}</div></div>
-            <ScoreInput value={sc["B__"+b.n]||0} max={b.m} onChange={v=>set("B__"+b.n,v)} locked={!canScore}/>
+        {range==="custom"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:10}}>
+          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>From</div><input type="date" value={custom.from} onChange={e=>setCustom(c=>({...c,from:e.target.value}))} style={S.inp}/></div>
+          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>To</div><input type="date" value={custom.to} onChange={e=>setCustom(c=>({...c,to:e.target.value}))} style={S.inp}/></div>
+        </div>}
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9,marginBottom:14}}>
+        {[
+          {label:t.totalVehicles,value:stats.total,unit:"cars",color:"#3498DB"},
+          {label:t.totalWorkTime,value:stats.totalWorkMin>0?fmtMin(stats.totalWorkMin):"0m",unit:"",color:"#9B59B6"},
+          {label:t.totalOvertime,value:stats.totalOTMin>0?fmtMin(stats.totalOTMin):t.noOvertime,unit:"",color:stats.totalOTMin>0?"#E74C3C":"#2ECC71"},
+          {label:t.onTimeRate,value:stats.onTimeRate+"%",unit:"",color:stats.onTimeRate>=90?"#2ECC71":stats.onTimeRate>=70?"#F1C40F":"#E74C3C"},
+        ].map(s=>(
+          <div key={s.label} style={{...S.card(),padding:14,textAlign:"center"}}>
+            <div style={{color:B.muted,fontSize:10,marginBottom:5}}>{s.label}</div>
+            <div style={{color:s.color,fontSize:21,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{s.value}</div>
           </div>
         ))}
       </div>
-      {canScore&&<button onClick={()=>onSave({...emp,scores:sc,total,grade:g.l,bonus:g.b})} style={{...btn(B.red),width:"100%",padding:16,fontSize:15,boxShadow:`0 4px 20px ${B.red}44`}}>💾 保存评分</button>}
+
+      <div style={{...S.card(),padding:16,marginBottom:14,border:`1px solid ${stats.autoScore>=12?"#2ECC71":stats.autoScore>=8?"#F1C40F":"#E74C3C"}44`}}>
+        <div style={{color:B.text,fontWeight:800,marginBottom:10}}>On-Time Delivery — Auto KPI Score</div>
+        <div style={{display:"flex",alignItems:"center",gap:14}}>
+          <div style={{textAlign:"center",minWidth:72}}>
+            <div style={{color:stats.autoScore>=12?"#2ECC71":stats.autoScore>=8?"#F1C40F":"#E74C3C",fontSize:34,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{stats.autoScore}</div>
+            <div style={{color:B.muted,fontSize:10}}>/ 15 pts</div>
+          </div>
+          <div style={{flex:1}}>
+            <div style={{height:8,background:B.border,borderRadius:99,overflow:"hidden",marginBottom:7}}>
+              <div style={{width:`${(stats.autoScore/15)*100}%`,height:"100%",background:stats.autoScore>=12?"#2ECC71":stats.autoScore>=8?"#F1C40F":"#E74C3C",borderRadius:99}}/>
+            </div>
+            <div style={{color:B.muted,fontSize:11}}>Avg Overtime: {stats.avgOTPct}% · Deduction: {(parseFloat(stats.avgOTPct)*0.15).toFixed(1)}pts</div>
+            <div style={{color:B.muted,fontSize:10,marginTop:3}}>Formula: 15pts full, -0.15pt per 1% overtime (shared equally)</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{...S.card(),overflow:"hidden"}}>
+        <div style={{background:B.card2,padding:"9px 14px",borderBottom:`1px solid ${B.border}`}}>
+          <span style={{color:B.text,fontWeight:700,fontSize:12}}>My Vehicle Records ({myVehicles.length})</span>
+        </div>
+        <div style={{overflowX:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:480}}>
+            <thead><tr>{["Date","Plate","Model","Start","Out","Overtime","Status"].map(h=><th key={h} style={{color:B.muted,padding:"6px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10}}>{h}</th>)}</tr></thead>
+            <tbody>{myVehicles.length===0?<tr><td colSpan={7} style={{padding:28,textAlign:"center",color:B.muted}}>No records in this period</td></tr>:myVehicles.map(v=>{
+              const ot=v.overtime||calcOT(v);
+              const share=(v.staffIds||[]).length||1;
+              return<tr key={v.id} style={{borderBottom:`1px solid ${B.border}`,background:v.status==="LATE"?"#1A0808":B.dark}}>
+                <td style={{padding:"6px 9px",color:B.muted}}>{v.date}</td>
+                <td style={{padding:"6px 9px",color:B.text,fontWeight:700}}>{v.plate}</td>
+                <td style={{padding:"6px 9px",color:B.muted}}>{v.model}</td>
+                <td style={{padding:"6px 9px",fontFamily:"monospace"}}>{v.timeStart||"–"}</td>
+                <td style={{padding:"6px 9px",fontFamily:"monospace"}}>{v.timeActual||"–"}</td>
+                <td style={{padding:"6px 9px",fontFamily:"monospace",color:ot&&ot.isOver?B.red:"#2ECC71",fontWeight:700}}>
+                  {ot?(ot.isOver?`+${ot.overMin}m (${(ot.overPct/share).toFixed(1)}% share)`:"-"+Math.abs(ot.overMin)+"m"):"–"}
+                </td>
+                <td style={{padding:"6px 9px"}}><span style={{background:scColor(v.status)+"22",color:scColor(v.status),borderRadius:4,padding:"1px 6px",fontWeight:700}}>{v.status||"–"}</span></td>
+              </tr>;
+            })}</tbody>
+          </table>
+        </div>
+      </div>
     </div>
-  </div>);
+  );
 }
 
-function VehicleTracker({user,vehicles,setVehicles}){
+// ── VEHICLE TRACKER ──────────────────────────────────
+function VehicleTracker({user,vehicles,setVehicles,allUsers}){
+  const {t}=useLang();
+  const staffList=allUsers.filter(u=>u.role!=="boss");
+  const emptyF={plate:"",model:"",timeIn:"",timeStart:"",timeExpected:"",timeActual:"",staffIds:[],date:new Date().toLocaleDateString("en-GB").replace(/\//g,".")};
+  const [showAdd,setShowAdd]=useState(false);
+  const [editId,setEditId]=useState(null);
+  const [form,setForm]=useState(emptyF);
   const [uploading,setUploading]=useState(false);
   const [aiResult,setAiResult]=useState(null);
-  const [aiError,setAiError]=useState("");
-  const [showAdd,setShowAdd]=useState(false);
-  const [nr,setNr]=useState({plate:"",model:"",timeIn:"",timeStart:"",timeOut:""});
   const fRef=useRef();
-  const canEdit=user.role==="boss"||user.role==="manager";
+  const canEdit=user.role==="boss"||user.role==="manager"||user.canManage;
   const save=v=>{setVehicles(v);api.save("vehicles",v);};
-  const sc=s=>s==="GOOD"?"#1E8449":s==="OK"?"#D4AC0D":s==="LATE"?"#D0021B":"#8A8E9A";
 
-  const upload=async(e)=>{
-    const file=e.target.files[0]; if(!file)return;
-    setUploading(true);setAiResult(null);setAiError("");
+  const toggleStaff=id=>{
+    setForm(f=>{
+      const ids=f.staffIds||[];
+      if(ids.includes(id))return{...f,staffIds:ids.filter(x=>x!==id)};
+      if(ids.length>=4)return f;
+      return{...f,staffIds:[...ids,id]};
+    });
+  };
+
+  const submitForm=()=>{
+    const ot=calcOT(form);const status=autoStatus(ot);
+    if(editId){save(vehicles.map(v=>v.id===editId?{...v,...form,overtime:ot,status}:v));setEditId(null);}
+    else{save([...vehicles,{...form,id:Date.now(),no:vehicles.length+1,overtime:ot,status}]);}
+    setForm(emptyF);setShowAdd(false);
+  };
+
+  const upload=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    setUploading(true);
     const b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.readAsDataURL(file);});
     try{
       const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         model:"claude-sonnet-4-20250514",max_tokens:2000,
         messages:[{role:"user",content:[
           {type:"image",source:{type:"base64",media_type:file.type,data:b64}},
-          {type:"text",text:`This is a vehicle workshop daily log. Columns: NO, DATE, VEHICLE(plate), MODEL, IN TIME, START TIME, OUT, REAL, %, LATE TIME, status(GOOD/OK/LATE).
-Extract every data row. Return ONLY a valid JSON array, no markdown, no explanation.
-Format: [{"no":1,"date":"29.05.2026","plate":"BPW9983","model":"CRV G5","timeIn":"10:10","timeStart":"10:10","timeOut":"12:10","real":"11:36","late":"00:00","status":"GOOD"}]
-Rules: status="PENDING" if no out time, "LATE" if late>00:00, "OK" if minor, "GOOD" if on time. Use "–" for empty cells. Return ONLY the JSON array.`}
+          {type:"text",text:"Extract vehicle workshop log rows. Return ONLY JSON array: [{\"no\":1,\"date\":\"29.05.2026\",\"plate\":\"BPW9983\",\"model\":\"CRV G5\",\"timeIn\":\"10:10\",\"timeStart\":\"10:10\",\"timeExpected\":\"12:10\",\"timeActual\":\"11:36\"}]. timeExpected=OUT column. timeActual=REAL column. Return ONLY the array."}
         ]}]
       })});
       const data=await resp.json();
       const text=(data.content||[]).map(c=>c.text||"").join("").trim();
-      const s=text.indexOf("["),end=text.lastIndexOf("]");
-      if(s===-1)throw new Error("AI无法识别，请确保图片清晰");
-      setAiResult(JSON.parse(text.slice(s,end+1)));
-    }catch(err){setAiError("识别失败："+err.message);}
+      const s=text.indexOf("["),en=text.lastIndexOf("]");
+      if(s===-1)throw new Error("Cannot parse");
+      setAiResult(JSON.parse(text.slice(s,en+1)));
+    }catch(err){alert("Failed: "+err.message);}
     setUploading(false);e.target.value="";
   };
 
-  return(<div>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:10}}>
-      <div><div style={{color:B.text,fontSize:18,fontWeight:800}}>⏱️ 车辆时间追踪</div><div style={{color:B.muted,fontSize:12}}>进车 · 维修 · 出车 · 超时自动标红</div></div>
-      {canEdit&&<div style={{display:"flex",gap:8}}>
-        <button onClick={()=>fRef.current.click()} style={{...btn(B.border,B.text),fontSize:12}}>📷 上传表格</button>
-        <button onClick={()=>setShowAdd(true)} style={{...btn(B.red),fontSize:12}}>+ 手动添加</button>
+  const previewOT=calcOT(form);
+
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:10}}>
+        <div>
+          <div style={{color:B.text,fontSize:17,fontWeight:800}}>Vehicle Time Tracker</div>
+          <div style={{color:B.muted,fontSize:11}}>Auto overtime calc · Up to 4 technicians · Shared KPI impact</div>
+        </div>
+        {canEdit&&<div style={{display:"flex",gap:7}}>
+          <button onClick={()=>fRef.current.click()} style={{...S.btn(B.border,B.text,{fontSize:11})}}>Upload Sheet</button>
+          <button onClick={()=>{setShowAdd(true);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>+ Add Record</button>
+        </div>}
+      </div>
+      <input ref={fRef} type="file" accept="image/*" style={{display:"none"}} onChange={upload}/>
+
+      {uploading&&<div style={{...S.card(),padding:14,marginBottom:12,textAlign:"center"}}><span style={{color:B.red,fontWeight:700}}>AI reading table...</span></div>}
+
+      {aiResult&&<div style={{...S.card(),padding:16,marginBottom:12,border:"1px solid #F1C40F"}}>
+        <div style={{color:"#F1C40F",fontWeight:800,marginBottom:9}}>AI detected {aiResult.length} records — confirm to import</div>
+        <div style={{overflowX:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+            <thead><tr>{["No","Plate","Model","In","Start","Expected Out","Actual"].map(h=><th key={h} style={{color:B.muted,padding:"4px 8px",textAlign:"left",borderBottom:`1px solid ${B.border}`}}>{h}</th>)}</tr></thead>
+            <tbody>{aiResult.map((r,i)=><tr key={i}>{[r.no,r.plate,r.model,r.timeIn,r.timeStart,r.timeExpected,r.timeActual].map((v,j)=><td key={j} style={{color:B.text,padding:"4px 8px",borderBottom:`1px solid ${B.border}`}}>{v||"–"}</td>)}</tr>)}</tbody>
+          </table>
+        </div>
+        <div style={{display:"flex",gap:7,marginTop:10}}>
+          <button onClick={()=>{
+            const today=new Date().toLocaleDateString("en-GB").replace(/\//g,".");
+            save([...vehicles,...aiResult.map((r,i)=>{const ot=calcOT(r);return{...r,id:Date.now()+i,date:r.date||today,overtime:ot,status:autoStatus(ot),staffIds:[]}})]);
+            setAiResult(null);
+          }} style={{...S.btn(B.red)}}>Confirm Import</button>
+          <button onClick={()=>setAiResult(null)} style={{...S.btn(B.border,B.muted)}}>Cancel</button>
+        </div>
       </div>}
-    </div>
-    <input ref={fRef} type="file" accept="image/*" style={{display:"none"}} onChange={upload}/>
-    {uploading&&<div style={{...card,padding:20,marginBottom:14,textAlign:"center"}}><div style={{color:B.red,fontSize:14,fontWeight:700}}>🤖 AI 正在读取表格，请稍候 5-10秒...</div></div>}
-    {aiError&&<div style={{...card,padding:16,marginBottom:14,border:`1px solid ${B.red}`}}>
-      <div style={{color:B.red,fontWeight:700,marginBottom:8}}>⚠️ {aiError}</div>
-      <button onClick={()=>setAiError("")} style={{...btn(B.border,B.muted),fontSize:12}}>关闭</button>
-    </div>}
-    {aiResult&&<div style={{...card,padding:20,marginBottom:14,border:`1px solid #D4AC0D`}}>
-      <div style={{color:"#D4AC0D",fontWeight:800,fontSize:15,marginBottom:12}}>🤖 识别到 {aiResult.length} 条记录，确认后导入</div>
+
+      {showAdd&&<div style={{...S.card(),padding:17,marginBottom:14,border:`1px solid ${B.red}`}}>
+        <div style={{color:B.text,fontWeight:700,marginBottom:13,fontSize:14}}>{editId?"Edit Record":t.addRecord}</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9,marginBottom:11}}>
+          {[["Date","date"],["Plate","plate"],["Model","model"],["Check-In Time","timeIn"],["Start Repair","timeStart"],["Expected Out","timeExpected"],["Actual Out","timeActual"]].map(([l,k])=>(
+            <div key={k}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>{l}</div>
+              <input value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} placeholder={k.includes("time")?"HH:MM":""} style={S.inp}/>
+            </div>
+          ))}
+        </div>
+
+        <div style={{marginBottom:11}}>
+          <div style={{color:B.muted,fontSize:10,marginBottom:6}}>Assigned Technicians (max 4) — Selected: {(form.staffIds||[]).length}/4</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {staffList.map(s=>{
+              const sel=(form.staffIds||[]).includes(s.id);
+              const disabled=!sel&&(form.staffIds||[]).length>=4;
+              return(
+                <button key={s.id} onClick={()=>!disabled&&toggleStaff(s.id)}
+                  style={{...S.btn(sel?DC[s.dept]||B.red:B.border,sel?"#fff":B.muted,{fontSize:11,padding:"5px 10px",opacity:disabled?0.4:1,cursor:disabled?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:6})}}>
+                  <Av src={s.avatar} name={s.name} dept={s.dept} size={20}/>{s.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {previewOT&&<div style={{background:previewOT.isOver?"#2B0009":"#0D2B19",border:`1px solid ${previewOT.isOver?"#E74C3C":"#2ECC71"}`,borderRadius:9,padding:"8px 12px",marginBottom:11,fontSize:12}}>
+          <span style={{color:previewOT.isOver?"#E74C3C":"#2ECC71",fontWeight:700}}>
+            {previewOT.isOver?`Overtime: ${previewOT.overMin}min (${previewOT.overPct}%)`:`On time (saved ${Math.abs(previewOT.overMin)}min)`}
+          </span>
+          <span style={{color:B.muted,marginLeft:10}}>Planned {previewOT.planned}min / Actual {previewOT.actual}min</span>
+          {previewOT.isOver&&(form.staffIds||[]).length>1&&<div style={{color:B.muted,fontSize:10,marginTop:3}}>
+            Each tech shares: {(previewOT.overPct/(form.staffIds||[]).length).toFixed(1)}% overtime
+          </div>}
+        </div>}
+
+        <div style={{display:"flex",gap:7}}>
+          <button onClick={submitForm} style={{...S.btn(B.red)}}>Save</button>
+          <button onClick={()=>{setShowAdd(false);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.border,B.muted)}}>Cancel</button>
+        </div>
+      </div>}
+
       <div style={{overflowX:"auto"}}>
-        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
-          <thead><tr>{["No","车牌","车型","进车","开始","出车","实际","迟到","状态"].map(h=><th key={h} style={{color:B.muted,padding:"6px 8px",textAlign:"left",borderBottom:`1px solid ${B.border}`,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
-          <tbody>{aiResult.map((r,i)=><tr key={i}>{[r.no,r.plate,r.model,r.timeIn,r.timeStart,r.timeOut,r.real,r.late].map((v,j)=><td key={j} style={{color:B.text,padding:"6px 8px",borderBottom:`1px solid ${B.border}`,whiteSpace:"nowrap"}}>{v||"–"}</td>)}
-            <td style={{padding:"6px 8px"}}><span style={{background:sc(r.status)+"33",color:sc(r.status),borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700}}>{r.status}</span></td>
-          </tr>)}</tbody>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:800}}>
+          <thead><tr style={{background:B.card2}}>{["No","Date","Plate","Model","Check-In","Start","Exp. Out","Actual","Overtime","Status","Technicians",""].map(h=><th key={h} style={{color:B.muted,padding:"7px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+          <tbody>{vehicles.map(r=>{
+            const ot=r.overtime||calcOT(r);
+            const techs=(r.staffIds||[]).map(id=>allUsers.find(u=>u.id===id)).filter(Boolean);
+            const share=techs.length||1;
+            return(
+              <tr key={r.id} style={{background:r.status==="LATE"?"#1A0808":B.dark,borderBottom:`1px solid ${B.border}`}}>
+                <td style={{padding:"7px 9px",color:B.muted,fontFamily:"monospace"}}>{r.no}</td>
+                <td style={{padding:"7px 9px",color:B.muted,fontSize:10}}>{r.date}</td>
+                <td style={{padding:"7px 9px",color:B.text,fontWeight:700}}>{r.plate}</td>
+                <td style={{padding:"7px 9px",color:B.muted}}>{r.model}</td>
+                {[r.timeIn,r.timeStart,r.timeExpected,r.timeActual].map((v,i)=><td key={i} style={{padding:"7px 9px",fontFamily:"monospace",color:B.text,fontSize:11}}>{v||"–"}</td>)}
+                <td style={{padding:"7px 9px"}}>
+                  {ot?<div>
+                    <span style={{color:ot.isOver?B.red:"#2ECC71",fontFamily:"monospace",fontWeight:700,fontSize:10,display:"block"}}>{ot.isOver?`+${ot.overMin}m`:"-"+Math.abs(ot.overMin)+"m"}</span>
+                    {ot.isOver&&<span style={{color:B.muted,fontSize:9}}>{(ot.overPct/share).toFixed(1)}%/tech</span>}
+                  </div>:<span style={{color:B.muted}}>–</span>}
+                </td>
+                <td style={{padding:"7px 9px"}}><span style={{background:scColor(r.status)+"22",color:scColor(r.status),borderRadius:5,padding:"1px 6px",fontSize:10,fontWeight:700}}>{r.status}</span></td>
+                <td style={{padding:"7px 9px"}}>
+                  <div style={{display:"flex",gap:3}}>
+                    {techs.map(s=><div key={s.id} title={s.name}><Av src={s.avatar} name={s.name} dept={s.dept} size={22}/></div>)}
+                    {techs.length===0&&<span style={{color:B.muted,fontSize:10}}>–</span>}
+                  </div>
+                </td>
+                {canEdit&&<td style={{padding:"7px 9px"}}>
+                  <div style={{display:"flex",gap:3}}>
+                    <button onClick={()=>{setForm({plate:r.plate,model:r.model,timeIn:r.timeIn||"",timeStart:r.timeStart||"",timeExpected:r.timeExpected||"",timeActual:r.timeActual||"",staffIds:r.staffIds||[],date:r.date});setEditId(r.id);setShowAdd(true);}} style={{...S.btn("#252830",B.muted,{padding:"3px 7px",fontSize:9})}}>Edit</button>
+                    <button onClick={()=>{if(confirm(t.confirmDelete))save(vehicles.filter(v=>v.id!==r.id));}} style={{...S.btn("#2B0009","#E74C3C",{padding:"3px 7px",fontSize:9})}}>Del</button>
+                  </div>
+                </td>}
+              </tr>
+            );
+          })}</tbody>
         </table>
+        {vehicles.length===0&&<div style={{textAlign:"center",padding:36,color:B.muted}}>No records yet</div>}
       </div>
-      <div style={{display:"flex",gap:10,marginTop:14}}>
-        <button onClick={()=>{const today=new Date().toLocaleDateString("en-GB").replace(/\//g,".");save([...vehicles,...aiResult.map((r,i)=>({...r,id:Date.now()+i,date:r.date||today}))]);setAiResult(null);}} style={{...btn(B.red)}}>✅ 确认导入</button>
-        <button onClick={()=>setAiResult(null)} style={{...btn(B.border,B.muted)}}>取消</button>
+    </div>
+  );
+}
+
+// ── SCORING PAGE ─────────────────────────────────────
+function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
+  const {t}=useLang();
+  const cr=CRIT[emp.role];const dc=DC[emp.role];
+  const canScore=user.role==="boss"||(user.canManage&&user.dept===emp.role)||(user.role==="manager"&&user.dept===emp.role);
+  const empUserId=emp.userId||null;
+  const init=()=>{
+    const s={};
+    cr.s.forEach(sec=>sec.i.forEach(it=>{
+      if(it.auto&&empUserId){s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??calcAutoScore(empUserId,vehicles,it.m);}
+      else{s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??0;}
+    }));
+    BONUS_ITEMS.forEach(b=>{s["B__"+b.n]=emp.scores?.["B__"+b.n]??0;});
+    return s;
+  };
+  const [sc,setSc]=useState(init);
+  const set=(k,v)=>setSc(s=>({...s,[k]:v}));
+  const base=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+(sc[sec.n+"__"+it.n]||0),0),0);
+  const bon=Math.min(10,BONUS_ITEMS.reduce((a,b)=>a+(sc["B__"+b.n]||0),0));
+  const total=base+bon;
+  const mxBase=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+it.m,0),0);
+  const grade=getGrade(total,cr.t,bonusCfg);
+  return(
+    <div style={{minHeight:"100vh",background:B.dark}}>
+      <div style={{background:"#0A0C10",borderBottom:`1px solid ${B.border}`,padding:"12px 16px",position:"sticky",top:0,zIndex:10}}>
+        <div style={{maxWidth:680,margin:"0 auto",display:"flex",alignItems:"center",gap:11}}>
+          <button onClick={onBack} style={{...S.btn(B.border,B.muted,{padding:"6px 12px"})}}>Back</button>
+          <Av src={emp.avatar} name={emp.name} dept={emp.role} size={34}/>
+          <div style={{flex:1}}><div style={{color:B.muted,fontSize:10,letterSpacing:2}}>{emp.role} - {emp.quarter}</div><div style={{color:B.text,fontSize:15,fontWeight:800}}>{emp.name}</div></div>
+          <div style={{textAlign:"right"}}><div style={{color:dc,fontSize:24,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{total}</div><div style={{color:B.muted,fontSize:10}}>/ {mxBase+10}</div></div>
+        </div>
       </div>
-    </div>}
-    {showAdd&&canEdit&&<div style={{...card,padding:20,marginBottom:14}}>
-      <div style={{color:B.text,fontWeight:700,marginBottom:14}}>手动添加记录</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
-        {[["车牌","plate"],["车型","model"],["进车时间","timeIn"],["开始维修","timeStart"],["出车时间","timeOut"]].map(([l,k])=>(
-          <div key={k}><div style={{color:B.muted,fontSize:11,marginBottom:4}}>{l}</div>
-            <input value={nr[k]} onChange={e=>setNr(r=>({...r,[k]:e.target.value}))} placeholder={k.includes("time")?"HH:MM":""} style={inp}/>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"15px 14px"}}>
+        <div style={{...S.card(),padding:"11px 15px",marginBottom:11,background:grade.color+"15",border:`1px solid ${grade.color}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><div style={{color:grade.color,fontWeight:800,fontSize:15}}>{grade.label}</div><div style={{color:B.muted,fontSize:10,marginTop:2}}>Threshold: {cr.t}pts</div></div>
+          <div style={{background:grade.color,color:"#fff",borderRadius:9,padding:"5px 13px",fontWeight:900,fontSize:14}}>RM {grade.amount}</div>
+        </div>
+        {!canScore&&<div style={{...S.card(),padding:9,marginBottom:11,textAlign:"center",color:B.muted,fontSize:11}}>View only — no scoring permission</div>}
+        {cr.s.map(sec=>(
+          <div key={sec.n} style={{...S.card(),marginBottom:9,overflow:"hidden"}}>
+            <div style={{background:sec.c,padding:"7px 13px"}}><span style={{color:"#fff",fontWeight:700,fontSize:11}}>{sec.n}</span></div>
+            {sec.i.map(it=>(
+              <div key={it.n} style={{padding:"9px 13px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:9}}>
+                <div style={{flex:1}}>
+                  <div style={{color:B.text,fontWeight:700,fontSize:12}}>
+                    {it.n}
+                    {it.auto&&<span style={{background:"#D0021B22",color:B.red,fontSize:9,marginLeft:6,borderRadius:4,padding:"1px 5px"}}>Auto</span>}
+                  </div>
+                  <div style={{color:B.muted,fontSize:10,marginTop:1}}>{it.d}</div>
+                </div>
+                <SI value={sc[sec.n+"__"+it.n]||0} max={it.m} onChange={v=>set(sec.n+"__"+it.n,v)} locked={!canScore}/>
+              </div>
+            ))}
+          </div>
+        ))}
+        <div style={{...S.card(),marginBottom:13,overflow:"hidden"}}>
+          <div style={{background:"#7D5A00",padding:"7px 13px",display:"flex",justifyContent:"space-between"}}>
+            <span style={{color:"#FFD700",fontWeight:700,fontSize:11}}>Bonus Items (max +10)</span>
+            <span style={{color:"#FFD700",fontWeight:800}}>+{bon}</span>
+          </div>
+          {BONUS_ITEMS.map(b=>(
+            <div key={b.n} style={{padding:"9px 13px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:9}}>
+              <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:12}}>{b.n}</div><div style={{color:B.muted,fontSize:10}}>{b.d}</div></div>
+              <SI value={sc["B__"+b.n]||0} max={b.m} onChange={v=>set("B__"+b.n,v)} locked={!canScore}/>
+            </div>
+          ))}
+        </div>
+        {canScore&&<button onClick={()=>onSave({...emp,scores:sc,total,grade:grade.label,bonusAmt:grade.amount})} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:13,boxShadow:`0 4px 18px ${B.red}44`})}}>Save Score</button>}
+      </div>
+    </div>
+  );
+}
+
+// ── BONUS CONFIG ─────────────────────────────────────
+function BonusConfig({bonusCfg,setBonusCfg}){
+  const {t}=useLang();
+  const [cfg,setCfg]=useState(bonusCfg);
+  const saveIt=()=>{setBonusCfg(cfg);api.save("bonusConfig",cfg);alert("✓");};
+  const setT=(i,k,v)=>setCfg(c=>({...c,tiers:c.tiers.map((t,j)=>j===i?{...t,[k]:v}:t)}));
+  return(
+    <div>
+      <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>Bonus Configuration</div>
+      <div style={{...S.card(),padding:14,marginBottom:11}}>
+        <div style={{color:B.muted,fontSize:10,marginBottom:8}}>Bonus Type</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {[["fixed",t.fixedRM],["percentage",t.salaryPct],["custom",t.custom]].map(([v,l])=>(
+            <button key={v} onClick={()=>setCfg(c=>({...c,type:v}))} style={{...S.btn(cfg.type===v?B.red:B.border,cfg.type===v?"#fff":B.muted,{fontSize:11})}}>{l}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{...S.card(),padding:14,marginBottom:11}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11}}>
+          <span style={{color:B.text,fontWeight:700}}>Grade Tiers</span>
+          <button onClick={()=>setCfg(c=>({...c,tiers:[...c.tiers,{label:"New Grade",minScore:50,amount:50,color:"#3498DB"}]}))} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 9px"})}}>+ Add</button>
+        </div>
+        {cfg.tiers.map((t,i)=>(
+          <div key={i} style={{background:B.dark,borderRadius:9,padding:"10px 12px",marginBottom:7,border:`1px solid ${t.color}22`}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 65px 65px 32px",gap:7,alignItems:"center",marginBottom:7}}>
+              <input value={t.label} onChange={e=>setT(i,"label",e.target.value)} style={{...S.inp,fontSize:12}}/>
+              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Min Score</div><input type="number" value={t.minScore} onChange={e=>setT(i,"minScore",Number(e.target.value))} style={{...S.inp,textAlign:"center"}}/></div>
+              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>{cfg.type==="percentage"?"%":"RM"}</div><input type="number" value={t.amount} onChange={e=>setT(i,"amount",Number(e.target.value))} style={{...S.inp,textAlign:"center"}}/></div>
+              <button onClick={()=>setCfg(c=>({...c,tiers:c.tiers.filter((_,j)=>j!==i)}))} style={{...S.btn("#2B0009","#E74C3C",{padding:"5px"})}}>X</button>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:7}}>
+              <span style={{color:B.muted,fontSize:10}}>Color:</span>
+              <input type="color" value={t.color} onChange={e=>setT(i,"color",e.target.value)} style={{width:28,height:24,border:"none",background:"none",cursor:"pointer"}}/>
+              <div style={{background:t.color,color:"#fff",borderRadius:4,padding:"1px 8px",fontSize:11,fontWeight:700}}>{t.label}</div>
+            </div>
           </div>
         ))}
       </div>
-      <div style={{display:"flex",gap:10,marginTop:14}}>
-        <button onClick={()=>{const today=new Date().toLocaleDateString("en-GB").replace(/\//g,".");save([...vehicles,{...nr,id:Date.now(),no:vehicles.length+1,date:today,real:"–",late:"–",status:"PENDING"}]);setShowAdd(false);setNr({plate:"",model:"",timeIn:"",timeStart:"",timeOut:"" });}} style={{...btn(B.red)}}>保存</button>
-        <button onClick={()=>setShowAdd(false)} style={{...btn(B.border,B.muted)}}>取消</button>
-      </div>
-    </div>}
-    <div style={{overflowX:"auto"}}>
-      <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <thead><tr style={{background:B.card}}>{["No","日期","车牌","车型","进车","开始维修","出车","实际完成","迟到","状态"].map(h=><th key={h} style={{color:B.muted,padding:"10px 12px",textAlign:"left",borderBottom:`1px solid ${B.border}`,whiteSpace:"nowrap",fontWeight:700,fontSize:11}}>{h}</th>)}</tr></thead>
-        <tbody>{vehicles.map(r=>{
-          const isLate=r.status==="LATE"||(r.late&&r.late!=="–"&&r.late!=="00:00");
-          return(<tr key={r.id} style={{background:isLate?"#1A0808":r.status==="PENDING"?"#0D0D1A":B.dark,borderBottom:`1px solid ${B.border}`}}>
-            <td style={{padding:"10px 12px",color:B.muted,fontFamily:"monospace"}}>{r.no}</td>
-            <td style={{padding:"10px 12px",color:B.muted,fontSize:12}}>{r.date}</td>
-            <td style={{padding:"10px 12px",color:B.text,fontWeight:700}}>{r.plate}</td>
-            <td style={{padding:"10px 12px",color:B.muted}}>{r.model}</td>
-            {[r.timeIn,r.timeStart,r.timeOut,r.real,r.late].map((v,i)=><td key={i} style={{padding:"10px 12px",fontFamily:"monospace",color:i===4&&v&&v!=="–"&&v!=="00:00"?B.red:B.text}}>{v||"–"}</td>)}
-            <td style={{padding:"10px 12px"}}><span style={{background:sc(r.status)+"22",color:sc(r.status),borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:700}}>{r.status}</span></td>
-          </tr>);
-        })}</tbody>
-      </table>
-      {vehicles.length===0&&<div style={{textAlign:"center",padding:"40px",color:B.muted,fontSize:13}}>暂无记录，请上传表格或手动添加</div>}
+      <button onClick={saveIt} style={{...S.btn(B.red,"#fff",{width:"100%",padding:11})}}>Save Bonus Settings</button>
     </div>
-  </div>);
+  );
 }
 
-function Settings({users,setUsers,logoUrl,setLogoUrl}){
+// ── SETTINGS ─────────────────────────────────────────
+function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg}){
+  const {t}=useLang();
+  const [tab,setTab]=useState("users");
   const [editing,setEditing]=useState(null);
   const [ev,setEv]=useState({});
   const [saving,setSaving]=useState(false);
-  const lRef=useRef();
-  const startEdit=u=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||""});};
-  const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,name:ev.name,pin:ev.pin,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
-  return(<div>
-    <div style={{color:B.text,fontSize:18,fontWeight:800,marginBottom:20}}>⚙️ 系统设置</div>
-    <div style={{...card,padding:20,marginBottom:16}}>
-      <div style={{color:B.text,fontWeight:700,marginBottom:14}}>🏁 公司 Logo</div>
-      <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-        <div style={{background:B.dark,borderRadius:12,padding:"16px 24px",border:`1px solid ${B.border}`,minWidth:160,textAlign:"center"}}><Logo url={logoUrl}/></div>
-        <div>
-          <input ref={lRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{setLogoUrl(r.result);api.save("logo",{logoUrl:r.result});};r.readAsDataURL(f);}}/>
-          <button onClick={()=>lRef.current.click()} style={{...btn(B.red),marginBottom:8,display:"block"}}>📷 上传 Logo 图片</button>
-          {logoUrl&&<button onClick={()=>{setLogoUrl(null);api.save("logo",{logoUrl:null});}} style={{...btn(B.border,B.muted),fontSize:12}}>删除 Logo</button>}
-          <div style={{color:B.muted,fontSize:11,marginTop:8}}>建议：PNG透明背景，宽度 400px 以上</div>
-        </div>
-      </div>
-    </div>
-    <div style={{...card,padding:20}}>
-      <div style={{color:B.text,fontWeight:700,marginBottom:14}}>👥 账号管理（点击编辑）</div>
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {users.map(u=>(
-          <div key={u.id}>
-            {editing===u.id?(
-              <div style={{background:B.dark,borderRadius:12,padding:16,border:`1px solid ${B.red}`}}>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:12}}>
-                  <div><div style={{color:B.muted,fontSize:11,marginBottom:4}}>姓名</div><input value={ev.name} onChange={e=>setEv(v=>({...v,name:e.target.value}))} style={inp}/></div>
-                  <div><div style={{color:B.muted,fontSize:11,marginBottom:4}}>PIN（4位数字）</div><input value={ev.pin} maxLength={4} onChange={e=>setEv(v=>({...v,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...inp,fontFamily:"'IBM Plex Mono',monospace"}}/></div>
-                  {u.role!=="boss"&&<div><div style={{color:B.muted,fontSize:11,marginBottom:4}}>岗位</div>
-                    <select value={ev.dept} onChange={e=>setEv(v=>({...v,dept:e.target.value}))} style={{...inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select>
-                  </div>}
-                </div>
-                <div style={{display:"flex",gap:8}}>
-                  <button onClick={saveEdit} style={{...btn(B.red),fontSize:13}}>{saving?"保存中...":"✅ 保存"}</button>
-                  <button onClick={()=>setEditing(null)} style={{...btn(B.border,B.muted),fontSize:13}}>取消</button>
-                </div>
-              </div>
-            ):(
-              <div onClick={()=>startEdit(u)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:10,background:B.dark,cursor:"pointer",border:`1px solid ${B.border}`,transition:"border .2s"}}
-                onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
-                <div><div style={{color:B.text,fontWeight:700,fontSize:14}}>{u.name}</div><div style={{color:B.muted,fontSize:11,marginTop:2}}>{RL[u.role]}{u.dept?` · ${u.dept}`:""}</div></div>
-                <div style={{display:"flex",alignItems:"center",gap:12}}>
-                  <div style={{fontFamily:"monospace",color:B.muted,fontSize:12}}>PIN: {u.pin}</div>
-                  <div style={{color:B.red,fontSize:12}}>✏️ 编辑</div>
-                </div>
-              </div>
-            )}
-          </div>
+  const [showAdd,setShowAdd]=useState(false);
+  const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false});
+  const lRef=useRef(),aRef=useRef();
+
+  const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
+  const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,...ev,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
+  const delUser=async id=>{if(!confirm("Delete this account?"))return;const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);};
+  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const upd=[...users,{...nu,id:"u"+Date.now(),avatar:null}];setUsers(upd);await api.save("users",upd);setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false});};
+
+  return(
+    <div>
+      <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>Settings</div>
+      <div style={{display:"flex",gap:6,marginBottom:13,flexWrap:"wrap"}}>
+        {[["users",t.accounts],["logo",t.logo],["bonus",t.bonus]].map(([tabKey,l])=>(
+          <button key={tabKey} onClick={()=>setTab(tabKey)} style={{...S.btn(tab===tabKey?B.red:B.border,tab===tabKey?"#fff":B.muted,{fontSize:11})}}>{l}</button>
         ))}
       </div>
+
+      {tab==="logo"&&<div style={{...S.card(),padding:17}}>
+        <div style={{color:B.text,fontWeight:700,marginBottom:11}}>Company Logo</div>
+        <div style={{display:"flex",gap:13,alignItems:"center",flexWrap:"wrap"}}>
+          <div style={{background:B.dark,borderRadius:9,padding:"13px 18px",border:`1px solid ${B.border}`,minWidth:130,textAlign:"center"}}>
+            {logoUrl?<img src={logoUrl} style={{height:34,objectFit:"contain"}}/>:<span style={{color:B.muted,fontSize:11}}>No Logo</span>}
+          </div>
+          <div>
+            <input ref={lRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{setLogoUrl(r.result);api.save("logo",{logoUrl:r.result});};r.readAsDataURL(f);}}/>
+            <button onClick={()=>lRef.current.click()} style={{...S.btn(B.red,"#fff",{marginBottom:7,display:"block"})}}>Upload Logo</button>
+            {logoUrl&&<button onClick={()=>{setLogoUrl(null);api.save("logo",{logoUrl:null});}} style={{...S.btn(B.border,B.muted,{fontSize:11})}}>Remove</button>}
+          </div>
+        </div>
+      </div>}
+
+      {tab==="bonus"&&<BonusConfig bonusCfg={bonusCfg} setBonusCfg={setBonusCfg}/>}
+
+      {tab==="users"&&<div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
+          <span style={{color:B.muted,fontSize:11}}>Click to edit an account</span>
+          <button onClick={()=>setShowAdd(true)} style={{...S.btn(B.red,"#fff",{fontSize:10,padding:"5px 10px"})}}>+ Add Account</button>
+        </div>
+        {showAdd&&<div style={{...S.card(),padding:13,marginBottom:9,border:`1px solid ${B.red}`}}>
+          <div style={{color:B.text,fontWeight:700,marginBottom:9}}>New Account</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:9}}>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Name</div><input value={nu.name} onChange={e=>setNu(p=>({...p,name:e.target.value}))} style={S.inp}/></div>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>PIN (4 digits)</div><input value={nu.pin} maxLength={4} onChange={e=>setNu(p=>({...p,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Role</div><select value={nu.role} onChange={e=>setNu(p=>({...p,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
+            <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Department</div><select value={nu.dept} onChange={e=>setNu(p=>({...p,dept:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>
+          </div>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canManage} onChange={e=>setNu(p=>({...p,canManage:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>Can manage other staff permissions</span>
+          </label>
+          <div style={{display:"flex",gap:7}}>
+            <button onClick={addUser} style={{...S.btn(B.red)}}>Add</button>
+            <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted)}}>Cancel</button>
+          </div>
+        </div>}
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {users.map(u=>(
+            <div key={u.id}>
+              {editing===u.id?(
+                <div style={{...S.card(),padding:13,border:`1px solid ${B.red}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:11}}>
+                    <Av src={u.avatar} name={u.name} dept={u.dept} size={44}/>
+                    <div>
+                      <input ref={aRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{if(e.target.files[0])uploadAv(u.id,e.target.files[0]);}}/>
+                      <button onClick={()=>aRef.current.click()} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>Change Photo</button>
+                    </div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:9}}>
+                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Name</div><input value={ev.name} onChange={e=>setEv(v=>({...v,name:e.target.value}))} style={S.inp}/></div>
+                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>PIN</div><input value={ev.pin} maxLength={4} onChange={e=>setEv(v=>({...v,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...S.inp,fontFamily:"monospace"}}/></div>
+                    <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Role</div><select value={ev.role} onChange={e=>setEv(v=>({...v,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
+                    {ev.role!=="boss"&&<div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>Department</div><select value={ev.dept||""} onChange={e=>setEv(v=>({...v,dept:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>}
+                  </div>
+                  {ev.role!=="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canManage||false} onChange={e=>setEv(v=>({...v,canManage:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>Can manage staff permissions</span>
+                  </label>}
+                  <div style={{display:"flex",gap:7}}>
+                    <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?"Saving...":t.saveRecord}</button>
+                    <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>Cancel</button>
+                    {u.role!=="boss"&&<button onClick={()=>delUser(u.id)} style={{...S.btn("#2B0009","#E74C3C",{fontSize:12})}}>Delete</button>}
+                  </div>
+                </div>
+              ):(
+                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false});}}
+                  style={{...S.card(),padding:10,cursor:"pointer",display:"flex",alignItems:"center",gap:9,transition:"border .2s"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
+                  <Av src={u.avatar} name={u.name} dept={u.dept} size={38}/>
+                  <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div><div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (can manage)":""}</div></div>
+                  <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>PIN: {u.pin}</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>}
     </div>
-  </div>);
+  );
 }
 
-function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,onLogout}){
+// ── DASHBOARD ────────────────────────────────────────
+function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,onLogout}){
+  const {lang,t,setLang}=useLang();
   const [tab,setTab]=useState("kpi");
   const [sel,setSel]=useState(null);
   const [quarter,setQuarter]=useState("Q2 2026");
   const [showAdd,setShowAdd]=useState(false);
   const [ne,setNe]=useState({name:"",role:"Senior Tech"});
   const isBoss=user.role==="boss";
-  const vis=employees.filter(e=>isBoss?true:user.role==="manager"?e.role===user.dept:e.name===user.name);
+  const canManage=isBoss||user.canManage;
+  const isStaff=user.role==="staff";
+  const vis=employees.filter(e=>isBoss?true:canManage?e.role===user.dept:e.name===user.name);
   const scored=vis.filter(e=>e.total!=null);
   const mvp=scored.length?scored.reduce((a,b)=>a.total>b.total?a:b):null;
-  const tabs=[["kpi","📊 KPI"],["vehicle","⏱️ 车辆"],...(isBoss?[["settings","⚙️ 设置"]]:[])] ;
 
-  if(sel)return<ScoringPage user={user} emp={{...sel,quarter}} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>e.id===upd.id?upd:e);setEmployees(u);api.save("employees",u);setSel(null);}}/>;
+  const tabs=[["kpi",t.kpi],["vehicle",t.vehicles],...(isStaff?[["mystats",t.myStats]]:[]),(canManage?[["settings",t.settings]]:[])[0]].filter(Boolean);
 
-  return(<div style={{minHeight:"100vh",background:B.dark}}>
-    <div style={{background:B.black,borderBottom:`1px solid ${B.border}`,padding:"0 20px",position:"sticky",top:0,zIndex:10}}>
-      <div style={{maxWidth:820,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:60}}>
-        <Logo url={logoUrl}/>
-        <div style={{display:"flex",gap:4}}>{tabs.map(([t,l])=><button key={t} onClick={()=>setTab(t)} style={{...btn(tab===t?B.red:"transparent",tab===t?"#fff":B.muted),fontSize:12,padding:"8px 14px"}}>{l}</button>)}</div>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{textAlign:"right"}}><div style={{color:B.text,fontSize:12,fontWeight:700}}>{user.name}</div><div style={{color:B.muted,fontSize:10}}>{RL[user.role]}</div></div>
-          <button onClick={onLogout} style={{...btn(B.border,B.muted),fontSize:11,padding:"6px 12px"}}>登出</button>
+  if(sel)return<ScoringPage user={user} emp={{...sel,quarter,userId:users.find(u=>u.name===sel.name)?.id}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>e.id===upd.id?upd:e);setEmployees(u);api.save("employees",u);setSel(null);}}/>;
+
+  return(
+    <div style={{minHeight:"100vh",background:B.dark}}>
+      <div style={{background:"#0A0C10",borderBottom:`1px solid ${B.border}`,padding:"0 15px",position:"sticky",top:0,zIndex:10}}>
+        <div style={{maxWidth:920,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:54}}>
+          {logoUrl?<img src={logoUrl} style={{height:30,objectFit:"contain",maxWidth:140}}/>:<svg width="96" height="22" viewBox="0 0 96 22"><text x="0" y="17" fontFamily="Arial Black" fontSize="20" fontWeight="900" fill="#D0021B" fontStyle="italic">KC</text><text x="37" y="12" fontFamily="Arial" fontSize="9" fontWeight="700" fill="#FFF" letterSpacing="1">AUTO</text><text x="37" y="20" fontFamily="Arial" fontSize="7" fontWeight="600" fill="#666" letterSpacing="1">WORKSHOP</text></svg>}
+          <div style={{display:"flex",gap:3}}>{tabs.map(([t,l])=><button key={t} onClick={()=>setTab(t)} style={{...S.btn(tab===t?B.red:"transparent",tab===t?"#fff":B.muted,{fontSize:11,padding:"5px 10px"})}}>{l}</button>)}</div>
+          <div style={{display:"flex",alignItems:"center",gap:7}}>
+            <LangSwitcher lang={lang} setLang={setLang}/>
+            <Av src={user.avatar} name={user.name} size={28}/>
+            <button onClick={onLogout} style={{...S.btn(B.border,B.muted,{fontSize:10,padding:"4px 8px"})}}>{t.logout}</button>
+          </div>
         </div>
       </div>
-    </div>
-    <div style={{maxWidth:820,margin:"0 auto",padding:"20px 16px"}}>
-      {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles}/>}
-      {tab==="settings"&&isBoss&&<Settings users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl}/>}
-      {tab==="kpi"&&<>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:10}}>
-          <select value={quarter} onChange={e=>setQuarter(e.target.value)} style={{background:B.card,border:`1px solid ${B.border}`,color:B.text,padding:"10px 14px",borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-            {["Q1 2025","Q2 2025","Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026","Q4 2026"].map(q=><option key={q}>{q}</option>)}
-          </select>
-          {isBoss&&<button onClick={()=>setShowAdd(true)} style={{...btn(B.red),fontSize:12}}>+ 添加员工</button>}
+      <div style={{maxWidth:920,margin:"0 auto",padding:"15px 13px"}}>
+        {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles} allUsers={users}/>}
+        {tab==="mystats"&&isStaff&&<PersonalStats user={user} vehicles={vehicles}/>}
+        {tab==="settings"&&canManage&&<SettingsPage users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg}/>}
+        {tab==="kpi"&&<>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+            <select value={quarter} onChange={e=>setQuarter(e.target.value)} style={{background:B.card,border:`1px solid ${B.border}`,color:B.text,padding:"7px 11px",borderRadius:9,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              {["Q1 2025","Q2 2025","Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026","Q4 2026"].map(q=><option key={q}>{q}</option>)}
+            </select>
+            {canManage&&<button onClick={()=>setShowAdd(true)} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addStaff}</button>}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:13}}>
+            {[[t.staff,vis.length,B.muted],[t.scored,scored.length,"#3498DB"],[t.pass,scored.filter(e=>e.total>=CRIT[e.role].t).length,"#2ECC71"],[t.excellent,scored.filter(e=>e.total>=90).length,"#F1C40F"]].map(([l,v,c])=>(
+              <div key={l} style={{...S.card(),padding:"11px 7px",textAlign:"center"}}>
+                <div style={{color:c,fontSize:19,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{v}</div>
+                <div style={{color:B.muted,fontSize:10,marginTop:2}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          {mvp&&<div style={{...S.card(),padding:"11px 15px",marginBottom:13,background:"linear-gradient(135deg,#1A0005,#2A0A00)",border:`1px solid ${B.red}33`,display:"flex",alignItems:"center",gap:11}}>
+            <div style={{fontSize:22}}>MVP</div>
+            <Av src={mvp.avatar} name={mvp.name} dept={mvp.role} size={38}/>
+            <div style={{flex:1}}><div style={{color:B.red,fontSize:9,fontWeight:700,letterSpacing:3}}>{t.quarterMvp}</div><div style={{color:B.text,fontSize:14,fontWeight:800}}>{mvp.name}</div><div style={{color:B.muted,fontSize:10}}>{mvp.role}</div></div>
+            <div style={{color:B.red,fontSize:22,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{mvp.total}</div>
+          </div>}
+          {DEPTS.filter(d=>isBoss||canManage?true:d===user.dept).map(dept=>{
+            const emps=vis.filter(e=>e.role===dept);if(!emps.length)return null;const dc=DC[dept];
+            return(
+              <div key={dept} style={{marginBottom:15}}>
+                <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:7}}>
+                  <div style={{width:6,height:6,borderRadius:"50%",background:dc}}/><span style={{color:B.text,fontWeight:800,fontSize:12}}>{dept}</span><span style={{color:B.muted,fontSize:10}}>{emps.length} staff</span>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))",gap:8}}>
+                  {emps.map(emp=>{
+                    const grade=emp.total!=null?getGrade(emp.total,CRIT[emp.role].t,bonusCfg):null;
+                    return(
+                      <div key={emp.id} onClick={()=>setSel(emp)} style={{...S.card(),padding:12,cursor:"pointer",transition:"border .2s",position:"relative",overflow:"hidden"}}
+                        onMouseEnter={e=>e.currentTarget.style.borderColor=dc} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
+                        <div style={{position:"absolute",top:0,left:0,width:3,height:"100%",background:dc}}/>
+                        <div style={{paddingLeft:5}}>
+                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:7}}>
+                            <div style={{display:"flex",alignItems:"center",gap:7}}>
+                              <Av src={emp.avatar} name={emp.name} dept={emp.role} size={36}/>
+                              <div><div style={{color:B.text,fontWeight:800,fontSize:12}}>{emp.name}</div><div style={{color:dc,fontSize:9,marginTop:1}}>{emp.role}</div></div>
+                            </div>
+                            {grade&&<div style={{background:grade.color+"22",color:grade.color,borderRadius:4,padding:"1px 5px",fontSize:9,fontWeight:700}}>RM{grade.amount}</div>}
+                          </div>
+                          {emp.total!=null?(<div>
+                            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{color:B.muted,fontSize:9}}>Score</span><span style={{color:grade.color,fontWeight:800,fontSize:11,fontFamily:"'IBM Plex Mono',monospace"}}>{emp.total}</span></div>
+                            <div style={{height:3,background:B.border,borderRadius:99,overflow:"hidden"}}><div style={{width:`${Math.min(emp.total,110)/110*100}%`,height:"100%",background:grade.color,borderRadius:99}}/></div>
+                            <div style={{color:B.muted,fontSize:9,marginTop:2}}>{grade.label}</div>
+                          </div>):<div style={{color:B.muted,fontSize:9}}>{canManage?t.tapToScore:t.pending}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </>}
+      </div>
+      {showAdd&&canManage&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}}>
+        <div style={{...S.card(),padding:21,width:"100%",maxWidth:330}}>
+          <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:15}}>Add Staff</div>
+          <div style={{marginBottom:9}}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>Name</div><input value={ne.name} onChange={e=>setNe(p=>({...p,name:e.target.value}))} style={S.inp}/></div>
+          <div style={{marginBottom:15}}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>Department</div><select value={ne.role} onChange={e=>setNe(p=>({...p,role:e.target.value}))} style={{...S.inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>
+          <div style={{display:"flex",gap:7}}>
+            <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted,{flex:1})}}>Cancel</button>
+            <button onClick={()=>{if(!ne.name.trim())return;const upd=[...employees,{id:Date.now(),name:ne.name.trim(),role:ne.role,quarter,total:null,scores:{},avatar:null}];setEmployees(upd);api.save("employees",upd);setShowAdd(false);setNe({name:"",role:"Senior Tech"});}} style={{...S.btn(B.red,"#fff",{flex:2})}}>Add</button>
+          </div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:18}}>
-          {[["员工总数",vis.length,B.muted],["已评分",scored.length,"#2980B9"],["达标",scored.filter(e=>e.total>=CRIT[e.role].t).length,"#1E8449"],["优秀≥90",scored.filter(e=>e.total>=90).length,"#D4AC0D"]].map(([l,v,c])=>(
-            <div key={l} style={{...card,padding:"14px 10px",textAlign:"center"}}>
-              <div style={{color:c,fontSize:24,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{v}</div>
-              <div style={{color:B.muted,fontSize:10,marginTop:2}}>{l}</div>
-            </div>
+      </div>}
+    </div>
+  );
+}
+
+// ── LOGIN ─────────────────────────────────────────────
+function Login({users,logoUrl,onLogin,lang,setLang}){
+  const [sel,setSel]=useState(null);const [pin,setPin]=useState("");const [err,setErr]=useState("");
+  const tap=d=>{if(pin.length>=4)return;const next=pin+d;setPin(next);if(next.length===4){const u=users.find(u=>u.id===sel&&u.pin===next);if(u){onLogin(u);}else{setErr(T[lang]?.wrongPin||"Wrong PIN");setTimeout(()=>{setPin("");setErr("");},600);}}};
+  const {t}=useLang();
+  return(
+    <div style={{minHeight:"100vh",background:B.dark,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{position:"absolute",top:16,right:16}}><LangSwitcher lang={lang} setLang={setLang}/></div>
+      <div style={{marginBottom:20}}>{logoUrl?<img src={logoUrl} style={{height:42,objectFit:"contain"}}/>:<svg width="120" height="28" viewBox="0 0 120 28"><text x="0" y="22" fontFamily="Arial Black" fontSize="26" fontWeight="900" fill="#D0021B" fontStyle="italic">KC</text><text x="48" y="16" fontFamily="Arial" fontSize="11" fontWeight="700" fill="#FFF" letterSpacing="1">AUTO</text><text x="48" y="25" fontFamily="Arial" fontSize="8" fontWeight="600" fill="#666" letterSpacing="2">WORKSHOP</text></svg>}</div>
+      <div style={{...S.card(),padding:19,width:"100%",maxWidth:350}}>
+        <div style={{color:B.muted,fontSize:10,letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>{t.selectAccount}</div>
+        <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:13,maxHeight:270,overflowY:"auto"}}>
+          {users.map(u=>(
+            <button key={u.id} onClick={()=>{setSel(u.id);setPin("");setErr("");}} style={{...S.btn(sel===u.id?B.red:B.border,sel===u.id?"#fff":B.muted,{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",fontSize:12})}}>
+              <Av src={u.avatar} name={u.name} dept={u.dept} size={26}/>
+              <span style={{flex:1,textAlign:"left"}}>{u.name}</span>
+              <span style={{fontSize:9,opacity:0.6}}>{RL[u.role]}{u.dept?" - "+u.dept:""}</span>
+            </button>
           ))}
         </div>
-        {mvp&&<div style={{...card,padding:"16px 20px",marginBottom:18,background:"linear-gradient(135deg,#1A0005,#2A0A00)",border:`1px solid ${B.red}44`,display:"flex",alignItems:"center",gap:16}}>
-          <div style={{fontSize:30}}>👑</div>
-          <div style={{flex:1}}><div style={{color:B.red,fontSize:10,fontWeight:700,letterSpacing:3}}>季度 MVP</div><div style={{color:B.text,fontSize:18,fontWeight:800}}>{mvp.name}</div><div style={{color:B.muted,fontSize:12}}>{mvp.role}</div></div>
-          <div style={{color:B.red,fontSize:28,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{mvp.total}</div>
-        </div>}
-        {DEPTS.filter(d=>isBoss||user.role!=="manager"||d===user.dept).map(dept=>{
-          const emps=vis.filter(e=>e.role===dept); if(!emps.length)return null; const dc=DC[dept];
-          return(<div key={dept} style={{marginBottom:20}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-              <div style={{width:8,height:8,borderRadius:"50%",background:dc}}/><span style={{color:B.text,fontWeight:800,fontSize:14}}>{dept}</span><span style={{color:B.muted,fontSize:12}}>{emps.length}人</span>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:10}}>
-              {emps.map(emp=>{
-                const g=emp.total!=null?grade(emp.total,CRIT[emp.role].t):null;
-                return(<div key={emp.id} onClick={()=>setSel(emp)} style={{...card,padding:16,cursor:"pointer",transition:"border .2s",position:"relative",overflow:"hidden"}}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor=dc} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
-                  <div style={{position:"absolute",top:0,left:0,width:3,height:"100%",background:dc}}/>
-                  <div style={{paddingLeft:8}}>
-                    <div style={{display:"flex",justifyContent:"space-between"}}>
-                      <div><div style={{color:B.text,fontWeight:800,fontSize:14}}>{emp.name}</div><div style={{color:dc,fontSize:11,marginTop:2}}>{emp.role}</div></div>
-                      {g&&<div style={{background:g.bg,color:g.c,borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:700}}>{g.b}</div>}
-                    </div>
-                    {emp.total!=null?(<div style={{marginTop:10}}>
-                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{color:B.muted,fontSize:11}}>总分</span><span style={{color:g.c,fontWeight:800,fontSize:13,fontFamily:"'IBM Plex Mono',monospace"}}>{emp.total}</span></div>
-                      <div style={{height:4,background:B.border,borderRadius:99,overflow:"hidden"}}><div style={{width:`${Math.min(emp.total,110)/110*100}%`,height:"100%",background:g.c,borderRadius:99}}/></div>
-                      <div style={{color:B.muted,fontSize:10,marginTop:4}}>{g.l}</div>
-                    </div>):(<div style={{color:B.muted,fontSize:11,marginTop:10}}>{isBoss||(user.role==="manager"&&user.dept===emp.role)?"点击开始评分 →":"等待评分中..."}</div>)}
-                  </div>
-                </div>);
-              })}
-            </div>
-          </div>);
-        })}
-      </>}
-    </div>
-    {showAdd&&isBoss&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}}>
-      <div style={{...card,padding:28,width:"100%",maxWidth:360}}>
-        <div style={{color:B.text,fontWeight:800,fontSize:18,marginBottom:20}}>➕ 添加员工</div>
-        <div style={{marginBottom:14}}><div style={{color:B.muted,fontSize:11,marginBottom:6}}>员工姓名</div><input value={ne.name} onChange={e=>setNe(p=>({...p,name:e.target.value}))} placeholder="输入姓名..." style={inp}/></div>
-        <div style={{marginBottom:20}}><div style={{color:B.muted,fontSize:11,marginBottom:6}}>岗位</div><select value={ne.role} onChange={e=>setNe(p=>({...p,role:e.target.value}))} style={{...inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>
-        <div style={{display:"flex",gap:10}}>
-          <button onClick={()=>setShowAdd(false)} style={{...btn(B.border,B.muted),flex:1}}>取消</button>
-          <button onClick={()=>{if(!ne.name.trim())return;const upd=[...employees,{id:Date.now(),name:ne.name.trim(),role:ne.role,quarter,total:null,scores:{}}];setEmployees(upd);api.save("employees",upd);setShowAdd(false);setNe({name:"",role:"Senior Tech"});}} style={{...btn(B.red),flex:2}}>确认添加</button>
-        </div>
+        {sel&&<>
+          <div style={{color:B.muted,fontSize:10,letterSpacing:2,marginBottom:8}}>{t.enterPin}</div>
+          <div style={{display:"flex",gap:7,justifyContent:"center",marginBottom:10}}>{[0,1,2,3].map(i=><div key={i} style={{width:34,height:34,borderRadius:8,background:i<pin.length?B.red:B.border,transition:"all .2s"}}/>)}</div>
+          {err&&<div style={{color:B.red,fontSize:11,textAlign:"center",marginBottom:6}}>{t.wrongPin}</div>}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5}}>{[1,2,3,4,5,6,7,8,9,"",0,"X"].map((d,i)=><button key={i} onClick={()=>d==="X"?setPin(p=>p.slice(0,-1)):d!==""&&tap(String(d))} style={{...S.btn(d==="X"?"#2A0008":B.border,d==="X"?B.red:B.text,{padding:"10px",fontSize:15,fontWeight:800,opacity:d===""?0:1,pointerEvents:d===""?"none":"auto"})}}>{d}</button>)}</div>
+        </>}
       </div>
-    </div>}
-  </div>);
+      <div style={{color:B.muted,fontSize:9,marginTop:11}}>KC Auto Workshop KPI System v5</div>
+    </div>
+  );
 }
 
-function LoginScreen({users,logoUrl,onLogin}){
-  const [sel,setSel]=useState(null);const [pin,setPin]=useState("");const [err,setErr]=useState("");
-  const tap=d=>{if(pin.length>=4)return;const next=pin+d;setPin(next);if(next.length===4){const u=users.find(u=>u.id===sel&&u.pin===next);if(u){setErr("");onLogin(u);}else{setErr("PIN 错误，请重试");setTimeout(()=>{setPin("");setErr("");},700);}}};
-  return(<div style={{minHeight:"100vh",background:B.dark,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
-    <div style={{marginBottom:28}}><Logo url={logoUrl}/></div>
-    <div style={{...card,padding:24,width:"100%",maxWidth:360}}>
-      <div style={{color:B.muted,fontSize:11,letterSpacing:3,textTransform:"uppercase",marginBottom:12}}>选择账号</div>
-      <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:18,maxHeight:260,overflowY:"auto"}}>
-        {users.map(u=><button key={u.id} onClick={()=>{setSel(u.id);setPin("");setErr("");}} style={{...btn(sel===u.id?B.red:B.border,sel===u.id?"#fff":B.muted),display:"flex",justifyContent:"space-between",padding:"9px 14px",fontSize:13}}><span>{u.name}</span><span style={{fontSize:10,opacity:0.7}}>{RL[u.role]}{u.dept?` · ${u.dept}`:""}</span></button>)}
-      </div>
-      {sel&&<>
-        <div style={{color:B.muted,fontSize:11,letterSpacing:2,marginBottom:10}}>输入 4位 PIN</div>
-        <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12}}>{[0,1,2,3].map(i=><div key={i} style={{width:40,height:40,borderRadius:10,background:i<pin.length?B.red:B.border,transition:"all .2s"}}/>)}</div>
-        {err&&<div style={{color:B.red,fontSize:12,textAlign:"center",marginBottom:8}}>{err}</div>}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7}}>
-          {[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((d,i)=><button key={i} onClick={()=>d==="⌫"?setPin(p=>p.slice(0,-1)):d!==""&&tap(String(d))} style={{...btn(d==="⌫"?"#2A0008":B.border,d==="⌫"?B.red:B.text),padding:"13px",fontSize:17,fontWeight:800,opacity:d===""?0:1,pointerEvents:d===""?"none":"auto"}}>{d}</button>)}
-        </div>
-      </>}
-    </div>
-    <div style={{color:B.muted,fontSize:10,marginTop:16}}>KC Auto Workshop KPI System v3</div>
-  </div>);
-}
-
+// ── ROOT ──────────────────────────────────────────────
 function App(){
+  const [lang,setLang]=useState(()=>localStorage.getItem('kc_lang')||'en');
+  const t=T[lang]||T.en;
+  const handleLang=l=>{setLang(l);localStorage.setItem('kc_lang',l);};
   const [user,setUser]=useState(null);
   const [ready,setReady]=useState(false);
   const [users,setUsers]=useState([]);
   const [employees,setEmployees]=useState([]);
   const [vehicles,setVehicles]=useState([]);
   const [logoUrl,setLogoUrl]=useState(null);
-  useEffect(()=>{api.load().then(d=>{setUsers(d.users||[]);setEmployees(d.employees||[]);setVehicles(d.vehicles||[]);setLogoUrl(d.logoUrl||null);setReady(true);}).catch(()=>setReady(true));},[]);
-  if(!ready)return<div style={{minHeight:"100vh",background:"#111318",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:"#D0021B",fontSize:14,fontWeight:700}}>⏳ 载入中...</div></div>;
-  return !user?<LoginScreen users={users} logoUrl={logoUrl} onLogin={setUser}/>:<Dashboard user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles} onLogout={()=>setUser(null)}/>;
+  const [bonusCfg,setBonusCfg]=useState(DEF_BONUS);
+
+  useEffect(()=>{
+    api.load().then(d=>{
+      setUsers(d.users||DEF_USERS);
+      setEmployees(d.employees||DEF_EMP);
+      setVehicles(d.vehicles||[]);
+      setLogoUrl(d.logoUrl||null);
+      setBonusCfg(d.bonusConfig||DEF_BONUS);
+      setReady(true);
+    }).catch(()=>{setUsers(DEF_USERS);setEmployees(DEF_EMP);setReady(true);});
+  },[]);
+
+  if(!ready)return<div style={{minHeight:"100vh",background:B.dark,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:B.red,fontWeight:700}}>Loading...</div></div>;
+  return(
+    <LangContext.Provider value={{lang,t,setLang:handleLang}}>
+      {!user
+        ?<Login users={users} logoUrl={logoUrl} onLogin={setUser} lang={lang} setLang={handleLang}/>
+        :<Dashboard user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl}
+            employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles}
+            bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} onLogout={()=>setUser(null)}/>}
+    </LangContext.Provider>
+  );
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+
 </script>
 </body>
 </html>
