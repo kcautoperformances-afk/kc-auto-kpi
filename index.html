@@ -1276,7 +1276,7 @@ function SettingsPage({users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,em
 }
 
 // ── DASHBOARD ────────────────────────────────────────
-function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,onLogout}){
+function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,onLogout}){
   const {lang,t,setLang}=useLang();
   const [tab,setTab]=useState("kpi");
   const [sel,setSel]=useState(null);
@@ -1297,10 +1297,10 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ["vehicle",t.vehicles],
     ...(isStaff?[["mystats",t.myStats]]:[]),
     ["feedback",t.feedback],
-    ...(canManage?[["settings",t.settings]]:[]),
+    ...(canManage?[["attendance","出席"],["history","历史"],["settings",t.settings]]:[]),
   ];
 
-  if(sel)return<ScoringPage user={user} emp={{...sel,quarter,userId:users.find(u=>u.name===sel.name)?.id}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>e.id===upd.id?upd:e);setEmployees(u);api.save("employees",u);setSel(null);}}/>;
+  if(sel)return<ScoringPage user={user} emp={{...sel,quarter,userId:users.find(u=>u.name===sel.name)?.id}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};return{...upd,history};});setEmployees(u);api.save("employees",u);setSel(null);}}/>;
 
   return(
     <div style={{minHeight:"100vh",background:B.dark}}>
@@ -1326,6 +1326,8 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
         {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles} allUsers={users}/>}
         {tab==="mystats"&&isStaff&&<PersonalStats user={user} vehicles={vehicles}/>}
         {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
+        {tab==="attendance"&&canManage&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
+        {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
         {tab==="settings"&&canManage&&<SettingsPage users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} employees={employees} setEmployees={setEmployees}/>}
         {tab==="kpi"&&<>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
@@ -1334,7 +1336,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
             </select>
             {canManage&&<button onClick={()=>setShowAddEmp(true)} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addStaff}</button>}
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:13}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:9}}>
             {[[t.staff,vis.length,B.muted],[t.scored,scored.length,"#3498DB"],[t.pass,scored.filter(e=>e.total>=CRIT[e.role].t).length,"#2ECC71"],[t.excellent,scored.filter(e=>e.total>=90).length,"#F1C40F"]].map(([l,v,c])=>(
               <div key={l} style={{...S.card(),padding:"11px 7px",textAlign:"center"}}>
                 <div style={{color:c,fontSize:19,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{v}</div>
@@ -1342,6 +1344,15 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
               </div>
             ))}
           </div>
+          {vis.length>0&&<div style={{...S.card(),padding:"10px 14px",marginBottom:13}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+              <span style={{color:B.muted,fontSize:10}}>季度评分进度</span>
+              <span style={{color:B.text,fontSize:10,fontWeight:700}}>{scored.length}/{vis.length} ({Math.round(scored.length/vis.length*100)}%)</span>
+            </div>
+            <div style={{height:6,background:B.border,borderRadius:99,overflow:"hidden"}}>
+              <div style={{width:`${scored.length/vis.length*100}%`,height:"100%",background:scored.length===vis.length?"#2ECC71":"#3498DB",borderRadius:99,transition:"width .5s"}}/>
+            </div>
+          </div>}
           {mvp&&<div style={{...S.card(),padding:"11px 15px",marginBottom:13,background:"linear-gradient(135deg,#1A0005,#2A0A00)",border:`1px solid ${B.red}33`,display:"flex",alignItems:"center",gap:11}}>
             <div style={{fontSize:22}}>MVP</div>
             <Av src={mvp.avatar} name={mvp.name} dept={mvp.role} size={38}/>
@@ -1359,7 +1370,12 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
                   {emps.map(emp=>{
                     const grade=emp.total!=null?getGrade(emp.total,CRIT[emp.role].t,bonusCfg):null;
                     return(
-                      <div key={emp.id} onClick={()=>setSel(emp)} style={{...S.card(),padding:12,cursor:"pointer",transition:"border .2s",position:"relative",overflow:"hidden"}}
+                      <div key={emp.id}
+                        onClick={()=>setSel(emp)}
+                        onContextMenu={e=>{e.preventDefault();if(canManage&&confirm(t.confirmDelete)){const upd=employees.filter(x=>x.id!==emp.id);setEmployees(upd);api.save("employees",upd);}}}
+                        onTouchStart={e=>{if(!canManage)return;const timer=setTimeout(()=>{if(confirm(t.confirmDelete)){const upd=employees.filter(x=>x.id!==emp.id);setEmployees(upd);api.save("employees",upd);}},600);e.currentTarget._timer=timer;}}
+                        onTouchEnd={e=>{clearTimeout(e.currentTarget._timer);}}
+                        style={{...S.card(),padding:12,cursor:"pointer",transition:"border .2s",position:"relative",overflow:"hidden"}}
                         onMouseEnter={e=>e.currentTarget.style.borderColor=dc} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
                         <div style={{position:"absolute",top:0,left:0,width:3,height:"100%",background:dc}}/>
                         <div style={{paddingLeft:5}}>
@@ -1375,7 +1391,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
                             <div style={{height:3,background:B.border,borderRadius:99,overflow:"hidden"}}><div style={{width:`${Math.min(emp.total,110)/110*100}%`,height:"100%",background:grade.color,borderRadius:99}}/></div>
                             <div style={{color:B.muted,fontSize:9,marginTop:2}}>{grade.label}</div>
                           </div>):<div style={{color:B.muted,fontSize:9}}>{canManage?t.tapToScore:t.pending}</div>}
-                          {canManage&&<button onClick={e=>{e.stopPropagation();if(confirm(t.confirmDelete)){const upd=employees.filter(x=>x.id!==emp.id);setEmployees(upd);api.save("employees",upd);}}} style={{...S.btn("#2B0009","#E74C3C",{fontSize:9,padding:"2px 7px",marginTop:5,width:"100%"})}}>{t.delete}</button>}
+
                         </div>
                       </div>
                     );
@@ -1397,6 +1413,138 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
           </div>
         </div>
       </div>}
+    </div>
+  );
+}
+
+
+// ── ATTENDANCE TRACKER ───────────────────────────────
+function AttendanceTracker({employees,attendance,setAttendance,quarter}){
+  const {t}=useLang();
+  const today=new Date().toISOString().split("T")[0];
+  const [selDate,setSelDate]=useState(today);
+  const qAtt=attendance[quarter]||{};
+
+  const toggle=(empId,date,status)=>{
+    const upd={...attendance};
+    if(!upd[quarter])upd[quarter]={};
+    if(!upd[quarter][empId])upd[quarter][empId]={};
+    upd[quarter][empId][date]=status;
+    setAttendance(upd);
+    api.save("attendance",upd);
+  };
+
+  const getStats=(empId)=>{
+    const rec=qAtt[empId]||{};
+    const days=Object.keys(rec);
+    if(!days.length)return{present:0,total:0,pct:100};
+    const present=days.filter(d=>rec[d]==="present").length;
+    return{present,total:days.length,pct:Math.round(present/days.length*100)};
+  };
+
+  const getAttScore=(empId,role)=>{
+    const{pct}=getStats(empId);
+    const maxMap={"Tech Intern":20,"Senior Tech":15,"Tuner":15,"Admin":25,"Store":20,"Media":15};
+    const max=maxMap[role]||15;
+    if(pct===100)return max;
+    if(pct>=95)return Math.round(max*0.8);
+    if(pct>=85)return Math.round(max*0.5);
+    return 0;
+  };
+
+  return(
+    <div>
+      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:14}}>出席记录 — {quarter}</div>
+      <div style={{...S.card(),padding:13,marginBottom:13}}>
+        <div style={{color:B.muted,fontSize:10,marginBottom:6}}>选择日期</div>
+        <input type="date" value={selDate} onChange={e=>setSelDate(e.target.value)} style={{...S.inp,maxWidth:200}}/>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:7}}>
+        {employees.map(emp=>{
+          const rec=qAtt[emp.id]||{};
+          const status=rec[selDate];
+          const stats=getStats(emp.id);
+          const attScore=getAttScore(emp.id,emp.role);
+          const dc=DC[emp.role]||B.muted;
+          return(
+            <div key={emp.id} style={{...S.card(),padding:12}}>
+              <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:8}}>
+                <Av src={emp.avatar} name={emp.name} dept={emp.role} size={32}/>
+                <div style={{flex:1}}>
+                  <div style={{color:B.text,fontWeight:700,fontSize:12}}>{emp.name}</div>
+                  <div style={{color:dc,fontSize:9}}>{emp.role}</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{color:stats.pct>=95?"#2ECC71":stats.pct>=85?"#F1C40F":"#E74C3C",fontWeight:900,fontSize:13,fontFamily:"monospace"}}>{stats.pct}%</div>
+                  <div style={{color:B.muted,fontSize:9}}>{stats.present}/{stats.total}天 · KPI:{attScore}分</div>
+                </div>
+              </div>
+              <div style={{display:"flex",gap:6}}>
+                {[["present","✅ 出席","#2ECC71"],["absent","❌ 缺席","#E74C3C"],["late","⚠️ 迟到","#F1C40F"],["leave","📋 请假","#3498DB"]].map(([s,l,c])=>(
+                  <button key={s} onClick={()=>toggle(emp.id,selDate,status===s?null:s)}
+                    style={{...S.btn(status===s?c:B.border,status===s?"#fff":B.muted,{fontSize:10,padding:"4px 8px",flex:1,opacity:1})}}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── QUARTER HISTORY ───────────────────────────────────
+function QuarterHistory({employees,bonusCfg}){
+  const {t}=useLang();
+  const quarters=["Q1 2025","Q2 2025","Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026","Q4 2026"];
+  const [selQ,setSelQ]=useState("Q1 2026");
+
+  const hasHistory=employees.some(e=>e.history&&e.history[selQ]);
+  const histEmps=employees.filter(e=>e.history&&e.history[selQ]).map(e=>({...e,...e.history[selQ]})).sort((a,b)=>(b.total||0)-(a.total||0));
+
+  return(
+    <div>
+      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:14}}>📊 历史记录</div>
+      <div style={{...S.card(),padding:13,marginBottom:13}}>
+        <div style={{color:B.muted,fontSize:10,marginBottom:6}}>选择季度</div>
+        <select value={selQ} onChange={e=>setSelQ(e.target.value)} style={{...S.inp,cursor:"pointer"}}>
+          {quarters.map(q=><option key={q}>{q}</option>)}
+        </select>
+      </div>
+      {!hasHistory
+        ?<div style={{...S.card(),padding:40,textAlign:"center",color:B.muted}}>{selQ} 暂无历史评分记录</div>
+        :<div>
+          {histEmps[0]&&<div style={{...S.card(),padding:"11px 15px",marginBottom:11,background:"linear-gradient(135deg,#1A0005,#2A0A00)",border:`1px solid ${B.red}33`,display:"flex",alignItems:"center",gap:11}}>
+            <div style={{fontSize:22}}>🏆</div>
+            <Av src={histEmps[0].avatar} name={histEmps[0].name} dept={histEmps[0].role} size={38}/>
+            <div style={{flex:1}}><div style={{color:B.red,fontSize:9,fontWeight:700,letterSpacing:3}}>季度MVP — {selQ}</div><div style={{color:B.text,fontSize:14,fontWeight:800}}>{histEmps[0].name}</div><div style={{color:B.muted,fontSize:10}}>{histEmps[0].role}</div></div>
+            <div style={{color:B.red,fontSize:22,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{histEmps[0].total}</div>
+          </div>}
+          <div style={{display:"flex",flexDirection:"column",gap:7}}>
+            {histEmps.map((emp,i)=>{
+              const grade=getGrade(emp.total,CRIT[emp.role]?.t||60,bonusCfg);
+              const dc=DC[emp.role]||B.muted;
+              return(
+                <div key={emp.id} style={{...S.card(),padding:12,display:"flex",alignItems:"center",gap:9}}>
+                  <div style={{color:i===0?"#FFD700":i===1?"#C0C0C0":i===2?"#CD7F32":B.muted,fontWeight:900,fontSize:14,minWidth:24,textAlign:"center"}}>{i+1}</div>
+                  <Av src={emp.avatar} name={emp.name} dept={emp.role} size={34}/>
+                  <div style={{flex:1}}>
+                    <div style={{color:B.text,fontWeight:700,fontSize:12}}>{emp.name}</div>
+                    <div style={{color:dc,fontSize:9}}>{emp.role}</div>
+                    <div style={{height:3,background:B.border,borderRadius:99,overflow:"hidden",marginTop:4}}><div style={{width:`${Math.min(emp.total,110)/110*100}%`,height:"100%",background:grade.color,borderRadius:99}}/></div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{color:grade.color,fontWeight:900,fontSize:15,fontFamily:"'IBM Plex Mono',monospace"}}>{emp.total}</div>
+                    <div style={{background:grade.color+"22",color:grade.color,borderRadius:4,padding:"1px 6px",fontSize:9,fontWeight:700}}>RM{emp.bonusAmt||0}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      }
     </div>
   );
 }
@@ -1446,6 +1594,7 @@ function App(){
   const [logoUrl,setLogoUrl]=useState(null);
   const [bonusCfg,setBonusCfg]=useState(DEF_BONUS);
   const [feedbacks,setFeedbacks]=useState([]);
+  const [attendance,setAttendance]=useState({});
 
   useEffect(()=>{
     api.load().then(d=>{
@@ -1456,6 +1605,7 @@ function App(){
       setLogoUrl(d.logoUrl||null);
       setBonusCfg(d.bonusConfig||DEF_BONUS);
       setFeedbacks(d.feedbacks||[]);
+      setAttendance(d.attendance||{});
       setReady(true);
     }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
   },[]);
@@ -1468,6 +1618,7 @@ function App(){
         :<Dashboard user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl}
             employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles}
             bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} feedbacks={feedbacks} setFeedbacks={setFeedbacks}
+            attendance={attendance} setAttendance={setAttendance}
             onLogout={()=>setUser(null)}/>}
     </LangContext.Provider>
   );
