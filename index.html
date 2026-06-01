@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KC Auto Workshop — KPI System</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#111318;font-family:'Plus Jakarta Sans',sans-serif}
+    select option{background:#1A1D24}
+    input[type=number]::-webkit-inner-spin-button{opacity:1}
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-track{background:#111318}
+    ::-webkit-scrollbar-thumb{background:#2A2D35;border-radius:99px}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+const api = {
+  load: ()=>fetch("/api/data").then(r=>r.json()),
+  save: (key,body)=>fetch("/api/"+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),
+};
+
+const B={red:"#D0021B",black:"#0A0A0A",dark:"#111318",card:"#1A1D24",border:"#2A2D35",text:"#F0F0F0",muted:"#8A8E9A"};
+const DEPTS=["Tech Intern","Senior Tech","Tuner","Admin","Store","Media"];
+const DC={"Tech Intern":"#2980B9","Senior Tech":"#D4AC0D","Tuner":"#D0021B","Admin":"#1E8449","Store":"#CA6F1E","Media":"#7D3C98"};
+const RL={boss:"👑 Boss",manager:"🔑 Manager",staff:"👤 Staff"};
+
+const CRIT={
+  "Tech Intern":{t:55,s:[
+    {n:"😊 态度",c:"#1A5276",i:[{n:"学习积极主动",d:"主动问问题，不躲懒",m:15},{n:"服从指示",d:"按Senior/Tuner指示执行",m:15}]},
+    {n:"🔧 技术",c:"#117A65",i:[{n:"基础操作正确率",d:"简单工序失误率低",m:20},{n:"工具使用与维护",d:"正确使用工具并归位",m:10}]},
+    {n:"⚡ 效率",c:"#784212",i:[{n:"任务完成及时",d:"交办任务按时完成",m:12,at:true},{n:"工位整洁度",d:"工作区干净",m:8}]},
+    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=20|95-99%=16|90-94%=12|<85%=0",m:20}]},
+  ]},
+  "Senior Tech":{t:60,s:[
+    {n:"😊 态度",c:"#1A5276",i:[{n:"工作积极主动",d:"主动接单，不推诿",m:10},{n:"团队合作",d:"愿意帮助同事",m:10}]},
+    {n:"🔧 技术",c:"#117A65",i:[{n:"维修质量",d:"返工率低于5%",m:20},{n:"技术独立性",d:"无需频繁请示",m:12},{n:"带领Intern",d:"有效指导初级员工",m:8}]},
+    {n:"⚡ 效率",c:"#784212",i:[{n:"按时交车率",d:"承诺时间内完工",m:15,at:true},{n:"工位整洁度",d:"工作区干净",m:10}]},
+    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=15|95-99%=12|90-94%=9|<85%=0",m:15}]},
+  ]},
+  "Tuner":{t:60,s:[
+    {n:"😊 态度",c:"#1A5276",i:[{n:"专业责任感",d:"对tune结果负责",m:12},{n:"客户沟通",d:"清楚解释tune方案",m:8}]},
+    {n:"🔧 技术",c:"#117A65",i:[{n:"Tune质量与安全",d:"无因tune失误导致问题",m:25},{n:"一般维修质量",d:"普通维修返工率低",m:15}]},
+    {n:"⚡ 效率",c:"#784212",i:[{n:"按时交车率",d:"Tune工单按时完成",m:15,at:true},{n:"客户满意度",d:"客户复回率/好评",m:10}]},
+    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=15|95-99%=12|90-94%=9|<85%=0",m:15}]},
+  ]},
+  "Admin":{t:60,s:[
+    {n:"😊 态度",c:"#1A5276",i:[{n:"客户接待态度",d:"对客礼貌耐心",m:15},{n:"团队协调",d:"信息传达准确及时",m:10}]},
+    {n:"📋 专业",c:"#117A65",i:[{n:"单据/文件准确性",d:"发票记录无错误",m:15},{n:"财务/账目整洁",d:"对账无误差",m:10}]},
+    {n:"⚡ 效率",c:"#784212",i:[{n:"任务完成及时率",d:"老板交办按时完成",m:15,at:true},{n:"客户回复速度",d:"1小时内回复",m:10}]},
+    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=25|95-99%=20|90-94%=15|<85%=0",m:25}]},
+  ]},
+  "Store":{t:60,s:[
+    {n:"😊 态度",c:"#1A5276",i:[{n:"工作主动性",d:"主动备货不等人催",m:15},{n:"部门配合度",d:"配合技术部及时出货",m:10}]},
+    {n:"📦 专业",c:"#117A65",i:[{n:"库存准确率",d:"实物与系统记录一致",m:15},{n:"仓库整洁有序",d:"分类清晰易取易找",m:15}]},
+    {n:"⚡ 效率",c:"#784212",i:[{n:"出货/备件及时率",d:"等零件≤15分钟",m:15,at:true},{n:"缺货预警及时",d:"提前通知补货",m:10}]},
+    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=20|95-99%=16|90-94%=12|<85%=0",m:20}]},
+  ]},
+  "Media":{t:60,s:[
+    {n:"😊 态度",c:"#1A5276",i:[{n:"创意主动性",d:"主动提案新内容",m:15},{n:"跨部门配合",d:"配合拍摄宣传工作",m:10}]},
+    {n:"🎨 专业",c:"#117A65",i:[{n:"内容质量",d:"画面清晰文案专业",m:20},{n:"内容发布频率",d:"每周达标",m:15}]},
+    {n:"⚡ 效率",c:"#784212",i:[{n:"互动/增粉数据",d:"季度增长达标",m:15},{n:"询单转化配合",d:"DM询单及时转接",m:10}]},
+    {n:"📅 出席率",c:"#4A235B",i:[{n:"出席率",d:"100%=15|95-99%=12|90-94%=9|<85%=0",m:15}]},
+  ]},
+};
+
+const BONUS=[{n:"客户主动好评",d:"+2/次",m:6},{n:"介绍新客户成交",d:"+3/单",m:9},{n:"季度零投诉",d:"+3",m:3},{n:"主动帮助其他部门",d:"+2",m:2}];
+
+const grade=(s,t)=>{
+  if(s>=90)return{l:"⭐⭐⭐ 优秀",b:"RM 300",c:"#1E8449",bg:"#0D2B19"};
+  if(s>=75)return{l:"⭐⭐ 良好",b:"RM 150",c:"#D4AC0D",bg:"#2B2200"};
+  if(s>=t)return{l:"⭐ 合格",b:"RM 80",c:"#2980B9",bg:"#0D1F2B"};
+  return{l:"❌ 不达标",b:"无红包",c:"#D0021B",bg:"#2B0009"};
+};
+
+const card={background:B.card,borderRadius:16,border:`1px solid ${B.border}`};
+const btn=(bg,color="#fff")=>({background:bg,color,border:"none",borderRadius:10,padding:"10px 18px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"});
+const inp={width:"100%",background:B.dark,border:`1px solid ${B.border}`,borderRadius:8,padding:"10px 12px",color:B.text,fontSize:13,fontFamily:"inherit",boxSizing:"border-box"};
+
+function Logo({url}){
+  if(url)return <img src={url} alt="Logo" style={{height:40,objectFit:"contain",maxWidth:180}}/>;
+  return(<svg width="120" height="28" viewBox="0 0 120 28">
+    <text x="0" y="22" fontFamily="Arial Black" fontSize="26" fontWeight="900" fill="#D0021B" fontStyle="italic">KC</text>
+    <text x="48" y="16" fontFamily="Arial" fontSize="11" fontWeight="700" fill="#FFF" letterSpacing="1">AUTO</text>
+    <text x="48" y="26" fontFamily="Arial" fontSize="9" fontWeight="600" fill="#888" letterSpacing="2">WORKSHOP</text>
+  </svg>);
+}
+
+function ScoreInput({value,max,onChange,locked}){
+  const p=max>0?Math.min(value/max,1):0;
+  const c=p>=0.8?"#1E8449":p>=0.5?"#D4AC0D":"#D0021B";
+  return(<div style={{display:"flex",alignItems:"center",gap:8}}>
+    <input type="number" min={0} max={max} value={value} disabled={locked}
+      onChange={e=>!locked&&onChange(Math.min(max,Math.max(0,Number(e.target.value))))}
+      style={{width:56,padding:"6px",borderRadius:8,border:`2px solid ${locked?B.border:c}`,background:locked?B.border:B.dark,color:locked?B.muted:c,fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,textAlign:"center",outline:"none"}}/>
+    <div style={{flex:1,height:5,background:B.border,borderRadius:99,overflow:"hidden",minWidth:36}}>
+      <div style={{width:`${p*100}%`,height:"100%",background:c,borderRadius:99,transition:"width .3s"}}/>
+    </div>
+    <span style={{fontSize:10,color:B.muted,minWidth:22,fontFamily:"monospace"}}>/{max}</span>
+  </div>);
+}
+
+function ScoringPage({user,emp,onBack,onSave}){
+  const cr=CRIT[emp.role]; const dc=DC[emp.role];
+  const canScore=user.role==="boss"||(user.role==="manager"&&user.dept===emp.role);
+  const init=()=>{const s={};cr.s.forEach(sec=>sec.i.forEach(it=>{s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??0;}));BONUS.forEach(b=>{s["B__"+b.n]=emp.scores?.["B__"+b.n]??0;});return s;};
+  const [sc,setSc]=useState(init);
+  const set=(k,v)=>setSc(s=>({...s,[k]:v}));
+  const base=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+(sc[sec.n+"__"+it.n]||0),0),0);
+  const bon=Math.min(10,BONUS.reduce((a,b)=>a+(sc["B__"+b.n]||0),0));
+  const total=base+bon;
+  const mxBase=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+it.m,0),0);
+  const g=grade(total,cr.t);
+  return(<div style={{minHeight:"100vh",background:B.dark}}>
+    <div style={{background:B.black,borderBottom:`1px solid ${B.border}`,padding:"14px 20px",position:"sticky",top:0,zIndex:10}}>
+      <div style={{maxWidth:680,margin:"0 auto",display:"flex",alignItems:"center",gap:12}}>
+        <button onClick={onBack} style={{...btn(B.border,B.muted),padding:"8px 14px"}}>←</button>
+        <div style={{flex:1}}>
+          <div style={{color:B.muted,fontSize:11,letterSpacing:2}}>{emp.role} · {emp.quarter}</div>
+          <div style={{color:B.text,fontSize:18,fontWeight:800}}>{emp.name}</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{color:dc,fontSize:28,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{total}</div>
+          <div style={{color:B.muted,fontSize:10}}>/ {mxBase+10}</div>
+        </div>
+      </div>
+    </div>
+    <div style={{maxWidth:680,margin:"0 auto",padding:"20px 16px"}}>
+      <div style={{...card,padding:"14px 18px",marginBottom:14,background:g.bg,border:`1px solid ${g.c}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div><div style={{color:g.c,fontWeight:800,fontSize:18}}>{g.l}</div><div style={{color:B.muted,fontSize:11,marginTop:2}}>达标门槛：{cr.t}分</div></div>
+        <div style={{background:g.c,color:"#fff",borderRadius:10,padding:"8px 16px",fontWeight:900,fontSize:16}}>{g.b}</div>
+      </div>
+      {!canScore&&<div style={{...card,padding:12,marginBottom:14,textAlign:"center",color:B.muted,fontSize:13}}>🔒 只能查看，无评分权限</div>}
+      {cr.s.map(sec=>(
+        <div key={sec.n} style={{...card,marginBottom:12,overflow:"hidden"}}>
+          <div style={{background:sec.c,padding:"10px 16px"}}><span style={{color:"#fff",fontWeight:700,fontSize:12}}>{sec.n}</span></div>
+          {sec.i.map(it=>(
+            <div key={it.n} style={{padding:"12px 16px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{flex:1}}>
+                <div style={{color:B.text,fontWeight:700,fontSize:13}}>{it.n}{it.at&&<span style={{color:B.red,fontSize:10,marginLeft:6}}>⏱️ 自动追踪</span>}</div>
+                <div style={{color:B.muted,fontSize:11,marginTop:2}}>{it.d}</div>
+              </div>
+              <ScoreInput value={sc[sec.n+"__"+it.n]||0} max={it.m} onChange={v=>set(sec.n+"__"+it.n,v)} locked={!canScore}/>
+            </div>
+          ))}
+        </div>
+      ))}
+      <div style={{...card,marginBottom:16,overflow:"hidden"}}>
+        <div style={{background:"#7D5A00",padding:"10px 16px",display:"flex",justifyContent:"space-between"}}>
+          <span style={{color:"#FFD700",fontWeight:700,fontSize:12}}>➕ 加分项（上限 +10分）</span>
+          <span style={{color:"#FFD700",fontWeight:900}}>+{bon}</span>
+        </div>
+        {BONUS.map(b=>(
+          <div key={b.n} style={{padding:"12px 16px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:12}}>
+            <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{b.n}</div><div style={{color:B.muted,fontSize:11}}>{b.d}</div></div>
+            <ScoreInput value={sc["B__"+b.n]||0} max={b.m} onChange={v=>set("B__"+b.n,v)} locked={!canScore}/>
+          </div>
+        ))}
+      </div>
+      {canScore&&<button onClick={()=>onSave({...emp,scores:sc,total,grade:g.l,bonus:g.b})} style={{...btn(B.red),width:"100%",padding:16,fontSize:15,boxShadow:`0 4px 20px ${B.red}44`}}>💾 保存评分</button>}
+    </div>
+  </div>);
+}
+
+function VehicleTracker({user,vehicles,setVehicles}){
+  const [uploading,setUploading]=useState(false);
+  const [aiResult,setAiResult]=useState(null);
+  const [aiError,setAiError]=useState("");
+  const [showAdd,setShowAdd]=useState(false);
+  const [nr,setNr]=useState({plate:"",model:"",timeIn:"",timeStart:"",timeOut:""});
+  const fRef=useRef();
+  const canEdit=user.role==="boss"||user.role==="manager";
+  const save=v=>{setVehicles(v);api.save("vehicles",v);};
+  const sc=s=>s==="GOOD"?"#1E8449":s==="OK"?"#D4AC0D":s==="LATE"?"#D0021B":"#8A8E9A";
+
+  const upload=async(e)=>{
+    const file=e.target.files[0]; if(!file)return;
+    setUploading(true);setAiResult(null);setAiError("");
+    const b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.readAsDataURL(file);});
+    try{
+      const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",max_tokens:2000,
+        messages:[{role:"user",content:[
+          {type:"image",source:{type:"base64",media_type:file.type,data:b64}},
+          {type:"text",text:`This is a vehicle workshop daily log. Columns: NO, DATE, VEHICLE(plate), MODEL, IN TIME, START TIME, OUT, REAL, %, LATE TIME, status(GOOD/OK/LATE).
+Extract every data row. Return ONLY a valid JSON array, no markdown, no explanation.
+Format: [{"no":1,"date":"29.05.2026","plate":"BPW9983","model":"CRV G5","timeIn":"10:10","timeStart":"10:10","timeOut":"12:10","real":"11:36","late":"00:00","status":"GOOD"}]
+Rules: status="PENDING" if no out time, "LATE" if late>00:00, "OK" if minor, "GOOD" if on time. Use "–" for empty cells. Return ONLY the JSON array.`}
+        ]}]
+      })});
+      const data=await resp.json();
+      const text=(data.content||[]).map(c=>c.text||"").join("").trim();
+      const s=text.indexOf("["),end=text.lastIndexOf("]");
+      if(s===-1)throw new Error("AI无法识别，请确保图片清晰");
+      setAiResult(JSON.parse(text.slice(s,end+1)));
+    }catch(err){setAiError("识别失败："+err.message);}
+    setUploading(false);e.target.value="";
+  };
+
+  return(<div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:10}}>
+      <div><div style={{color:B.text,fontSize:18,fontWeight:800}}>⏱️ 车辆时间追踪</div><div style={{color:B.muted,fontSize:12}}>进车 · 维修 · 出车 · 超时自动标红</div></div>
+      {canEdit&&<div style={{display:"flex",gap:8}}>
+        <button onClick={()=>fRef.current.click()} style={{...btn(B.border,B.text),fontSize:12}}>📷 上传表格</button>
+        <button onClick={()=>setShowAdd(true)} style={{...btn(B.red),fontSize:12}}>+ 手动添加</button>
+      </div>}
+    </div>
+    <input ref={fRef} type="file" accept="image/*" style={{display:"none"}} onChange={upload}/>
+    {uploading&&<div style={{...card,padding:20,marginBottom:14,textAlign:"center"}}><div style={{color:B.red,fontSize:14,fontWeight:700}}>🤖 AI 正在读取表格，请稍候 5-10秒...</div></div>}
+    {aiError&&<div style={{...card,padding:16,marginBottom:14,border:`1px solid ${B.red}`}}>
+      <div style={{color:B.red,fontWeight:700,marginBottom:8}}>⚠️ {aiError}</div>
+      <button onClick={()=>setAiError("")} style={{...btn(B.border,B.muted),fontSize:12}}>关闭</button>
+    </div>}
+    {aiResult&&<div style={{...card,padding:20,marginBottom:14,border:`1px solid #D4AC0D`}}>
+      <div style={{color:"#D4AC0D",fontWeight:800,fontSize:15,marginBottom:12}}>🤖 识别到 {aiResult.length} 条记录，确认后导入</div>
+      <div style={{overflowX:"auto"}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <thead><tr>{["No","车牌","车型","进车","开始","出车","实际","迟到","状态"].map(h=><th key={h} style={{color:B.muted,padding:"6px 8px",textAlign:"left",borderBottom:`1px solid ${B.border}`,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+          <tbody>{aiResult.map((r,i)=><tr key={i}>{[r.no,r.plate,r.model,r.timeIn,r.timeStart,r.timeOut,r.real,r.late].map((v,j)=><td key={j} style={{color:B.text,padding:"6px 8px",borderBottom:`1px solid ${B.border}`,whiteSpace:"nowrap"}}>{v||"–"}</td>)}
+            <td style={{padding:"6px 8px"}}><span style={{background:sc(r.status)+"33",color:sc(r.status),borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700}}>{r.status}</span></td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+      <div style={{display:"flex",gap:10,marginTop:14}}>
+        <button onClick={()=>{const today=new Date().toLocaleDateString("en-GB").replace(/\//g,".");save([...vehicles,...aiResult.map((r,i)=>({...r,id:Date.now()+i,date:r.date||today}))]);setAiResult(null);}} style={{...btn(B.red)}}>✅ 确认导入</button>
+        <button onClick={()=>setAiResult(null)} style={{...btn(B.border,B.muted)}}>取消</button>
+      </div>
+    </div>}
+    {showAdd&&canEdit&&<div style={{...card,padding:20,marginBottom:14}}>
+      <div style={{color:B.text,fontWeight:700,marginBottom:14}}>手动添加记录</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+        {[["车牌","plate"],["车型","model"],["进车时间","timeIn"],["开始维修","timeStart"],["出车时间","timeOut"]].map(([l,k])=>(
+          <div key={k}><div style={{color:B.muted,fontSize:11,marginBottom:4}}>{l}</div>
+            <input value={nr[k]} onChange={e=>setNr(r=>({...r,[k]:e.target.value}))} placeholder={k.includes("time")?"HH:MM":""} style={inp}/>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:10,marginTop:14}}>
+        <button onClick={()=>{const today=new Date().toLocaleDateString("en-GB").replace(/\//g,".");save([...vehicles,{...nr,id:Date.now(),no:vehicles.length+1,date:today,real:"–",late:"–",status:"PENDING"}]);setShowAdd(false);setNr({plate:"",model:"",timeIn:"",timeStart:"",timeOut:"" });}} style={{...btn(B.red)}}>保存</button>
+        <button onClick={()=>setShowAdd(false)} style={{...btn(B.border,B.muted)}}>取消</button>
+      </div>
+    </div>}
+    <div style={{overflowX:"auto"}}>
+      <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+        <thead><tr style={{background:B.card}}>{["No","日期","车牌","车型","进车","开始维修","出车","实际完成","迟到","状态"].map(h=><th key={h} style={{color:B.muted,padding:"10px 12px",textAlign:"left",borderBottom:`1px solid ${B.border}`,whiteSpace:"nowrap",fontWeight:700,fontSize:11}}>{h}</th>)}</tr></thead>
+        <tbody>{vehicles.map(r=>{
+          const isLate=r.status==="LATE"||(r.late&&r.late!=="–"&&r.late!=="00:00");
+          return(<tr key={r.id} style={{background:isLate?"#1A0808":r.status==="PENDING"?"#0D0D1A":B.dark,borderBottom:`1px solid ${B.border}`}}>
+            <td style={{padding:"10px 12px",color:B.muted,fontFamily:"monospace"}}>{r.no}</td>
+            <td style={{padding:"10px 12px",color:B.muted,fontSize:12}}>{r.date}</td>
+            <td style={{padding:"10px 12px",color:B.text,fontWeight:700}}>{r.plate}</td>
+            <td style={{padding:"10px 12px",color:B.muted}}>{r.model}</td>
+            {[r.timeIn,r.timeStart,r.timeOut,r.real,r.late].map((v,i)=><td key={i} style={{padding:"10px 12px",fontFamily:"monospace",color:i===4&&v&&v!=="–"&&v!=="00:00"?B.red:B.text}}>{v||"–"}</td>)}
+            <td style={{padding:"10px 12px"}}><span style={{background:sc(r.status)+"22",color:sc(r.status),borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:700}}>{r.status}</span></td>
+          </tr>);
+        })}</tbody>
+      </table>
+      {vehicles.length===0&&<div style={{textAlign:"center",padding:"40px",color:B.muted,fontSize:13}}>暂无记录，请上传表格或手动添加</div>}
+    </div>
+  </div>);
+}
+
+function Settings({users,setUsers,logoUrl,setLogoUrl}){
+  const [editing,setEditing]=useState(null);
+  const [ev,setEv]=useState({});
+  const [saving,setSaving]=useState(false);
+  const lRef=useRef();
+  const startEdit=u=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||""});};
+  const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,name:ev.name,pin:ev.pin,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
+  return(<div>
+    <div style={{color:B.text,fontSize:18,fontWeight:800,marginBottom:20}}>⚙️ 系统设置</div>
+    <div style={{...card,padding:20,marginBottom:16}}>
+      <div style={{color:B.text,fontWeight:700,marginBottom:14}}>🏁 公司 Logo</div>
+      <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+        <div style={{background:B.dark,borderRadius:12,padding:"16px 24px",border:`1px solid ${B.border}`,minWidth:160,textAlign:"center"}}><Logo url={logoUrl}/></div>
+        <div>
+          <input ref={lRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{setLogoUrl(r.result);api.save("logo",{logoUrl:r.result});};r.readAsDataURL(f);}}/>
+          <button onClick={()=>lRef.current.click()} style={{...btn(B.red),marginBottom:8,display:"block"}}>📷 上传 Logo 图片</button>
+          {logoUrl&&<button onClick={()=>{setLogoUrl(null);api.save("logo",{logoUrl:null});}} style={{...btn(B.border,B.muted),fontSize:12}}>删除 Logo</button>}
+          <div style={{color:B.muted,fontSize:11,marginTop:8}}>建议：PNG透明背景，宽度 400px 以上</div>
+        </div>
+      </div>
+    </div>
+    <div style={{...card,padding:20}}>
+      <div style={{color:B.text,fontWeight:700,marginBottom:14}}>👥 账号管理（点击编辑）</div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {users.map(u=>(
+          <div key={u.id}>
+            {editing===u.id?(
+              <div style={{background:B.dark,borderRadius:12,padding:16,border:`1px solid ${B.red}`}}>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginBottom:12}}>
+                  <div><div style={{color:B.muted,fontSize:11,marginBottom:4}}>姓名</div><input value={ev.name} onChange={e=>setEv(v=>({...v,name:e.target.value}))} style={inp}/></div>
+                  <div><div style={{color:B.muted,fontSize:11,marginBottom:4}}>PIN（4位数字）</div><input value={ev.pin} maxLength={4} onChange={e=>setEv(v=>({...v,pin:e.target.value.replace(/\D/g,"").slice(0,4)}))} style={{...inp,fontFamily:"'IBM Plex Mono',monospace"}}/></div>
+                  {u.role!=="boss"&&<div><div style={{color:B.muted,fontSize:11,marginBottom:4}}>岗位</div>
+                    <select value={ev.dept} onChange={e=>setEv(v=>({...v,dept:e.target.value}))} style={{...inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select>
+                  </div>}
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={saveEdit} style={{...btn(B.red),fontSize:13}}>{saving?"保存中...":"✅ 保存"}</button>
+                  <button onClick={()=>setEditing(null)} style={{...btn(B.border,B.muted),fontSize:13}}>取消</button>
+                </div>
+              </div>
+            ):(
+              <div onClick={()=>startEdit(u)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:10,background:B.dark,cursor:"pointer",border:`1px solid ${B.border}`,transition:"border .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
+                <div><div style={{color:B.text,fontWeight:700,fontSize:14}}>{u.name}</div><div style={{color:B.muted,fontSize:11,marginTop:2}}>{RL[u.role]}{u.dept?` · ${u.dept}`:""}</div></div>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <div style={{fontFamily:"monospace",color:B.muted,fontSize:12}}>PIN: {u.pin}</div>
+                  <div style={{color:B.red,fontSize:12}}>✏️ 编辑</div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>);
+}
+
+function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,onLogout}){
+  const [tab,setTab]=useState("kpi");
+  const [sel,setSel]=useState(null);
+  const [quarter,setQuarter]=useState("Q2 2026");
+  const [showAdd,setShowAdd]=useState(false);
+  const [ne,setNe]=useState({name:"",role:"Senior Tech"});
+  const isBoss=user.role==="boss";
+  const vis=employees.filter(e=>isBoss?true:user.role==="manager"?e.role===user.dept:e.name===user.name);
+  const scored=vis.filter(e=>e.total!=null);
+  const mvp=scored.length?scored.reduce((a,b)=>a.total>b.total?a:b):null;
+  const tabs=[["kpi","📊 KPI"],["vehicle","⏱️ 车辆"],...(isBoss?[["settings","⚙️ 设置"]]:[])] ;
+
+  if(sel)return<ScoringPage user={user} emp={{...sel,quarter}} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>e.id===upd.id?upd:e);setEmployees(u);api.save("employees",u);setSel(null);}}/>;
+
+  return(<div style={{minHeight:"100vh",background:B.dark}}>
+    <div style={{background:B.black,borderBottom:`1px solid ${B.border}`,padding:"0 20px",position:"sticky",top:0,zIndex:10}}>
+      <div style={{maxWidth:820,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:60}}>
+        <Logo url={logoUrl}/>
+        <div style={{display:"flex",gap:4}}>{tabs.map(([t,l])=><button key={t} onClick={()=>setTab(t)} style={{...btn(tab===t?B.red:"transparent",tab===t?"#fff":B.muted),fontSize:12,padding:"8px 14px"}}>{l}</button>)}</div>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{textAlign:"right"}}><div style={{color:B.text,fontSize:12,fontWeight:700}}>{user.name}</div><div style={{color:B.muted,fontSize:10}}>{RL[user.role]}</div></div>
+          <button onClick={onLogout} style={{...btn(B.border,B.muted),fontSize:11,padding:"6px 12px"}}>登出</button>
+        </div>
+      </div>
+    </div>
+    <div style={{maxWidth:820,margin:"0 auto",padding:"20px 16px"}}>
+      {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles}/>}
+      {tab==="settings"&&isBoss&&<Settings users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl}/>}
+      {tab==="kpi"&&<>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:10}}>
+          <select value={quarter} onChange={e=>setQuarter(e.target.value)} style={{background:B.card,border:`1px solid ${B.border}`,color:B.text,padding:"10px 14px",borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+            {["Q1 2025","Q2 2025","Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026","Q4 2026"].map(q=><option key={q}>{q}</option>)}
+          </select>
+          {isBoss&&<button onClick={()=>setShowAdd(true)} style={{...btn(B.red),fontSize:12}}>+ 添加员工</button>}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:18}}>
+          {[["员工总数",vis.length,B.muted],["已评分",scored.length,"#2980B9"],["达标",scored.filter(e=>e.total>=CRIT[e.role].t).length,"#1E8449"],["优秀≥90",scored.filter(e=>e.total>=90).length,"#D4AC0D"]].map(([l,v,c])=>(
+            <div key={l} style={{...card,padding:"14px 10px",textAlign:"center"}}>
+              <div style={{color:c,fontSize:24,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{v}</div>
+              <div style={{color:B.muted,fontSize:10,marginTop:2}}>{l}</div>
+            </div>
+          ))}
+        </div>
+        {mvp&&<div style={{...card,padding:"16px 20px",marginBottom:18,background:"linear-gradient(135deg,#1A0005,#2A0A00)",border:`1px solid ${B.red}44`,display:"flex",alignItems:"center",gap:16}}>
+          <div style={{fontSize:30}}>👑</div>
+          <div style={{flex:1}}><div style={{color:B.red,fontSize:10,fontWeight:700,letterSpacing:3}}>季度 MVP</div><div style={{color:B.text,fontSize:18,fontWeight:800}}>{mvp.name}</div><div style={{color:B.muted,fontSize:12}}>{mvp.role}</div></div>
+          <div style={{color:B.red,fontSize:28,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{mvp.total}</div>
+        </div>}
+        {DEPTS.filter(d=>isBoss||user.role!=="manager"||d===user.dept).map(dept=>{
+          const emps=vis.filter(e=>e.role===dept); if(!emps.length)return null; const dc=DC[dept];
+          return(<div key={dept} style={{marginBottom:20}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:dc}}/><span style={{color:B.text,fontWeight:800,fontSize:14}}>{dept}</span><span style={{color:B.muted,fontSize:12}}>{emps.length}人</span>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:10}}>
+              {emps.map(emp=>{
+                const g=emp.total!=null?grade(emp.total,CRIT[emp.role].t):null;
+                return(<div key={emp.id} onClick={()=>setSel(emp)} style={{...card,padding:16,cursor:"pointer",transition:"border .2s",position:"relative",overflow:"hidden"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=dc} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
+                  <div style={{position:"absolute",top:0,left:0,width:3,height:"100%",background:dc}}/>
+                  <div style={{paddingLeft:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between"}}>
+                      <div><div style={{color:B.text,fontWeight:800,fontSize:14}}>{emp.name}</div><div style={{color:dc,fontSize:11,marginTop:2}}>{emp.role}</div></div>
+                      {g&&<div style={{background:g.bg,color:g.c,borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:700}}>{g.b}</div>}
+                    </div>
+                    {emp.total!=null?(<div style={{marginTop:10}}>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{color:B.muted,fontSize:11}}>总分</span><span style={{color:g.c,fontWeight:800,fontSize:13,fontFamily:"'IBM Plex Mono',monospace"}}>{emp.total}</span></div>
+                      <div style={{height:4,background:B.border,borderRadius:99,overflow:"hidden"}}><div style={{width:`${Math.min(emp.total,110)/110*100}%`,height:"100%",background:g.c,borderRadius:99}}/></div>
+                      <div style={{color:B.muted,fontSize:10,marginTop:4}}>{g.l}</div>
+                    </div>):(<div style={{color:B.muted,fontSize:11,marginTop:10}}>{isBoss||(user.role==="manager"&&user.dept===emp.role)?"点击开始评分 →":"等待评分中..."}</div>)}
+                  </div>
+                </div>);
+              })}
+            </div>
+          </div>);
+        })}
+      </>}
+    </div>
+    {showAdd&&isBoss&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}}>
+      <div style={{...card,padding:28,width:"100%",maxWidth:360}}>
+        <div style={{color:B.text,fontWeight:800,fontSize:18,marginBottom:20}}>➕ 添加员工</div>
+        <div style={{marginBottom:14}}><div style={{color:B.muted,fontSize:11,marginBottom:6}}>员工姓名</div><input value={ne.name} onChange={e=>setNe(p=>({...p,name:e.target.value}))} placeholder="输入姓名..." style={inp}/></div>
+        <div style={{marginBottom:20}}><div style={{color:B.muted,fontSize:11,marginBottom:6}}>岗位</div><select value={ne.role} onChange={e=>setNe(p=>({...p,role:e.target.value}))} style={{...inp,cursor:"pointer"}}>{DEPTS.map(d=><option key={d}>{d}</option>)}</select></div>
+        <div style={{display:"flex",gap:10}}>
+          <button onClick={()=>setShowAdd(false)} style={{...btn(B.border,B.muted),flex:1}}>取消</button>
+          <button onClick={()=>{if(!ne.name.trim())return;const upd=[...employees,{id:Date.now(),name:ne.name.trim(),role:ne.role,quarter,total:null,scores:{}}];setEmployees(upd);api.save("employees",upd);setShowAdd(false);setNe({name:"",role:"Senior Tech"});}} style={{...btn(B.red),flex:2}}>确认添加</button>
+        </div>
+      </div>
+    </div>}
+  </div>);
+}
+
+function LoginScreen({users,logoUrl,onLogin}){
+  const [sel,setSel]=useState(null);const [pin,setPin]=useState("");const [err,setErr]=useState("");
+  const tap=d=>{if(pin.length>=4)return;const next=pin+d;setPin(next);if(next.length===4){const u=users.find(u=>u.id===sel&&u.pin===next);if(u){setErr("");onLogin(u);}else{setErr("PIN 错误，请重试");setTimeout(()=>{setPin("");setErr("");},700);}}};
+  return(<div style={{minHeight:"100vh",background:B.dark,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+    <div style={{marginBottom:28}}><Logo url={logoUrl}/></div>
+    <div style={{...card,padding:24,width:"100%",maxWidth:360}}>
+      <div style={{color:B.muted,fontSize:11,letterSpacing:3,textTransform:"uppercase",marginBottom:12}}>选择账号</div>
+      <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:18,maxHeight:260,overflowY:"auto"}}>
+        {users.map(u=><button key={u.id} onClick={()=>{setSel(u.id);setPin("");setErr("");}} style={{...btn(sel===u.id?B.red:B.border,sel===u.id?"#fff":B.muted),display:"flex",justifyContent:"space-between",padding:"9px 14px",fontSize:13}}><span>{u.name}</span><span style={{fontSize:10,opacity:0.7}}>{RL[u.role]}{u.dept?` · ${u.dept}`:""}</span></button>)}
+      </div>
+      {sel&&<>
+        <div style={{color:B.muted,fontSize:11,letterSpacing:2,marginBottom:10}}>输入 4位 PIN</div>
+        <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12}}>{[0,1,2,3].map(i=><div key={i} style={{width:40,height:40,borderRadius:10,background:i<pin.length?B.red:B.border,transition:"all .2s"}}/>)}</div>
+        {err&&<div style={{color:B.red,fontSize:12,textAlign:"center",marginBottom:8}}>{err}</div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7}}>
+          {[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((d,i)=><button key={i} onClick={()=>d==="⌫"?setPin(p=>p.slice(0,-1)):d!==""&&tap(String(d))} style={{...btn(d==="⌫"?"#2A0008":B.border,d==="⌫"?B.red:B.text),padding:"13px",fontSize:17,fontWeight:800,opacity:d===""?0:1,pointerEvents:d===""?"none":"auto"}}>{d}</button>)}
+        </div>
+      </>}
+    </div>
+    <div style={{color:B.muted,fontSize:10,marginTop:16}}>KC Auto Workshop KPI System v3</div>
+  </div>);
+}
+
+function App(){
+  const [user,setUser]=useState(null);
+  const [ready,setReady]=useState(false);
+  const [users,setUsers]=useState([]);
+  const [employees,setEmployees]=useState([]);
+  const [vehicles,setVehicles]=useState([]);
+  const [logoUrl,setLogoUrl]=useState(null);
+  useEffect(()=>{api.load().then(d=>{setUsers(d.users||[]);setEmployees(d.employees||[]);setVehicles(d.vehicles||[]);setLogoUrl(d.logoUrl||null);setReady(true);}).catch(()=>setReady(true));},[]);
+  if(!ready)return<div style={{minHeight:"100vh",background:"#111318",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:"#D0021B",fontSize:14,fontWeight:700}}>⏳ 载入中...</div></div>;
+  return !user?<LoginScreen users={users} logoUrl={logoUrl} onLogin={setUser}/>:<Dashboard user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles} onLogout={()=>setUser(null)}/>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
