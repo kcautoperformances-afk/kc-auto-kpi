@@ -1634,6 +1634,47 @@ function QuarterHistory({employees,bonusCfg}){
 }
 
 // ── LOGIN ─────────────────────────────────────────────
+// ── FACE ID / BIOMETRIC HELPERS ──────────────────────
+const BIOMETRIC_KEY="kc_biometric_users";
+function getBiometricUsers(){try{return JSON.parse(localStorage.getItem(BIOMETRIC_KEY)||"{}");}catch{return {};}}
+function setBiometricUser(userId,credentialId){const m=getBiometricUsers();m[userId]=credentialId;localStorage.setItem(BIOMETRIC_KEY,JSON.stringify(m));}
+function removeBiometricUser(userId){const m=getBiometricUsers();delete m[userId];localStorage.setItem(BIOMETRIC_KEY,JSON.stringify(m));}
+
+async function registerBiometric(userId,userName){
+  if(!window.PublicKeyCredential)return false;
+  try{
+    const challenge=new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    const cred=await navigator.credentials.create({publicKey:{
+      challenge,
+      rp:{name:"KC Auto Workshop KPI",id:location.hostname},
+      user:{id:new TextEncoder().encode(userId),name:userName,displayName:userName},
+      pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},
+      timeout:60000,
+    }});
+    if(cred){setBiometricUser(userId,Array.from(new Uint8Array(cred.rawId)));return true;}
+    return false;
+  }catch(e){console.log("Biometric register failed:",e);return false;}
+}
+
+async function verifyBiometric(userId){
+  if(!window.PublicKeyCredential)return false;
+  const stored=getBiometricUsers()[userId];
+  if(!stored)return false;
+  try{
+    const challenge=new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    const cred=await navigator.credentials.get({publicKey:{
+      challenge,
+      allowCredentials:[{type:"public-key",id:new Uint8Array(stored)}],
+      userVerification:"required",
+      timeout:60000,
+    }});
+    return !!cred;
+  }catch(e){console.log("Biometric verify failed:",e);return false;}
+}
+
 function Login({users,logoUrl,onLogin,lang,setLang}){
   const [sel,setSel]=useState(null);
   const [pwd,setPwd]=useState("");
@@ -1641,12 +1682,29 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
   const [showPwd,setShowPwd]=useState(false);
   const [attempts,setAttempts]=useState(0);
   const [locked,setLocked]=useState(false);
+  const [biometricUsers,setBiometricUsers]=useState(getBiometricUsers());
+  const [faceLoading,setFaceLoading]=useState(false);
   const {t}=useLang();
+  const biometricSupported=!!window.PublicKeyCredential;
 
   const tryLogin=()=>{
     if(locked)return;
     const u=users.find(u=>u.id===sel&&u.pin===pwd);
-    if(u){onLogin(u);setAttempts(0);}
+    if(u){
+      // After successful PIN login, offer to enable Face ID
+      onLogin(u);
+      setAttempts(0);
+      if(biometricSupported&&!biometricUsers[u.id]){
+        setTimeout(async()=>{
+          const ok=confirm(`用 Face ID / 指纹 登录 ${u.name}？\n下次可以直接扫脸登录！`);
+          if(ok){
+            const success=await registerBiometric(u.id,u.name);
+            if(success){setBiometricUsers(getBiometricUsers());alert("✅ Face ID 已启用！下次直接扫脸登录");}
+            else{alert("❌ 设置失败，请重试");}
+          }
+        },500);
+      }
+    }
     else{
       const newAttempts=attempts+1;
       setAttempts(newAttempts);
@@ -1660,6 +1718,33 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
     }
   };
 
+  const tryFaceLogin=async(userId)=>{
+    setFaceLoading(true);
+    setErr("");
+    try{
+      const ok=await verifyBiometric(userId);
+      if(ok){
+        const u=users.find(u=>u.id===userId);
+        if(u)onLogin(u);
+      } else {
+        setErr("Face ID 验证失败");
+        setTimeout(()=>setErr(""),2000);
+      }
+    }catch(e){
+      setErr("Face ID 失败，请用PIN登录");
+      setTimeout(()=>setErr(""),2000);
+    }
+    setFaceLoading(false);
+  };
+
+  const disableFaceId=(userId,e)=>{
+    e.stopPropagation();
+    if(confirm("取消此账号的 Face ID？")){
+      removeBiometricUser(userId);
+      setBiometricUsers(getBiometricUsers());
+    }
+  };
+
   return(
     <div style={{minHeight:"100vh",background:B.dark,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{position:"absolute",top:16,right:16}}><LangSwitcher lang={lang} setLang={setLang}/></div>
@@ -1667,14 +1752,28 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
       <div style={{...S.card(),padding:19,width:"100%",maxWidth:350}}>
         <div style={{color:B.muted,fontSize:10,letterSpacing:3,textTransform:"uppercase",marginBottom:10}}>{t.selectAccount}</div>
         <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:13,maxHeight:270,overflowY:"auto"}}>
-          {users.map(u=>(
-            <button key={u.id} onClick={()=>{setSel(u.id);setPwd("");setErr("");setAttempts(0);setLocked(false);}} style={{...S.btn(sel===u.id?B.red:B.border,sel===u.id?"#fff":B.muted,{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",fontSize:12})}}>
-              <Av src={u.avatar} name={u.name} dept={u.dept} size={26}/>
-              <span style={{flex:1,textAlign:"left"}}>{u.name}</span>
-              <span style={{fontSize:9,opacity:0.6}}>{RL[u.role]}{u.dept?" - "+u.dept:""}</span>
-            </button>
-          ))}
+          {users.map(u=>{
+            const hasFace=!!biometricUsers[u.id];
+            return(
+              <div key={u.id} style={{display:"flex",alignItems:"center",gap:5}}>
+                <button onClick={()=>{setSel(u.id);setPwd("");setErr("");setAttempts(0);setLocked(false);}}
+                  style={{...S.btn(sel===u.id?B.red:B.border,sel===u.id?"#fff":B.muted,{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",fontSize:12,flex:1})}}>
+                  <Av src={u.avatar} name={u.name} dept={u.dept} size={26}/>
+                  <span style={{flex:1,textAlign:"left"}}>{u.name}</span>
+                  <span style={{fontSize:9,opacity:0.6}}>{RL[u.role]}{u.dept?" - "+u.dept:""}</span>
+                </button>
+                {hasFace&&(
+                  <button onClick={()=>tryFaceLogin(u.id)}
+                    disabled={faceLoading}
+                    style={{...S.btn("#0A1A2A","#3498DB",{padding:"6px 10px",fontSize:18,flexShrink:0,border:"1px solid #3498DB44"})}}>
+                    {faceLoading?"⏳":"🔐"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
+        {err&&!sel&&<div style={{color:B.red,fontSize:11,textAlign:"center",marginBottom:8}}>{err}</div>}
         {sel&&<>
           <div style={{color:B.muted,fontSize:10,letterSpacing:2,marginBottom:8}}>{t.enterPin}</div>
           {locked
@@ -1696,6 +1795,15 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
               </div>
               {err&&<div style={{color:B.red,fontSize:11,textAlign:"center",marginBottom:8}}>{err} {attempts>0&&`(${attempts}/3次)`}</div>}
               <button onClick={tryLogin} style={{...S.btn(B.red,"#fff",{width:"100%",padding:11,fontSize:14})}}>登录</button>
+              {biometricSupported&&biometricUsers[sel]&&<>
+                <div style={{textAlign:"center",color:B.muted,fontSize:10,margin:"8px 0"}}>— 或 —</div>
+                <button onClick={()=>tryFaceLogin(sel)}
+                  disabled={faceLoading}
+                  style={{...S.btn("#0A1A2A","#3498DB",{width:"100%",padding:11,fontSize:14,border:"1px solid #3498DB44"})}}>
+                  {faceLoading?"⏳ 验证中...":"🔐 Face ID 登录"}
+                </button>
+                <button onClick={(e)=>disableFaceId(sel,e)} style={{...S.btn("transparent",B.muted,{width:"100%",padding:"5px",fontSize:10,marginTop:4})}}>取消 Face ID</button>
+              </>}
             </>
           }
         </>}
