@@ -860,6 +860,7 @@ function PersonalStats({user,vehicles}){
 // ── VEHICLE TRACKER ──────────────────────────────────
 function VehicleTracker({user,vehicles,setVehicles,allUsers}){
   const {t}=useLang();
+  const today=new Date().toISOString().split("T")[0];
   const staffList=allUsers.filter(u=>u.role!=="boss");
   const emptyF={plate:"",model:"",timeIn:"",timeStart:"",timeExpected:"",timeActual:"",staffIds:[],date:new Date().toLocaleDateString("en-GB").replace(/\//g,".")};
   const [showAdd,setShowAdd]=useState(false);
@@ -868,6 +869,51 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
   const [uploading,setUploading]=useState(false);
   const [aiResult,setAiResult]=useState(null);
   const fRef=useRef();
+
+  // ── FILTERS ──
+  const [fDate,setFDate]=useState("all");
+  const [fCustom,setFCustom]=useState({from:today,to:today});
+  const [fModel,setFModel]=useState("");
+  const [fStatus,setFStatus]=useState("all");
+  const [fCreator,setFCreator]=useState("all");
+  const [showFilters,setShowFilters]=useState(false);
+
+  const parseVDate=d=>{
+    if(!d)return null;
+    if(d.includes("-"))return new Date(d);
+    const[dd,mm,yyyy]=d.split(".");
+    if(!yyyy)return null;
+    return new Date(`${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`);
+  };
+
+  const filteredVehicles=useMemo(()=>{
+    return vehicles.filter(v=>{
+      // Date filter
+      if(fDate!=="all"){
+        const vd=parseVDate(v.date);
+        const now=new Date();
+        if(fDate==="today"){const s=new Date(now);s.setHours(0,0,0,0);if(!vd||vd<s)return false;}
+        else if(fDate==="week"){const s=new Date(now);s.setDate(now.getDate()-7);if(!vd||vd<s)return false;}
+        else if(fDate==="month"){const s=new Date(now.getFullYear(),now.getMonth(),1);if(!vd||vd<s)return false;}
+        else if(fDate==="custom"){
+          const s=new Date(fCustom.from);const e=new Date(fCustom.to+"T23:59:59");
+          if(!vd||vd<s||vd>e)return false;
+        }
+      }
+      // Model filter
+      if(fModel&&!v.model?.toLowerCase().includes(fModel.toLowerCase())&&!v.plate?.toLowerCase().includes(fModel.toLowerCase()))return false;
+      // Status filter
+      if(fStatus!=="all"&&v.status!==fStatus)return false;
+      // Creator filter
+      if(fCreator!=="all"&&v.createdByName!==fCreator)return false;
+      return true;
+    });
+  },[vehicles,fDate,fCustom,fModel,fStatus,fCreator]);
+
+  const uniqueCreators=[...new Set(vehicles.map(v=>v.createdByName).filter(Boolean))];
+  const uniqueModels=[...new Set(vehicles.map(v=>v.model).filter(Boolean))];
+  const activeFilters=(fDate!=="all"?1:0)+(fModel?1:0)+(fStatus!=="all"?1:0)+(fCreator!=="all"?1:0);
+
   const canEdit=user.role==="boss"||user.role==="manager"||user.role==="tech_head"||user.canVehicle||user.canManage;
   const save=v=>{setVehicles(v);api.save("vehicles",v);};
 
@@ -912,7 +958,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
 
   return(
     <div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:10}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:10}}>
         <div>
           <div style={{color:B.text,fontSize:17,fontWeight:800}}>{t.vehicles_tracker}</div>
           <div style={{color:B.muted,fontSize:11}}>{t.vehicles_subtitle}</div>
@@ -920,6 +966,63 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
         {canEdit&&<div style={{display:"flex",gap:7}}>
           <button onClick={()=>fRef.current.click()} style={{...S.btn(B.border,B.text,{fontSize:11})}}>{t.uploadSheet}</button>
           <button onClick={()=>{setShowAdd(true);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addRecordBtn}</button>
+        </div>}
+      </div>
+
+      {/* FILTER BAR */}
+      <div style={{...S.card(),padding:10,marginBottom:12}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:showFilters?10:0}}>
+          <button onClick={()=>setShowFilters(s=>!s)} style={{...S.btn(activeFilters>0?B.red:B.border,activeFilters>0?"#fff":B.muted,{fontSize:11,padding:"5px 12px",display:"flex",alignItems:"center",gap:5})}}>
+            🔍 筛选 {activeFilters>0&&<span style={{background:"#fff",color:B.red,borderRadius:99,width:16,height:16,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900}}>{activeFilters}</span>}
+          </button>
+          {activeFilters>0&&<button onClick={()=>{setFDate("all");setFModel("");setFStatus("all");setFCreator("all");}} style={{...S.btn("transparent","#E74C3C",{fontSize:10,padding:"4px 10px"})}}>✕ 清除</button>}
+          <span style={{color:B.muted,fontSize:10,marginLeft:"auto"}}>显示 {filteredVehicles.length} / {vehicles.length} 条</span>
+        </div>
+
+        {showFilters&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          {/* Date filter */}
+          <div style={{gridColumn:"1/-1"}}>
+            <div style={{color:B.muted,fontSize:9,marginBottom:4}}>📅 日期</div>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+              {[["all","全部"],["today","今天"],["week","本周"],["month","本月"],["custom","自定义"]].map(([v,l])=>(
+                <button key={v} onClick={()=>setFDate(v)} style={{...S.btn(fDate===v?B.red:B.border,fDate===v?"#fff":B.muted,{fontSize:10,padding:"4px 10px"})}}>{l}</button>
+              ))}
+            </div>
+            {fDate==="custom"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
+              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>从</div><input type="date" value={fCustom.from} onChange={e=>setFCustom(c=>({...c,from:e.target.value}))} style={{...S.inp,fontSize:11}}/></div>
+              <div><div style={{color:B.muted,fontSize:9,marginBottom:2}}>到</div><input type="date" value={fCustom.to} onChange={e=>setFCustom(c=>({...c,to:e.target.value}))} style={{...S.inp,fontSize:11}}/></div>
+            </div>}
+          </div>
+
+          {/* Model/Plate search */}
+          <div>
+            <div style={{color:B.muted,fontSize:9,marginBottom:4}}>🚗 车款 / 车牌</div>
+            <input value={fModel} onChange={e=>setFModel(e.target.value)} placeholder="搜索车款或车牌..." style={{...S.inp,fontSize:11}}/>
+          </div>
+
+          {/* Status filter */}
+          <div>
+            <div style={{color:B.muted,fontSize:9,marginBottom:4}}>📊 状态</div>
+            <select value={fStatus} onChange={e=>setFStatus(e.target.value)} style={{...S.inp,fontSize:11}}>
+              <option value="all">全部</option>
+              <option value="GOOD">✅ GOOD</option>
+              <option value="OK">🟡 OK</option>
+              <option value="LATE">🔴 LATE</option>
+              <option value="PENDING">⏳ PENDING</option>
+            </select>
+          </div>
+
+          {/* Creator filter */}
+          <div style={{gridColumn:"1/-1"}}>
+            <div style={{color:B.muted,fontSize:9,marginBottom:4}}>👤 填写人</div>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+              <button onClick={()=>setFCreator("all")} style={{...S.btn(fCreator==="all"?B.red:B.border,fCreator==="all"?"#fff":B.muted,{fontSize:10,padding:"4px 10px"})}}>全部</button>
+              {uniqueCreators.map(c=>(
+                <button key={c} onClick={()=>setFCreator(fCreator===c?"all":c)} style={{...S.btn(fCreator===c?B.red:B.border,fCreator===c?"#fff":B.muted,{fontSize:10,padding:"4px 10px"})}}>{c}</button>
+              ))}
+              {uniqueCreators.length===0&&<span style={{color:B.muted,fontSize:10}}>暂无记录</span>}
+            </div>
+          </div>
         </div>}
       </div>
       <input ref={fRef} type="file" accept="image/*" style={{display:"none"}} onChange={upload}/>
@@ -989,7 +1092,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
       <div style={{overflowX:"auto"}}>
         <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:800}}>
           <thead><tr style={{background:B.card2}}>{["No",t.date,t.plate,t.model,t.checkIn,t.startRepair,t.expectedOut,t.actualOut,t.overtime,t.status,t.technicians,"填写人",""].map(h=><th key={h} style={{color:B.muted,padding:"7px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
-          <tbody>{vehicles.map(r=>{
+          <tbody>{filteredVehicles.map(r=>{
             const ot=r.overtime||calcOT(r);
             const techs=(r.staffIds||[]).map(id=>allUsers.find(u=>u.id===id)).filter(Boolean);
             const share=techs.length||1;
@@ -1025,7 +1128,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
             );
           })}</tbody>
         </table>
-        {vehicles.length===0&&<div style={{textAlign:"center",padding:36,color:B.muted}}>{t.noRecords}</div>}
+        {filteredVehicles.length===0&&<div style={{textAlign:"center",padding:36,color:B.muted}}>{vehicles.length>0?"没有符合筛选条件的记录":t.noRecords}</div>}
       </div>
     </div>
   );
