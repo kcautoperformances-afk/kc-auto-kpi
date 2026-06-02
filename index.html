@@ -37,9 +37,9 @@ const ROLES=["boss","manager","tech_head","staff"];
 const RL={boss:"Boss",manager:"Manager",tech_head:"Tech Head",staff:"Staff"};
 
 const DEF_USERS=[
-  {id:"boss0",name:"Boss Katak",role:"boss",pin:"1234",dept:null,canManage:true,canViewAll:true,canScore:true,canResetPin:true,canAttendance:true,canVehicle:true,avatar:null},
-  {id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,canViewAll:true,canScore:true,canResetPin:true,canAttendance:true,canVehicle:true,avatar:null},
-  {id:"mgr1",name:"Manager 1",role:"manager",pin:"1111",dept:"Senior Tech",canManage:true,canViewAll:false,canScore:true,canResetPin:false,canAttendance:true,canVehicle:true,avatar:null},
+  {id:"boss0",name:"Boss Katak",role:"boss",pin:"1234",dept:null,canManage:true,canViewAll:true,canScore:true,canResetPin:true,canAttendance:true,canVehicle:true,canPerformance:true,avatar:null},
+  {id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,canViewAll:true,canScore:true,canResetPin:true,canAttendance:true,canVehicle:true,canPerformance:true,avatar:null},
+  {id:"mgr1",name:"Manager 1",role:"manager",pin:"1111",dept:"Senior Tech",canManage:true,canViewAll:false,canScore:true,canResetPin:false,canAttendance:true,canVehicle:true,canPerformance:true,avatar:null},
   {id:"th1",name:"Tech Head 1",role:"tech_head",pin:"2222",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:true,avatar:null},
   {id:"emp1",name:"Staff 1",role:"staff",pin:"3333",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
   {id:"emp2",name:"Staff 2",role:"staff",pin:"4444",dept:"Tuner",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,avatar:null},
@@ -643,31 +643,21 @@ function FeedbackPage({user,feedbacks,setFeedbacks}){
   const [msg,setMsg]=useState("");
   const [sent,setSent]=useState(false);
   const [reveal,setReveal]=useState({});
+  const [isAnon,setIsAnon]=useState(true);
 
   const sendFeedback=()=>{
     if(!msg.trim()){alert(t.feedbackEmpty);return;}
-    // Store sender info but hidden - only boss can reveal
-    const newFb={id:Date.now(),msg:msg.trim(),time:new Date().toLocaleString(),read:false,_sender:user.name,_dept:user.dept||user.role};
+    const newFb={id:Date.now(),msg:msg.trim(),time:new Date().toLocaleString(),read:false,
+      _sender:isAnon?"匿名":user.name,_dept:isAnon?"":user.dept||user.role,_isAnon:isAnon};
     const upd=[newFb,...feedbacks];
     setFeedbacks(upd);
     api.save("feedbacks",upd);
-    setMsg("");
-    setSent(true);
+    setMsg("");setSent(true);
     setTimeout(()=>setSent(false),3000);
   };
 
-  const deleteFb=id=>{
-    const upd=feedbacks.filter(f=>f.id!==id);
-    setFeedbacks(upd);
-    api.save("feedbacks",upd);
-  };
-
-  const markRead=()=>{
-    const upd=feedbacks.map(f=>({...f,read:true}));
-    setFeedbacks(upd);
-    api.save("feedbacks",upd);
-  };
-
+  const deleteFb=id=>{const upd=feedbacks.filter(f=>f.id!==id);setFeedbacks(upd);api.save("feedbacks",upd);};
+  const markRead=()=>{const upd=feedbacks.map(f=>({...f,read:true}));setFeedbacks(upd);api.save("feedbacks",upd);};
   const toggleReveal=id=>setReveal(r=>({...r,[id]:!r[id]}));
 
   if(isBoss){
@@ -676,7 +666,7 @@ function FeedbackPage({user,feedbacks,setFeedbacks}){
       <div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div>
-            <div style={{color:B.text,fontSize:17,fontWeight:800}}>{t.feedbackInbox}</div>
+            <div style={{color:B.text,fontSize:17,fontWeight:800}}>💬 有心事就说出来吧！</div>
             <div style={{color:B.muted,fontSize:11}}>{feedbacks.length} {t.feedbackCount}</div>
           </div>
           {unread>0&&<button onClick={markRead} style={{...S.btn(B.border,B.muted,{fontSize:11})}}>Mark all read</button>}
@@ -686,12 +676,15 @@ function FeedbackPage({user,feedbacks,setFeedbacks}){
           :feedbacks.map(f=>(
             <div key={f.id} style={{...S.card(),padding:14,marginBottom:9,border:`1px solid ${f.read?B.border:"#D0021B44"}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:7}}>
-                <div style={{display:"flex",alignItems:"center",gap:7}}>
-                  <div style={{fontSize:18}}>💬</div>
+                <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}>
+                  <div style={{fontSize:18}}>{f._isAnon?"🎭":"👤"}</div>
                   {!f.read&&<span style={{background:"#D0021B",color:"#fff",borderRadius:4,padding:"1px 6px",fontSize:9,fontWeight:700}}>{t.feedbackNew}</span>}
-                  {f._sender&&<button onClick={()=>toggleReveal(f.id)} style={{...S.btn(reveal[f.id]?"#D0021B22":B.border,reveal[f.id]?B.red:B.muted,{fontSize:9,padding:"2px 7px"})}}>
-                    {reveal[f.id]?`👤 ${f._sender} (${f._dept})`:"🔍 查看发件人"}
-                  </button>}
+                  {f._isAnon
+                    ?<button onClick={()=>toggleReveal(f.id)} style={{...S.btn(reveal[f.id]?"#D0021B22":B.border,reveal[f.id]?B.red:B.muted,{fontSize:9,padding:"2px 7px"})}}>
+                        {reveal[f.id]?`👤 ${f._sender}${f._dept?" ("+f._dept+")":""}`:f._sender==="匿名"?"🔍 查看发件人":"🎭 匿名"}
+                      </button>
+                    :<span style={{color:"#3498DB",fontSize:10,fontWeight:700}}>👤 {f._sender}{f._dept?" · "+f._dept:""}</span>
+                  }
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
                   <span style={{color:B.muted,fontSize:10}}>{f.time}</span>
@@ -710,17 +703,20 @@ function FeedbackPage({user,feedbacks,setFeedbacks}){
     <div>
       <div style={{...S.card(),padding:20,marginBottom:14,textAlign:"center",background:"linear-gradient(135deg,#0A0C10,#16191F)"}}>
         <div style={{fontSize:36,marginBottom:8}}>💬</div>
-        <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:4}}>{t.feedbackTitle}</div>
-        <div style={{color:B.muted,fontSize:12}}>{t.feedbackSubtitle}</div>
+        <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:4}}>有心事就说出来吧！</div>
+        <div style={{color:B.muted,fontSize:12}}>老板会看到你的留言</div>
       </div>
       <div style={{...S.card(),padding:16}}>
-        <textarea
-          value={msg}
-          onChange={e=>setMsg(e.target.value)}
-          placeholder={t.feedbackPlaceholder}
-          rows={5}
-          style={{...S.inp,resize:"vertical",lineHeight:1.6,marginBottom:12}}
-        />
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,background:B.dark,borderRadius:10,padding:"10px 14px"}}>
+          <div>
+            <div style={{color:B.text,fontSize:13,fontWeight:700}}>{isAnon?"🎭 匿名发送":"👤 实名发送"}</div>
+            <div style={{color:B.muted,fontSize:10}}>{isAnon?"老板看不到你是谁":"老板知道是你发的"}</div>
+          </div>
+          <div onClick={()=>setIsAnon(s=>!s)} style={{width:44,height:24,borderRadius:99,background:isAnon?B.border:"#D0021B",cursor:"pointer",position:"relative",transition:"background .2s"}}>
+            <div style={{position:"absolute",top:2,left:isAnon?2:20,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"left .2s"}}/>
+          </div>
+        </div>
+        <textarea value={msg} onChange={e=>setMsg(e.target.value)} placeholder={t.feedbackPlaceholder} rows={5} style={{...S.inp,resize:"vertical",lineHeight:1.6,marginBottom:12}}/>
         {sent
           ?<div style={{background:"#0D2B19",border:"1px solid #2ECC71",borderRadius:10,padding:"11px 16px",textAlign:"center",color:"#2ECC71",fontWeight:700}}>✓ {t.feedbackSent}</div>
           :<button onClick={sendFeedback} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:14})}}>📨 {t.feedbackSend}</button>
@@ -857,6 +853,28 @@ function PersonalStats({user,vehicles}){
   );
 }
 
+// ── EXPORT VEHICLE REPORT ────────────────────────────
+function exportVehicleReport(vehicles,allUsers){
+  const rows=[["No","日期","车牌","车型","进车","开始维修","预计出车","实际完成","超时","状态","技师","填写人"]];
+  vehicles.forEach(v=>{
+    const ot=v.overtime||calcOT(v);
+    const techs=(v.staffIds||[]).map(id=>{const u=allUsers.find(u=>u.id===id);return u?u.name:"";}).filter(Boolean).join(", ");
+    rows.push([
+      v.no||"",v.date||"",v.plate||"",v.model||"",
+      v.timeIn||"",v.timeStart||"",v.timeExpected||"",v.timeActual||"",
+      ot?(ot.isOver?"+"+ot.overMin+"m":"-"+Math.abs(ot.overMin)+"m"):"",
+      v.status||"",techs,v.createdByName||""
+    ]);
+  });
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const bom="\uFEFF";
+  const blob=new Blob([bom+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=`KC_Vehicle_Report_${new Date().toLocaleDateString("en-GB").replace(/\//g,"-")}.csv`;
+  a.click();URL.revokeObjectURL(url);
+}
+
 // ── VEHICLE TRACKER ──────────────────────────────────
 function VehicleTracker({user,vehicles,setVehicles,allUsers}){
   const {t}=useLang();
@@ -963,10 +981,13 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
           <div style={{color:B.text,fontSize:17,fontWeight:800}}>{t.vehicles_tracker}</div>
           <div style={{color:B.muted,fontSize:11}}>{t.vehicles_subtitle}</div>
         </div>
-        {canEdit&&<div style={{display:"flex",gap:7}}>
-          <button onClick={()=>fRef.current.click()} style={{...S.btn(B.border,B.text,{fontSize:11})}}>{t.uploadSheet}</button>
-          <button onClick={()=>{setShowAdd(true);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addRecordBtn}</button>
-        </div>}
+        <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          <button onClick={()=>exportVehicleReport(filteredVehicles,allUsers)} style={{...S.btn(B.border,"#2ECC71",{fontSize:11})}}>📥 导出报告</button>
+          {canEdit&&<>
+            <button onClick={()=>fRef.current.click()} style={{...S.btn(B.border,B.text,{fontSize:11})}}>{t.uploadSheet}</button>
+            <button onClick={()=>{setShowAdd(true);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addRecordBtn}</button>
+          </>}
+        </div>
       </div>
 
       {/* FILTER BAR */}
@@ -1264,7 +1285,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
   const [ev,setEv]=useState({});
   const [saving,setSaving]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
-  const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false});
+  const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});
   const lRef=useRef(),aRef=useRef();
 
   const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
@@ -1278,7 +1299,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
     alert(`✅ ${name} 密码已重置`);
   };
   const delUser=async id=>{if(!confirm(t.confirmDelete))return;const target=users.find(u=>u.id===id);const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);if(target){const empUpd=employees.filter(e=>e.name!==target.name);setEmployees(empUpd);await api.save("employees",empUpd);}};
-  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false});};
+  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});};
 
   return(
     <div>
@@ -1356,6 +1377,10 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
             <input type="checkbox" checked={nu.canVehicle||false} onChange={e=>setNu(p=>({...p,canVehicle:e.target.checked}))}/>
             <span style={{color:B.text,fontSize:11}}>{t.canVehicle}</span>
           </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canPerformance||false} onChange={e=>setNu(p=>({...p,canPerformance:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>📊 可以查看 Staff Performance</span>
+          </label>
           <div style={{display:"flex",gap:7}}>
             <button onClick={addUser} style={{...S.btn(B.red)}}>{t.add}</button>
             <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
@@ -1403,6 +1428,10 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                     <input type="checkbox" checked={ev.canVehicle||false} onChange={e=>setEv(v=>({...v,canVehicle:e.target.checked}))}/>
                     <span style={{color:B.text,fontSize:11}}>{t.canVehicle}</span>
                   </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canPerformance||false} onChange={e=>setEv(v=>({...v,canPerformance:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>📊 可以查看 Staff Performance</span>
+                  </label>}
                   <div style={{display:"flex",gap:7}}>
                     <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?t.saving:t.save}</button>
                     <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>{t.cancel}</button>
@@ -1411,7 +1440,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                   </div>
                 </div>
               ):(
-                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false,canViewAll:u.canViewAll||false,canScore:u.canScore||false,canResetPin:u.canResetPin||false,canAttendance:u.canAttendance||false,canVehicle:u.canVehicle||false});}}
+                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false,canViewAll:u.canViewAll||false,canScore:u.canScore||false,canResetPin:u.canResetPin||false,canAttendance:u.canAttendance||false,canVehicle:u.canVehicle||false,canPerformance:u.canPerformance||false});}}
                   style={{...S.card(),padding:10,cursor:"pointer",display:"flex",alignItems:"center",gap:9,transition:"border .2s"}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
                   <Av src={u.avatar} name={u.name} dept={u.dept} size={38}/>
@@ -2040,6 +2069,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
   const [tab,setTab]=useState("kpi");
   const [sel,setSel]=useState(null);
   const [quarter,setQuarter]=useState("Q2 2026");
+  const [kpiMonth,setKpiMonth]=useState("all");
   const [showAddEmp,setShowAddEmp]=useState(false);
   const [ne,setNe]=useState({name:"",role:"Senior Tech"});
   const isBoss=user.role==="boss";
@@ -2050,6 +2080,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
   const canAttendance=isBoss||user.canAttendance;
   const canVehicle=isBoss||user.role==="manager"||isTechHead||user.canVehicle;
   const canResetPin=isBoss||user.canResetPin;
+  const canPerformance=isBoss||user.role==="manager"||user.canPerformance;
   const vis=employees.filter(e=>canViewAll?true:canManage?e.role===user.dept:e.name===user.name);
   const scored=vis.filter(e=>e.total!=null);
   const mvp=scored.length?scored.reduce((a,b)=>a.total>b.total?a:b):null;
@@ -2059,7 +2090,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ["kpi",t.kpi],
     ["vehicle",t.vehicles],
     ...(isStaff||isTechHead?[["mystats",t.myStats]]:[]),
-    ...(isBoss||user.role==="manager"?[["performance","📊"]]:[]),
+    ...(canPerformance?[["performance","📊"]]:[]),
     ["feedback",t.feedback],
     ["games","🎮"],
     ...(canAttendance?[["attendance","出席"]]:[]),
@@ -2127,16 +2158,21 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
         {tab==="mystats"&&(isStaff||isTechHead)&&<PersonalStats user={user} vehicles={vehicles}/>}
         {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
         {tab==="games"&&<GamesPage user={user} gameLogs={gameLogs} setGameLogs={setGameLogs} isBoss={isBoss}/>}
-        {tab==="performance"&&(isBoss||user.role==="manager")&&<StaffPerformance users={users} vehicles={vehicles}/>}
+        {tab==="performance"&&canPerformance&&<StaffPerformance users={users} vehicles={vehicles}/>}
         {tab==="attendance"&&canAttendance&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
         {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
         {tab==="settings"&&canManage&&<SettingsPage user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} employees={employees} setEmployees={setEmployees}/>}
         {tab==="kpi"&&<>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:11,flexWrap:"wrap",gap:7}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:7}}>
             <select value={quarter} onChange={e=>setQuarter(e.target.value)} style={{background:B.card,border:`1px solid ${B.border}`,color:B.text,padding:"7px 11px",borderRadius:9,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
               {["Q1 2025","Q2 2025","Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026","Q4 2026"].map(q=><option key={q}>{q}</option>)}
             </select>
             {canManage&&<button onClick={()=>setShowAddEmp(true)} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addStaff}</button>}
+          </div>
+          <div style={{display:"flex",gap:5,marginBottom:11,flexWrap:"wrap"}}>
+            {[["all","全部月份"],["1","1月"],["2","2月"],["3","3月"],["4","4月"],["5","5月"],["6","6月"],["7","7月"],["8","8月"],["9","9月"],["10","10月"],["11","11月"],["12","12月"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setKpiMonth(v)} style={{...S.btn(kpiMonth===v?B.red:B.border,kpiMonth===v?"#fff":B.muted,{fontSize:10,padding:"4px 9px"})}}>{l}</button>
+            ))}
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:9}}>
             {[[t.staff,vis.length,B.muted],[t.scored,scored.length,"#3498DB"],[t.pass,scored.filter(e=>e.total>=CRIT[e.role].t).length,"#2ECC71"],[t.excellent,scored.filter(e=>e.total>=90).length,"#F1C40F"]].map(([l,v,c])=>(
