@@ -855,24 +855,91 @@ function PersonalStats({user,vehicles}){
 
 // ── EXPORT VEHICLE REPORT ────────────────────────────
 function exportVehicleReport(vehicles,allUsers){
-  const rows=[["No","日期","车牌","车型","进车","开始维修","预计出车","实际完成","超时","状态","技师","填写人"]];
-  vehicles.forEach(v=>{
+  const now=new Date();
+  const dateStr=now.toLocaleDateString("en-GB").replace(/\//g,"-");
+  const timeStr=now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+
+  const statusColor=s=>s==="GOOD"?"#2ECC71":s==="OK"?"#F1C40F":s==="LATE"?"#E74C3C":s==="PENDING"?"#7A7F8E":"#7A7F8E";
+  const statusBg=s=>s==="GOOD"?"#0D2B19":s==="OK"?"#2B2300":s==="LATE"?"#2B0009":s==="PENDING"?"#1A1A1A":"#1A1A1A";
+
+  const rows=vehicles.map(v=>{
     const ot=v.overtime||calcOT(v);
     const techs=(v.staffIds||[]).map(id=>{const u=allUsers.find(u=>u.id===id);return u?u.name:"";}).filter(Boolean).join(", ");
-    rows.push([
-      v.no||"",v.date||"",v.plate||"",v.model||"",
-      v.timeIn||"",v.timeStart||"",v.timeExpected||"",v.timeActual||"",
-      ot?(ot.isOver?"+"+ot.overMin+"m":"-"+Math.abs(ot.overMin)+"m"):"",
-      v.status||"",techs,v.createdByName||""
-    ]);
-  });
-  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
-  const bom="\uFEFF";
-  const blob=new Blob([bom+csv],{type:"text/csv;charset=utf-8;"});
+    const otText=ot?(ot.isOver?`+${ot.overMin}m`:"-"+Math.abs(ot.overMin)+"m"):"—";
+    const otColor=ot?(ot.isOver?"#E74C3C":"#2ECC71"):"#7A7F8E";
+    const sc=v.status||"PENDING";
+    return `
+      <tr>
+        <td>${v.no||""}</td>
+        <td>${v.date||""}</td>
+        <td style="font-weight:700;color:#fff">${v.plate||""}</td>
+        <td>${v.model||""}</td>
+        <td style="font-family:monospace">${v.timeIn||"—"}</td>
+        <td style="font-family:monospace">${v.timeStart||"—"}</td>
+        <td style="font-family:monospace">${v.timeExpected||"—"}</td>
+        <td style="font-family:monospace">${v.timeActual||"—"}</td>
+        <td style="color:${otColor};font-weight:700;font-family:monospace">${otText}</td>
+        <td><span style="background:${statusBg(sc)};color:${statusColor(sc)};border-radius:4px;padding:2px 8px;font-weight:700;font-size:11px">${sc}</span></td>
+        <td>${techs||"—"}</td>
+        <td style="color:#aaa">${v.createdByName||"—"}</td>
+      </tr>`;
+  }).join("");
+
+  const summary={total:vehicles.length,good:vehicles.filter(v=>v.status==="GOOD").length,ok:vehicles.filter(v=>v.status==="OK").length,late:vehicles.filter(v=>v.status==="LATE").length,pending:vehicles.filter(v=>v.status==="PENDING").length};
+
+  const html=`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/>
+<title>KC Auto Performance - Vehicle Report</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#0F1117;color:#E0E0E0;font-family:Arial,sans-serif;padding:24px;}
+  .header{text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #D0021B;}
+  .logo{font-size:32px;font-weight:900;font-style:italic;letter-spacing:-1px;margin-bottom:6px;}
+  .logo span{color:#D0021B;}
+  .logo em{color:#fff;font-style:normal;}
+  .subtitle{color:#aaa;font-size:13px;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
+  .report-date{color:#666;font-size:12px;}
+  .summary{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .sum-card{background:#16191F;border:1px solid #2a2d35;border-radius:8px;padding:12px 18px;text-align:center;flex:1;min-width:80px;}
+  .sum-val{font-size:22px;font-weight:900;font-family:monospace;}
+  .sum-label{font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{background:#1A1D24;color:#666;padding:9px 10px;text-align:left;border-bottom:2px solid #2a2d35;font-size:10px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+  td{padding:8px 10px;border-bottom:1px solid #1e2128;color:#ccc;vertical-align:middle;}
+  tr:hover td{background:#16191F;}
+  .footer{text-align:center;color:#444;font-size:10px;margin-top:20px;padding-top:16px;border-top:1px solid #1e2128;}
+</style>
+</head><body>
+<div class="header">
+  <div class="logo"><span>KC</span> <em>AUTO PERFORMANCE</em></div>
+  <div class="subtitle">Vehicle Performance Report</div>
+  <div class="report-date">Generated: ${dateStr} ${timeStr}</div>
+</div>
+<div class="summary">
+  <div class="sum-card"><div class="sum-val" style="color:#3498DB">${summary.total}</div><div class="sum-label">Total</div></div>
+  <div class="sum-card"><div class="sum-val" style="color:#2ECC71">${summary.good}</div><div class="sum-label">Good</div></div>
+  <div class="sum-card"><div class="sum-val" style="color:#F1C40F">${summary.ok}</div><div class="sum-label">OK</div></div>
+  <div class="sum-card"><div class="sum-val" style="color:#E74C3C">${summary.late}</div><div class="sum-label">Late</div></div>
+  <div class="sum-card"><div class="sum-val" style="color:#7A7F8E">${summary.pending}</div><div class="sum-label">Pending</div></div>
+</div>
+<table>
+  <thead><tr>
+    <th>No</th><th>Date</th><th>Plate</th><th>Model</th>
+    <th>Check-In</th><th>Start</th><th>Expected</th><th>Actual</th>
+    <th>OT</th><th>Status</th><th>Technicians</th><th>By</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="footer">KC Auto Performance · ${dateStr} · Total ${summary.total} vehicles</div>
+</body></html>`;
+
+  const blob=new Blob([html],{type:"text/html;charset=utf-8;"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
-  a.href=url;a.download=`KC_Vehicle_Report_${new Date().toLocaleDateString("en-GB").replace(/\//g,"-")}.csv`;
-  a.click();URL.revokeObjectURL(url);
+  a.href=url;
+  a.download=`KC_Vehicle_Report_${dateStr}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ── VEHICLE TRACKER ──────────────────────────────────
