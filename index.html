@@ -2081,9 +2081,20 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
   const canVehicle=isBoss||user.role==="manager"||isTechHead||user.canVehicle;
   const canResetPin=isBoss||user.canResetPin;
   const canPerformance=isBoss||user.role==="manager"||user.canPerformance;
+  const MONTHS=["1","2","3","4","5","6","7","8","9","10","11","12"];
+  const monthLabel=kpiMonth==="all"?null:`${kpiMonth}月 ${quarter.split(" ")[1]}`;
+  const scoreKey=monthLabel||quarter;
+
+  // Get employee score for current period (month or quarter)
+  const getEmpScore=(emp)=>{
+    if(kpiMonth==="all") return {total:emp.total,scores:emp.scores};
+    const h=emp.history||{};
+    return h[scoreKey]||{total:null,scores:{}};
+  };
+
   const vis=employees.filter(e=>canViewAll?true:canManage?e.role===user.dept:e.name===user.name);
-  const scored=vis.filter(e=>e.total!=null);
-  const mvp=scored.length?scored.reduce((a,b)=>a.total>b.total?a:b):null;
+  const scored=vis.filter(e=>getEmpScore(e).total!=null);
+  const mvp=scored.length?scored.reduce((a,b)=>getEmpScore(a).total>getEmpScore(b).total?a:b):null;
   const unreadFb=feedbacks.filter(f=>!f.read).length;
 
   const tabs=[
@@ -2112,7 +2123,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     setTimeout(()=>{setShowChangePwd(false);setPwdForm({old:"",new1:"",new2:""});setPwdErr("");},1500);
   };
 
-  if(sel)return<ScoringPage user={user} emp={{...sel,quarter,userId:users.find(u=>u.name===sel.name)?.id}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};return{...upd,history};});setEmployees(u);api.save("employees",u);setSel(null);}}/>;
+  if(sel)return<ScoringPage user={user} emp={{...sel,...getEmpScore(sel),quarter:scoreKey,userId:users.find(u=>u.name===sel.name)?.id}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};const isCurrentPeriod=upd.quarter===scoreKey;return{...e,history,...(isCurrentPeriod&&kpiMonth==="all"?{total:upd.total,scores:upd.scores}:{})};});setEmployees(u);api.save("employees",u);setSel(null);}}/>;
 
   return(
     <div style={{minHeight:"100vh",background:B.dark,paddingBottom:70}}>
@@ -2169,13 +2180,17 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
             </select>
             {canManage&&<button onClick={()=>setShowAddEmp(true)} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addStaff}</button>}
           </div>
-          <div style={{display:"flex",gap:5,marginBottom:11,flexWrap:"wrap"}}>
-            {[["all","全部月份"],["1","1月"],["2","2月"],["3","3月"],["4","4月"],["5","5月"],["6","6月"],["7","7月"],["8","8月"],["9","9月"],["10","10月"],["11","11月"],["12","12月"]].map(([v,l])=>(
+          <div style={{display:"flex",gap:5,marginBottom:4,flexWrap:"wrap"}}>
+            {[["all","全季度"],["1","1月"],["2","2月"],["3","3月"],["4","4月"],["5","5月"],["6","6月"],["7","7月"],["8","8月"],["9","9月"],["10","10月"],["11","11月"],["12","12月"]].map(([v,l])=>(
               <button key={v} onClick={()=>setKpiMonth(v)} style={{...S.btn(kpiMonth===v?B.red:B.border,kpiMonth===v?"#fff":B.muted,{fontSize:10,padding:"4px 9px"})}}>{l}</button>
             ))}
           </div>
+          {monthLabel&&<div style={{...S.card(),padding:"8px 12px",marginBottom:10,background:"#1A0A00",border:`1px solid ${B.red}44`,display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:14}}>📅</span>
+            <span style={{color:B.red,fontSize:11,fontWeight:700}}>正在查看：{monthLabel} 的KPI分数</span>
+          </div>}
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,marginBottom:9}}>
-            {[[t.staff,vis.length,B.muted],[t.scored,scored.length,"#3498DB"],[t.pass,scored.filter(e=>e.total>=CRIT[e.role].t).length,"#2ECC71"],[t.excellent,scored.filter(e=>e.total>=90).length,"#F1C40F"]].map(([l,v,c])=>(
+            {[[t.staff,vis.length,B.muted],[t.scored,scored.length,"#3498DB"],[t.pass,scored.filter(e=>getEmpScore(e).total>=CRIT[e.role].t).length,"#2ECC71"],[t.excellent,scored.filter(e=>getEmpScore(e).total>=90).length,"#F1C40F"]].map(([l,v,c])=>(
               <div key={l} style={{...S.card(),padding:"11px 7px",textAlign:"center"}}>
                 <div style={{color:c,fontSize:19,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{v}</div>
                 <div style={{color:B.muted,fontSize:10,marginTop:2}}>{l}</div>
@@ -2195,7 +2210,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
             <div style={{fontSize:22}}>MVP</div>
             <Av src={mvp.avatar} name={mvp.name} dept={mvp.role} size={38}/>
             <div style={{flex:1}}><div style={{color:B.red,fontSize:9,fontWeight:700,letterSpacing:3}}>{t.quarterMvp}</div><div style={{color:B.text,fontSize:14,fontWeight:800}}>{mvp.name}</div><div style={{color:B.muted,fontSize:10}}>{mvp.role}</div></div>
-            <div style={{color:B.red,fontSize:22,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{mvp.total}</div>
+            <div style={{color:B.red,fontSize:22,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{getEmpScore(mvp).total}</div>
           </div>}
           {DEPTS.filter(d=>canViewAll?true:canManage?d===user.dept:d===user.dept).map(dept=>{
             const emps=vis.filter(e=>e.role===dept);if(!emps.length)return null;const dc=DC[dept];
@@ -2206,7 +2221,8 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))",gap:8}}>
                   {emps.map(emp=>{
-                    const grade=emp.total!=null?getGrade(emp.total,CRIT[emp.role].t,bonusCfg):null;
+                    const periodScore=getEmpScore(emp);
+                    const grade=periodScore.total!=null?getGrade(periodScore.total,CRIT[emp.role].t,bonusCfg):null;
                     return(
                       <div key={emp.id}
                         onClick={()=>setSel(emp)}
@@ -2224,12 +2240,11 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
                             </div>
                             {grade&&<div style={{background:grade.color+"22",color:grade.color,borderRadius:4,padding:"1px 5px",fontSize:9,fontWeight:700}}>RM{grade.amount}</div>}
                           </div>
-                          {emp.total!=null?(<div>
-                            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{color:B.muted,fontSize:9}}>{t.score}</span><span style={{color:grade.color,fontWeight:800,fontSize:11,fontFamily:"'IBM Plex Mono',monospace"}}>{emp.total}</span></div>
-                            <div style={{height:3,background:B.border,borderRadius:99,overflow:"hidden"}}><div style={{width:`${Math.min(emp.total,110)/110*100}%`,height:"100%",background:grade.color,borderRadius:99}}/></div>
+                          {periodScore.total!=null?(<div>
+                            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{color:B.muted,fontSize:9}}>{t.score}</span><span style={{color:grade.color,fontWeight:800,fontSize:11,fontFamily:"'IBM Plex Mono',monospace"}}>{periodScore.total}</span></div>
+                            <div style={{height:3,background:B.border,borderRadius:99,overflow:"hidden"}}><div style={{width:`${Math.min(periodScore.total,110)/110*100}%`,height:"100%",background:grade.color,borderRadius:99}}/></div>
                             <div style={{color:B.muted,fontSize:9,marginTop:2}}>{grade.label}</div>
                           </div>):<div style={{color:B.muted,fontSize:9}}>{canManage?t.tapToScore:t.pending}</div>}
-
                         </div>
                       </div>
                     );
