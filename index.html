@@ -883,7 +883,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
   const submitForm=()=>{
     const ot=calcOT(form);const status=autoStatus(ot);
     if(editId){save(vehicles.map(v=>v.id===editId?{...v,...form,overtime:ot,status}:v));setEditId(null);}
-    else{save([...vehicles,{...form,id:Date.now(),no:vehicles.length+1,overtime:ot,status}]);}
+    else{save([...vehicles,{...form,id:Date.now(),no:vehicles.length+1,overtime:ot,status,createdBy:user.id,createdByName:user.name}]);}
     setForm(emptyF);setShowAdd(false);
   };
 
@@ -988,11 +988,12 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
 
       <div style={{overflowX:"auto"}}>
         <table style={{width:"100%",borderCollapse:"collapse",fontSize:11,minWidth:800}}>
-          <thead><tr style={{background:B.card2}}>{["No",t.date,t.plate,t.model,t.checkIn,t.startRepair,t.expectedOut,t.actualOut,t.overtime,t.status,t.technicians,""].map(h=><th key={h} style={{color:B.muted,padding:"7px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+          <thead><tr style={{background:B.card2}}>{["No",t.date,t.plate,t.model,t.checkIn,t.startRepair,t.expectedOut,t.actualOut,t.overtime,t.status,t.technicians,"填写人",""].map(h=><th key={h} style={{color:B.muted,padding:"7px 9px",textAlign:"left",borderBottom:`1px solid ${B.border}`,fontWeight:700,fontSize:10,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
           <tbody>{vehicles.map(r=>{
             const ot=r.overtime||calcOT(r);
             const techs=(r.staffIds||[]).map(id=>allUsers.find(u=>u.id===id)).filter(Boolean);
             const share=techs.length||1;
+            const creator=r.createdByName||"—";
             return(
               <tr key={r.id} style={{background:r.status==="LATE"?"#1A0808":B.dark,borderBottom:`1px solid ${B.border}`}}>
                 <td style={{padding:"7px 9px",color:B.muted,fontFamily:"monospace"}}>{r.no}</td>
@@ -1013,6 +1014,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
                     {techs.length===0&&<span style={{color:B.muted,fontSize:10}}>–</span>}
                   </div>
                 </td>
+                <td style={{padding:"7px 9px",color:B.muted,fontSize:10,whiteSpace:"nowrap"}}>{creator}</td>
                 {canEdit&&<td style={{padding:"7px 9px"}}>
                   <div style={{display:"flex",gap:3}}>
                     <button onClick={()=>{setForm({plate:r.plate,model:r.model,timeIn:r.timeIn||"",timeStart:r.timeStart||"",timeExpected:r.timeExpected||"",timeActual:r.timeActual||"",staffIds:r.staffIds||[],date:r.date});setEditId(r.id);setShowAdd(true);}} style={{...S.btn("#252830",B.muted,{padding:"3px 7px",fontSize:9})}}>{t.save}</button>
@@ -1318,6 +1320,206 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
           ))}
         </div>
       </div>}
+    </div>
+  );
+}
+
+// ── STAFF PERFORMANCE ────────────────────────────────
+function StaffPerformance({users,vehicles}){
+  const today=new Date().toISOString().split("T")[0];
+  const [range,setRange]=useState("month");
+  const [custom,setCustom]=useState({from:today,to:today});
+  const [selUser,setSelUser]=useState(null);
+
+  const parseDate=d=>{
+    if(!d)return null;
+    if(d.includes("-"))return new Date(d);
+    const[dd,mm,yyyy]=d.split(".");
+    if(!yyyy)return null;
+    return new Date(`${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`);
+  };
+
+  const getRangeDates=()=>{
+    const now=new Date();
+    if(range==="today"){const s=new Date(now);s.setHours(0,0,0,0);return{from:s,to:now};}
+    if(range==="week"){const s=new Date(now);s.setDate(now.getDate()-7);return{from:s,to:now};}
+    if(range==="month"){const s=new Date(now.getFullYear(),now.getMonth(),1);return{from:s,to:now};}
+    if(range==="quarter"){const s=new Date(now.getFullYear(),Math.floor(now.getMonth()/3)*3,1);return{from:s,to:now};}
+    return{from:new Date(custom.from),to:new Date(custom.to+"T23:59:59")};
+  };
+
+  const fmtMin=m=>{if(!m)return"0m";const h=Math.floor(m/60),mn=m%60;return h>0?`${h}h ${mn}m`:`${mn}m`;};
+
+  const staffList=useMemo(()=>users.filter(u=>u.role!=="boss"),[users]);
+
+  const calcStats=(uid)=>{
+    const{from,to}=getRangeDates();
+    const myV=vehicles.filter(v=>{
+      if(!(v.staffIds||[]).includes(uid))return false;
+      const d=parseDate(v.date);
+      if(!d)return true;
+      return d>=from&&d<=to;
+    });
+    let totalWorkMin=0,totalOTMin=0,onTime=0;
+    myV.forEach(v=>{
+      const ot=calcOT(v);
+      if(ot){
+        totalWorkMin+=ot.actual;
+        const share=(v.staffIds||[]).length||1;
+        if(ot.isOver)totalOTMin+=ot.overMin/share;
+        else onTime++;
+      }
+    });
+    const onTimeRate=myV.length>0?Math.round((onTime/myV.length)*100):100;
+    return{total:myV.length,totalWorkMin:Math.round(totalWorkMin),totalOTMin:Math.round(totalOTMin),onTimeRate,vehicles:myV};
+  };
+
+  const allStats=useMemo(()=>staffList.map(u=>({...u,stats:calcStats(u.id)})),[staffList,vehicles,range,custom]);
+  const sorted=useMemo(()=>[...allStats].sort((a,b)=>b.stats.total-a.stats.total),[allStats]);
+
+  const selectedData=selUser?allStats.find(u=>u.id===selUser):null;
+
+  return(
+    <div>
+      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:6}}>🏆 Staff Performance</div>
+      <div style={{color:B.muted,fontSize:11,marginBottom:14}}>员工车辆表现排名</div>
+
+      {/* Time filter */}
+      <div style={{...S.card(),padding:12,marginBottom:14}}>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:range==="custom"?12:0}}>
+          {[["today","今天"],["week","本周"],["month","本月"],["quarter","本季"],["custom","自定义"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setRange(v)} style={{...S.btn(range===v?B.red:B.border,range===v?"#fff":B.muted,{fontSize:11,padding:"5px 11px"})}}>{l}</button>
+          ))}
+        </div>
+        {range==="custom"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:10}}>
+          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>从</div><input type="date" value={custom.from} onChange={e=>setCustom(c=>({...c,from:e.target.value}))} style={S.inp}/></div>
+          <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>到</div><input type="date" value={custom.to} onChange={e=>setCustom(c=>({...c,to:e.target.value}))} style={S.inp}/></div>
+        </div>}
+      </div>
+
+      {/* Ranking table */}
+      <div style={{...S.card(),padding:14,marginBottom:14}}>
+        <div style={{color:B.text,fontWeight:800,fontSize:13,marginBottom:12}}>排行榜</div>
+        <div style={{display:"grid",gridTemplateColumns:"28px 1fr 48px 60px 60px 52px",gap:4,marginBottom:8}}>
+          {["#","员工","车辆","工时","超时","准时率"].map(h=>(
+            <div key={h} style={{color:B.muted,fontSize:9,fontWeight:700,letterSpacing:0.5}}>{h}</div>
+          ))}
+        </div>
+        {sorted.map((u,i)=>{
+          const s=u.stats;
+          const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"";
+          const isSelected=selUser===u.id;
+          return(
+            <div key={u.id} onClick={()=>setSelUser(isSelected?null:u.id)}
+              style={{display:"grid",gridTemplateColumns:"28px 1fr 48px 60px 60px 52px",gap:4,padding:"9px 6px",
+                borderRadius:8,marginBottom:4,cursor:"pointer",
+                background:isSelected?`${B.red}22`:i%2===0?B.card2:"transparent",
+                border:`1px solid ${isSelected?B.red:"transparent"}`}}>
+              <div style={{color:B.muted,fontSize:12,fontWeight:700}}>{medal||`${i+1}`}</div>
+              <div>
+                <div style={{color:B.text,fontSize:12,fontWeight:700}}>{u.name}</div>
+                <div style={{color:B.muted,fontSize:9}}>{RL[u.role]}{u.dept?" · "+u.dept:""}</div>
+              </div>
+              <div style={{color:"#3498DB",fontSize:13,fontWeight:900,fontFamily:"monospace",textAlign:"center"}}>{s.total}</div>
+              <div style={{color:"#9B59B6",fontSize:11,fontWeight:700,textAlign:"center"}}>{fmtMin(s.totalWorkMin)}</div>
+              <div style={{color:s.totalOTMin>0?"#E74C3C":"#2ECC71",fontSize:11,fontWeight:700,textAlign:"center"}}>
+                {s.totalOTMin>0?fmtMin(s.totalOTMin):"—"}
+              </div>
+              <div style={{color:s.onTimeRate>=90?"#2ECC71":s.onTimeRate>=70?"#F1C40F":"#E74C3C",fontSize:11,fontWeight:700,textAlign:"center"}}>
+                {s.total>0?s.onTimeRate+"%":"—"}
+              </div>
+            </div>
+          );
+        })}
+        {sorted.every(u=>u.stats.total===0)&&(
+          <div style={{textAlign:"center",color:B.muted,fontSize:12,padding:20}}>此时间段内没有车辆记录</div>
+        )}
+      </div>
+
+      {/* Individual detail - full stats */}
+      {selectedData&&(()=>{
+        const s=selectedData.stats;
+        const avgOTPct=s.vehicles.length>0?(s.vehicles.reduce((acc,v)=>{const ot=calcOT(v);return acc+(ot&&ot.isOver?ot.overPct/((v.staffIds||[]).length||1):0);},0)/s.vehicles.length):0;
+        const autoScore=Math.max(0,parseFloat((15-avgOTPct*0.15).toFixed(1)));
+        const pct=Math.min(100,(autoScore/15)*100);
+        return(
+          <div style={{...S.card(),padding:14,border:`1px solid ${B.red}44`,marginBottom:14}}>
+            {/* Header */}
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+              <Av src={selectedData.avatar} name={selectedData.name} dept={selectedData.dept} size={44}/>
+              <div style={{flex:1}}>
+                <div style={{color:B.text,fontWeight:800,fontSize:16}}>{selectedData.name}</div>
+                <div style={{color:B.muted,fontSize:11}}>{RL[selectedData.role]}{selectedData.dept?" · "+selectedData.dept:""}</div>
+              </div>
+              <button onClick={()=>setSelUser(null)} style={{...S.btn(B.border,B.muted,{fontSize:11,padding:"4px 10px"})}}>✕ 关闭</button>
+            </div>
+
+            {/* 4 stat cards */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9,marginBottom:14}}>
+              {[
+                {label:"总维修车辆",value:s.total,color:"#3498DB"},
+                {label:"总工作时间",value:s.totalWorkMin>0?fmtMin(s.totalWorkMin):"0m",color:"#9B59B6"},
+                {label:"总超时时间",value:s.totalOTMin>0?fmtMin(s.totalOTMin):"无超时",color:s.totalOTMin>0?"#E74C3C":"#2ECC71"},
+                {label:"准时率",value:s.total>0?s.onTimeRate+"%":"—",color:s.onTimeRate>=90?"#2ECC71":s.onTimeRate>=70?"#F1C40F":"#E74C3C"},
+              ].map(item=>(
+                <div key={item.label} style={{...S.card(),padding:14,textAlign:"center"}}>
+                  <div style={{color:B.muted,fontSize:10,marginBottom:5}}>{item.label}</div>
+                  <div style={{color:item.color,fontSize:21,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Auto KPI score */}
+            <div style={{...S.card(),padding:16,marginBottom:14,border:`1px solid ${autoScore>=12?"#2ECC71":autoScore>=8?"#F1C40F":"#E74C3C"}44`}}>
+              <div style={{color:B.text,fontWeight:800,marginBottom:10}}>按时交车率 — 自动KPI分数</div>
+              <div style={{display:"flex",alignItems:"center",gap:14}}>
+                <div style={{textAlign:"center",minWidth:72}}>
+                  <div style={{color:autoScore>=12?"#2ECC71":autoScore>=8?"#F1C40F":"#E74C3C",fontSize:34,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{autoScore}</div>
+                  <div style={{color:B.muted,fontSize:10}}>/ 15 pts</div>
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{background:B.border,borderRadius:99,height:8,marginBottom:8,overflow:"hidden"}}>
+                    <div style={{width:pct+"%",height:"100%",background:autoScore>=12?"#2ECC71":autoScore>=8?"#F1C40F":"#E74C3C",borderRadius:99,transition:"width .5s"}}/>
+                  </div>
+                  <div style={{color:B.muted,fontSize:10}}>平均超时: {avgOTPct.toFixed(1)}% · 扣分: {(15-autoScore).toFixed(1)}pts</div>
+                  <div style={{color:B.muted,fontSize:10}}>满分15分，每超时1%（平均分担）扣0.15分</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Vehicle records */}
+            <div style={{color:B.text,fontWeight:700,fontSize:13,marginBottom:8}}>我参与的记录 ({s.vehicles.length})</div>
+            {s.vehicles.length===0
+              ?<div style={{color:B.muted,fontSize:11,textAlign:"center",padding:16}}>此时间段没有记录</div>
+              :<div style={{...S.card(),padding:12}}>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 60px 60px 70px",gap:4,marginBottom:8}}>
+                  {["车牌/车型","开始","完成","状态"].map(h=>(
+                    <div key={h} style={{color:B.muted,fontSize:9,fontWeight:700}}>{h}</div>
+                  ))}
+                </div>
+                {s.vehicles.slice(0,20).map((v,i)=>{
+                  const ot=calcOT(v);
+                  const statusColor=v.status==="GOOD"?"#2ECC71":v.status==="OK"?"#3498DB":v.status==="LATE"?"#E74C3C":"#F1C40F";
+                  return(
+                    <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 60px 60px 70px",gap:4,padding:"7px 0",borderBottom:`1px solid ${B.border}`}}>
+                      <div>
+                        <div style={{color:B.text,fontSize:11,fontWeight:700}}>{v.plate||"?"}</div>
+                        <div style={{color:B.muted,fontSize:9}}>{v.model||""} {v.date||""}</div>
+                      </div>
+                      <div style={{color:B.muted,fontSize:10}}>{v.startRepair||"—"}</div>
+                      <div style={{color:B.muted,fontSize:10}}>{v.actualDone||"—"}</div>
+                      <div>
+                        <div style={{color:statusColor,fontSize:10,fontWeight:700}}>{v.status||"—"}</div>
+                        {ot&&ot.isOver&&<div style={{color:"#E74C3C",fontSize:9}}>+{Math.round(ot.overMin)}m</div>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            }
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -1754,6 +1956,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ["kpi",t.kpi],
     ["vehicle",t.vehicles],
     ...(isStaff||isTechHead?[["mystats",t.myStats]]:[]),
+    ...(isBoss||user.role==="manager"?[["performance","📊"]]:[]),
     ["feedback",t.feedback],
     ["games","🎮"],
     ...(canAttendance?[["attendance","出席"]]:[]),
@@ -1802,7 +2005,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:20,background:"#0A0C10",borderTop:`1px solid ${B.border}`,padding:"6px 4px 8px"}}>
         <div style={{display:"flex",justifyContent:"space-around",maxWidth:920,margin:"0 auto"}}>
           {tabs.map(([tabKey,l])=>{
-            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",feedback:"💬",games:"🎮",attendance:"📋",history:"🕐",settings:"⚙️"};
+            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",attendance:"📋",history:"🕐",settings:"⚙️"};
             const active=tab===tabKey;
             return(
               <button key={tabKey} onClick={()=>setTab(tabKey)}
@@ -1821,6 +2024,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
         {tab==="mystats"&&(isStaff||isTechHead)&&<PersonalStats user={user} vehicles={vehicles}/>}
         {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
         {tab==="games"&&<GamesPage user={user} gameLogs={gameLogs} setGameLogs={setGameLogs} isBoss={isBoss}/>}
+        {tab==="performance"&&(isBoss||user.role==="manager")&&<StaffPerformance users={users} vehicles={vehicles}/>}
         {tab==="attendance"&&canAttendance&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
         {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
         {tab==="settings"&&canManage&&<SettingsPage user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} employees={employees} setEmployees={setEmployees}/>}
