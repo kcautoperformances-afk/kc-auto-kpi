@@ -1659,11 +1659,29 @@ function StaffPerformance({users,vehicles}){
 // ── GAMES PAGE ────────────────────────────────────────
 function GamesPage({user,gameLogs,setGameLogs,isBoss}){
   const [activeGame,setActiveGame]=useState(null);
-  const [showLogs,setShowLogs]=useState(false);
+  const [showLogs,setShowLogs]=useState(isBoss);
   const sessionStart=useRef(null);
+  const currentGame=useRef(null);
+
+  // Auto-save when user leaves page or closes app
+  useEffect(()=>{
+    const handleVisibility=()=>{
+      if(document.hidden&&sessionStart.current&&currentGame.current){
+        const duration=Math.round((Date.now()-sessionStart.current)/1000);
+        if(duration<3)return;
+        const log={id:Date.now(),userId:user.id,userName:user.name,dept:user.dept||user.role,game:currentGame.current,score:0,duration,time:new Date().toLocaleString()};
+        const upd=[log,...gameLogs];
+        setGameLogs(upd);
+        api.save("gameLogs",upd);
+      }
+    };
+    document.addEventListener("visibilitychange",handleVisibility);
+    return()=>document.removeEventListener("visibilitychange",handleVisibility);
+  },[gameLogs,user]);
 
   const startGame=(name)=>{
     sessionStart.current=Date.now();
+    currentGame.current=name;
     setActiveGame(name);
   };
 
@@ -1675,6 +1693,7 @@ function GamesPage({user,gameLogs,setGameLogs,isBoss}){
     setGameLogs(upd);
     api.save("gameLogs",upd);
     sessionStart.current=null;
+    currentGame.current=null;
     setActiveGame(null);
   };
 
