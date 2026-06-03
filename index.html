@@ -1024,7 +1024,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
     const b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.readAsDataURL(file);});
     try{
       const resp=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:2000,
+        model:"claude-sonnet-4-5",max_tokens:2000,
         messages:[{role:"user",content:[
           {type:"image",source:{type:"base64",media_type:file.type,data:b64}},
           {type:"text",text:"Extract vehicle workshop log rows. Return ONLY JSON array: [{\"no\":1,\"date\":\"29.05.2026\",\"plate\":\"BPW9983\",\"model\":\"CRV G5\",\"timeIn\":\"10:10\",\"timeStart\":\"10:10\",\"timeExpected\":\"12:10\",\"timeActual\":\"11:36\"}]. timeExpected=OUT column. timeActual=REAL column. Return ONLY the array."}
@@ -1782,7 +1782,7 @@ function AppointmentsPage({user,appointments,setAppointments,users,isBoss}){
     setAiLoading(true);setAiResults([]);
     try{
       const resp=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:1000,
+        model:"claude-sonnet-4-5",max_tokens:1000,
         messages:[{role:"user",content:`Extract appointment(s) from this WhatsApp message. Return ONLY a JSON array, no markdown, no explanation, no extra text.
 
 Example format:
