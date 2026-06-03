@@ -18,13 +18,20 @@ app.post("/api/attendance",(q,r)=>{try{const d=R();d.attendance=q.body;W(d);r.js
 app.post("/api/gameLogs",(q,r)=>{try{const d=R();d.gameLogs=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}}); 
 app.post("/api/ai",(q,r)=>{
   const https=require("https");
-  const body=JSON.stringify(q.body);
   const apiKey=process.env.ANTHROPIC_API_KEY||"";
+  if(!apiKey){return r.status(500).json({error:"ANTHROPIC_API_KEY not set"});}
+  const body=JSON.stringify(q.body);
   const options={hostname:"api.anthropic.com",path:"/v1/messages",method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","Content-Length":Buffer.byteLength(body)}};
   const req=https.request(options,res=>{
     let data="";
     res.on("data",chunk=>data+=chunk);
-    res.on("end",()=>{try{r.json(JSON.parse(data));}catch(e){r.status(500).json({error:"Parse error"});}});
+    res.on("end",()=>{
+      try{
+        const parsed=JSON.parse(data);
+        if(parsed.error){return r.status(400).json({error:parsed.error.message||JSON.stringify(parsed.error)});}
+        r.json(parsed);
+      }catch(e){r.status(500).json({error:"Parse error: "+data.substring(0,200)});}
+    });
   });
   req.on("error",e=>r.status(500).json({error:e.message}));
   req.write(body);req.end();
