@@ -1800,9 +1800,9 @@ Rules:
 Message:
 ${aiText}`}]
       })});
-      if(!resp.ok){const err=await resp.text();throw new Error("Server error: "+err);}
+      if(!resp.ok){const err=await resp.json().catch(()=>({error:resp.statusText}));throw new Error(err.error||resp.statusText);}
       const data=await resp.json();
-      if(data.error)throw new Error(data.error);
+      if(data.error)throw new Error(typeof data.error==="string"?data.error:JSON.stringify(data.error));
       const text=data.content?.find(c=>c.type==="text")?.text||"";
       if(!text)throw new Error("No response from AI");
       const clean=text.replace(/```json|```/g,"").trim();
