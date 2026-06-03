@@ -1013,7 +1013,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
 
   const submitForm=()=>{
     const ot=calcOT(form);const status=autoStatus(ot);
-    if(editId){save(vehicles.map(v=>v.id===editId?{...v,...form,overtime:ot,status}:v));setEditId(null);}
+    if(editId){save(vehicles.map(v=>v.id===editId?{...v,...form,overtime:ot,status,createdBy:v.createdBy||user.id,createdByName:v.createdByName||user.name}:v));setEditId(null);}
     else{save([...vehicles,{...form,id:Date.now(),no:vehicles.length+1,overtime:ot,status,createdBy:user.id,createdByName:user.name}]);}
     setForm(emptyF);setShowAdd(false);
   };
