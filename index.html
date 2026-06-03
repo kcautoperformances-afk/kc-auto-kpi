@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="KC Auto KPI"/>
 <meta name="theme-color" content="#000000"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>KC Auto Workshop KPI v5</title>
+<title>KC Auto Workshop KPI v5.1</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -1023,7 +1023,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
     setUploading(true);
     const b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.readAsDataURL(file);});
     try{
-      const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      const resp=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         model:"claude-sonnet-4-20250514",max_tokens:2000,
         messages:[{role:"user",content:[
           {type:"image",source:{type:"base64",media_type:file.type,data:b64}},
@@ -1128,7 +1128,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
         <div style={{display:"flex",gap:7,marginTop:10}}>
           <button onClick={()=>{
             const today=new Date().toLocaleDateString("en-GB").replace(/\//g,".");
-            save([...vehicles,...aiResult.map((r,i)=>{const ot=calcOT(r);return{...r,id:Date.now()+i,date:r.date||today,overtime:ot,status:autoStatus(ot),staffIds:[]};})]);
+            save([...vehicles,...aiResult.map((r,i)=>{const ot=calcOT(r);return{...r,id:Date.now()+i,date:r.date||today,overtime:ot,status:autoStatus(ot),staffIds:[],createdBy:user.id,createdByName:user.name};})]);
             setAiResult(null);
           }} style={{...S.btn(B.red)}}>{t.confirmImport}</button>
           <button onClick={()=>setAiResult(null)} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
@@ -1723,6 +1723,299 @@ function StaffPerformance({users,vehicles}){
   );
 }
 
+// ── APPOINTMENTS PAGE ─────────────────────────────────
+const DEFAULT_SERVICES=["换机油","刹车维修","轮胎更换","冷气维修","电池更换","定期保养","Tuning","Dyno测试","悬挂维修"];
+
+function AppointmentsPage({user,appointments,setAppointments,users,isBoss}){
+  const today=new Date().toISOString().split("T")[0];
+  const [showAdd,setShowAdd]=useState(false);
+  const [editId,setEditId]=useState(null);
+  const [filterDate,setFilterDate]=useState("upcoming");
+  const [filterStatus,setFilterStatus]=useState("all");
+  const [searchText,setSearchText]=useState("");
+  const [customServices,setCustomServices]=useState(()=>{try{return JSON.parse(localStorage.getItem("kc_custom_services")||"[]");}catch{return [];}});
+  const [newService,setNewService]=useState("");
+  const [showAI,setShowAI]=useState(false);
+  const [aiText,setAiText]=useState("");
+  const [aiLoading,setAiLoading]=useState(false);
+  const [aiResults,setAiResults]=useState([]);
+  const emptyF={date:today,time:"09:00",plate:"",model:"",services:[],techId:"",salesId:"",notes:"",status:"confirmed"};
+  const [form,setForm]=useState(emptyF);
+
+  const allServices=[...DEFAULT_SERVICES,...customServices];
+  const staffList=users.filter(u=>u.role!=="boss");
+  const save=a=>{setAppointments(a);api.save("appointments",a);};
+
+  const addCustomService=()=>{
+    const s=newService.trim();
+    if(!s||allServices.includes(s))return;
+    const upd=[...customServices,s];
+    setCustomServices(upd);
+    localStorage.setItem("kc_custom_services",JSON.stringify(upd));
+    setNewService("");
+  };
+
+  const removeCustomService=s=>{
+    const upd=customServices.filter(x=>x!==s);
+    setCustomServices(upd);
+    localStorage.setItem("kc_custom_services",JSON.stringify(upd));
+  };
+
+  const submitForm=()=>{
+    if(!form.plate||!form.date||!form.time)return alert("请填写日期、时间和车牌");
+    if(editId){
+      save(appointments.map(a=>a.id===editId?{...form,id:editId}:a));
+      setEditId(null);
+    } else {
+      save([...appointments,{...form,id:Date.now(),createdBy:user.name,createdAt:new Date().toLocaleString()}]);
+    }
+    setForm(emptyF);setShowAdd(false);
+  };
+
+  const deleteAppt=id=>{if(confirm("确定删除这个预约？"))save(appointments.filter(a=>a.id!==id));};
+  const updateStatus=(id,status)=>save(appointments.map(a=>a.id===id?{...a,status}:a));
+  const toggleService=s=>setForm(f=>({...f,services:f.services.includes(s)?f.services.filter(x=>x!==s):[...f.services,s]}));
+
+  // AI WhatsApp recognition
+  const runAI=async()=>{
+    if(!aiText.trim())return;
+    setAiLoading(true);setAiResults([]);
+    try{
+      const resp=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",max_tokens:1000,
+        messages:[{role:"user",content:`Extract appointment(s) from this WhatsApp message. Return ONLY a JSON array with no markdown, no explanation:
+[{"plate":"WA1234B","model":"Jazz","date":"2026-05-28","time":"10:00","services":["换机油"],"notes":"check engine noise"}]
+
+Rules:
+- date must be YYYY-MM-DD format. If year missing assume 2026.
+- time must be HH:MM 24h format. "10am"="10:00", "morning"="09:00", "afternoon"="14:00", "12点"="12:00"
+- plate: uppercase, remove spaces/dashes
+- model: car model name
+- services: array of service strings extracted from message
+- notes: any extra info
+- If multiple cars in message, return multiple objects
+
+Message:
+${aiText}`}]
+      })});
+      const data=await resp.json();
+      const text=data.content?.find(c=>c.type==="text")?.text||"[]";
+      const clean=text.replace(/```json|```/g,"").trim();
+      const parsed=JSON.parse(clean);
+      setAiResults(Array.isArray(parsed)?parsed:[parsed]);
+    }catch(e){alert("AI识别失败，请手动填写");console.error(e);}
+    setAiLoading(false);
+  };
+
+  const useAiResult=(r)=>{
+    save([...appointments,{...emptyF,...r,id:Date.now(),createdBy:user.name,createdAt:new Date().toLocaleString()}]);
+    setAiResults(prev=>prev.filter(x=>x!==r));
+    if(aiResults.length<=1){setShowAI(false);setAiText("");}
+  };
+
+  const filtered=appointments.filter(a=>{
+    const aDate=new Date(a.date);
+    const now=new Date();now.setHours(0,0,0,0);
+    if(filterDate==="today"){const t=new Date(today);if(aDate.toDateString()!==t.toDateString())return false;}
+    else if(filterDate==="upcoming"){if(aDate<now)return false;}
+    else if(filterDate==="past"){if(aDate>=now)return false;}
+    if(filterStatus!=="all"&&a.status!==filterStatus)return false;
+    if(searchText&&!a.plate?.toLowerCase().includes(searchText.toLowerCase())&&!a.model?.toLowerCase().includes(searchText.toLowerCase()))return false;
+    return true;
+  }).sort((a,b)=>new Date(a.date+" "+a.time)-new Date(b.date+" "+b.time));
+
+  const statusColor=s=>s==="confirmed"?"#3498DB":s==="arrived"?"#F1C40F":s==="done"?"#2ECC71":s==="cancelled"?"#E74C3C":"#7A7F8E";
+  const statusLabel=s=>s==="confirmed"?"已确认":s==="arrived"?"已到店":s==="done"?"已完成":s==="cancelled"?"已取消":"待确认";
+  const getTech=id=>users.find(u=>u.id===id);
+
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <div>
+          <div style={{color:B.text,fontSize:17,fontWeight:800}}>📅 预约管理</div>
+          <div style={{color:B.muted,fontSize:11}}>共 {appointments.length} 个预约</div>
+        </div>
+        <div style={{display:"flex",gap:7}}>
+          <button onClick={()=>setShowAI(true)} style={{...S.btn("#0A1A2A","#3498DB",{fontSize:11,padding:"8px 12px",border:"1px solid #3498DB44"})}}>🤖 AI识别</button>
+          <button onClick={()=>{setShowAdd(true);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.red,"#fff",{fontSize:12,padding:"8px 16px"})}}>+ 新预约</button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{...S.card(),padding:12,marginBottom:14}}>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+          {[["upcoming","即将到来"],["today","今天"],["past","过去"],["all","全部"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setFilterDate(v)} style={{...S.btn(filterDate===v?B.red:B.border,filterDate===v?"#fff":B.muted,{fontSize:10,padding:"4px 10px"})}}>{l}</button>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <input value={searchText} onChange={e=>setSearchText(e.target.value)} placeholder="搜索车牌/车型..." style={{...S.inp,fontSize:11,flex:1}}/>
+          <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{...S.inp,fontSize:11,flex:1}}>
+            <option value="all">全部状态</option>
+            <option value="confirmed">已确认</option>
+            <option value="arrived">已到店</option>
+            <option value="done">已完成</option>
+            <option value="cancelled">已取消</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Appointment list */}
+      {filtered.length===0
+        ?<div style={{...S.card(),padding:40,textAlign:"center",color:B.muted}}>没有预约记录 📅</div>
+        :filtered.map(a=>{
+          const tech=getTech(a.techId);
+          const sales=getTech(a.salesId);
+          const sc=statusColor(a.status);
+          const isToday=a.date===today;
+          return(
+            <div key={a.id} style={{...S.card(),padding:14,marginBottom:9,border:`1px solid ${isToday?B.red+"44":B.border}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                  <div style={{textAlign:"center",background:B.dark,borderRadius:8,padding:"6px 10px",minWidth:52}}>
+                    <div style={{color:B.red,fontSize:11,fontWeight:700}}>{a.date?.split("-").slice(1).join("/")}</div>
+                    <div style={{color:B.text,fontSize:16,fontWeight:900,fontFamily:"monospace"}}>{a.time}</div>
+                  </div>
+                  <div>
+                    <div style={{color:B.text,fontWeight:800,fontSize:14}}>{a.plate} <span style={{color:B.muted,fontWeight:400,fontSize:12}}>{a.model}</span></div>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:3}}>
+                      {(a.services||[]).map(s=><span key={s} style={{background:B.card2,color:B.muted,fontSize:9,padding:"1px 6px",borderRadius:4}}>{s}</span>)}
+                    </div>
+                  </div>
+                </div>
+                <span style={{background:sc+"22",color:sc,borderRadius:4,padding:"2px 8px",fontSize:10,fontWeight:700,whiteSpace:"nowrap"}}>{statusLabel(a.status)}</span>
+              </div>
+              <div style={{display:"flex",gap:12,marginBottom:8,flexWrap:"wrap"}}>
+                {tech&&<div style={{display:"flex",alignItems:"center",gap:5}}>
+                  <span style={{color:B.muted,fontSize:10}}>技师:</span>
+                  <Av src={tech.avatar} name={tech.name} dept={tech.dept} size={18}/>
+                  <span style={{color:B.text,fontSize:11}}>{tech.name}</span>
+                </div>}
+                {sales&&<div style={{display:"flex",alignItems:"center",gap:5}}>
+                  <span style={{color:B.muted,fontSize:10}}>Salesman:</span>
+                  <Av src={sales.avatar} name={sales.name} dept={sales.dept} size={18}/>
+                  <span style={{color:B.text,fontSize:11}}>{sales.name}</span>
+                </div>}
+                {a.notes&&<div style={{color:B.muted,fontSize:10,fontStyle:"italic"}}>📝 {a.notes}</div>}
+              </div>
+              <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                {["confirmed","arrived","done","cancelled"].map(s=>(
+                  <button key={s} onClick={()=>updateStatus(a.id,s)}
+                    style={{...S.btn(a.status===s?statusColor(s)+"33":B.border,a.status===s?statusColor(s):B.muted,{fontSize:9,padding:"3px 8px"})}}>
+                    {statusLabel(s)}
+                  </button>
+                ))}
+                <button onClick={()=>{setForm({date:a.date,time:a.time,plate:a.plate,model:a.model,services:a.services||[],techId:a.techId||"",salesId:a.salesId||"",notes:a.notes||"",status:a.status});setEditId(a.id);setShowAdd(true);}}
+                  style={{...S.btn(B.border,B.muted,{fontSize:9,padding:"3px 8px",marginLeft:"auto"})}}>✏️ 编辑</button>
+                <button onClick={()=>deleteAppt(a.id)} style={{...S.btn("#2B0009","#E74C3C",{fontSize:9,padding:"3px 8px"})}}>删除</button>
+              </div>
+              <div style={{color:B.muted,fontSize:9,marginTop:6}}>由 {a.createdBy} 登记 · {a.createdAt}</div>
+            </div>
+          );
+        })
+      }
+
+      {/* AI Modal */}
+      {showAI&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:200,overflowY:"auto",padding:20}}>
+        <div style={{...S.card(),padding:20,maxWidth:420,margin:"0 auto"}}>
+          <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:6}}>🤖 AI 识别 WhatsApp 文字</div>
+          <div style={{color:B.muted,fontSize:11,marginBottom:14}}>直接粘贴 WhatsApp 消息，AI 自动识别预约资料</div>
+          <textarea value={aiText} onChange={e=>setAiText(e.target.value)}
+            placeholder={"例如:\nW7979G Jazz\nThursday 28/5/26 10am\n- check engine noise\n\n或多辆车一起粘贴..."}
+            rows={8} style={{...S.inp,resize:"vertical",lineHeight:1.6,marginBottom:12,fontSize:12}}/>
+          <div style={{display:"flex",gap:8,marginBottom:14}}>
+            <button onClick={()=>{setShowAI(false);setAiText("");setAiResults([]);}} style={{...S.btn(B.border,B.muted,{flex:1})}}>取消</button>
+            <button onClick={runAI} disabled={aiLoading} style={{...S.btn("#0A1A2A","#3498DB",{flex:2,border:"1px solid #3498DB44"})}}>
+              {aiLoading?"⏳ AI识别中...":"🤖 开始识别"}
+            </button>
+          </div>
+
+          {/* AI Results */}
+          {aiResults.length>0&&<div>
+            <div style={{color:B.text,fontWeight:700,fontSize:12,marginBottom:8}}>识别结果 ({aiResults.length}辆)</div>
+            {aiResults.map((r,i)=>(
+              <div key={i} style={{...S.card(),padding:12,marginBottom:8,border:"1px solid #3498DB44"}}>
+                <div style={{color:B.text,fontWeight:700,marginBottom:4}}>{r.plate} <span style={{color:B.muted,fontWeight:400}}>{r.model}</span></div>
+                <div style={{color:B.muted,fontSize:11,marginBottom:4}}>{r.date} {r.time}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:6}}>
+                  {(r.services||[]).map(s=><span key={s} style={{background:B.card2,color:B.muted,fontSize:9,padding:"1px 6px",borderRadius:4}}>{s}</span>)}
+                </div>
+                {r.notes&&<div style={{color:B.muted,fontSize:10,marginBottom:8}}>📝 {r.notes}</div>}
+                <button onClick={()=>useAiResult(r)} style={{...S.btn(B.red,"#fff",{width:"100%",fontSize:11,padding:"7px"})}}>✅ 添加这个预约</button>
+              </div>
+            ))}
+          </div>}
+        </div>
+      </div>}
+
+      {/* Add/Edit Modal */}
+      {showAdd&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:200,overflowY:"auto",padding:20}}>
+        <div style={{...S.card(),padding:20,maxWidth:420,margin:"0 auto"}}>
+          <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:16}}>{editId?"✏️ 编辑预约":"📅 新预约"}</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+            <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>日期 *</div><input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={S.inp}/></div>
+            <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>时间 *</div><input type="time" value={form.time} onChange={e=>setForm(f=>({...f,time:e.target.value}))} style={S.inp}/></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+            <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>车牌 *</div><input value={form.plate} onChange={e=>setForm(f=>({...f,plate:e.target.value.toUpperCase()}))} placeholder="WA1234B" style={{...S.inp,textTransform:"uppercase"}}/></div>
+            <div><div style={{color:B.muted,fontSize:10,marginBottom:3}}>车型</div><input value={form.model} onChange={e=>setForm(f=>({...f,model:e.target.value}))} placeholder="Civic FC" style={S.inp}/></div>
+          </div>
+
+          <div style={{marginBottom:10}}>
+            <div style={{color:B.muted,fontSize:10,marginBottom:6}}>服务项目</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
+              {allServices.map(s=>(
+                <div key={s} style={{position:"relative",display:"inline-flex",alignItems:"center"}}>
+                  <button onClick={()=>toggleService(s)}
+                    style={{...S.btn(form.services.includes(s)?B.red:B.border,form.services.includes(s)?"#fff":B.muted,{fontSize:10,padding:"4px 9px",paddingRight:customServices.includes(s)?"20px":"9px"})}}>
+                    {s}
+                  </button>
+                  {customServices.includes(s)&&<span onClick={()=>removeCustomService(s)}
+                    style={{position:"absolute",right:3,top:"50%",transform:"translateY(-50%)",color:"#E74C3C",fontSize:9,cursor:"pointer",fontWeight:900,lineHeight:1}}>×</span>}
+                </div>
+              ))}
+            </div>
+            {/* Add custom service */}
+            <div style={{display:"flex",gap:6}}>
+              <input value={newService} onChange={e=>setNewService(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&addCustomService()}
+                placeholder="+ 自定义服务项目..." style={{...S.inp,fontSize:11,flex:1}}/>
+              <button onClick={addCustomService} style={{...S.btn(B.red,"#fff",{fontSize:11,padding:"0 12px",whiteSpace:"nowrap"})}}>添加</button>
+            </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+            <div>
+              <div style={{color:B.muted,fontSize:10,marginBottom:3}}>负责技师</div>
+              <select value={form.techId} onChange={e=>setForm(f=>({...f,techId:e.target.value}))} style={{...S.inp,fontSize:11}}>
+                <option value="">— 选择 —</option>
+                {staffList.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{color:B.muted,fontSize:10,marginBottom:3}}>Salesman</div>
+              <select value={form.salesId} onChange={e=>setForm(f=>({...f,salesId:e.target.value}))} style={{...S.inp,fontSize:11}}>
+                <option value="">— 选择 —</option>
+                {staffList.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div style={{marginBottom:14}}>
+            <div style={{color:B.muted,fontSize:10,marginBottom:3}}>备注</div>
+            <textarea value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} placeholder="特别要求、备注..." rows={2} style={{...S.inp,resize:"vertical"}}/>
+          </div>
+
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{setShowAdd(false);setEditId(null);}} style={{...S.btn(B.border,B.muted,{flex:1})}}>取消</button>
+            <button onClick={submitForm} style={{...S.btn(B.red,"#fff",{flex:2})}}>💾 保存</button>
+          </div>
+        </div>
+      </div>}
+    </div>
+  );
+}
+
 // ── GAMES PAGE ────────────────────────────────────────
 function GamesPage({user,gameLogs,setGameLogs,isBoss}){
   const [activeGame,setActiveGame]=useState(null);
@@ -2150,7 +2443,7 @@ function MinesweeperGame({user,onExit}){
 }
 
 // ── DASHBOARD ────────────────────────────────────────
-function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,gameLogs,setGameLogs,onLogout}){
+function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,gameLogs,setGameLogs,appointments,setAppointments,onLogout}){
   const {lang,t,setLang}=useLang();
   const [tab,setTab]=useState("kpi");
   const [sel,setSel]=useState(null);
@@ -2190,6 +2483,8 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ...(canPerformance?[["performance","📊"]]:[]),
     ["feedback",t.feedback],
     ["games","🎮"],
+    ["appointments","📅"],
+    ["appt","📅"],
     ...(canAttendance?[["attendance","出席"]]:[]),
     ...(canManage?[["history","历史"],["settings",t.settings]]:[]),
   ];
@@ -2236,13 +2531,14 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:20,background:"#0A0C10",borderTop:`1px solid ${B.border}`,padding:"6px 4px 8px"}}>
         <div style={{display:"flex",justifyContent:"space-around",maxWidth:920,margin:"0 auto"}}>
           {tabs.map(([tabKey,l])=>{
-            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",attendance:"📋",history:"🕐",settings:"⚙️"};
+            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",appointments:"📅",attendance:"📋",history:"🕐",settings:"⚙️"};
+            const labels={kpi:"KPI",vehicle:"车辆",mystats:"我的",performance:"排名",feedback:"反馈",games:"游戏",appointments:"预约",attendance:"出席",history:"历史",settings:"设置"};
             const active=tab===tabKey;
             return(
               <button key={tabKey} onClick={()=>setTab(tabKey)}
                 style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"4px 6px",minWidth:44,position:"relative"}}>
-                <span style={{fontSize:20}}>{icons[tabKey]||"•"}</span>
-                <span style={{fontSize:9,color:active?B.red:B.muted,fontWeight:active?800:400,fontFamily:"inherit"}}>{l}</span>
+                <span style={{fontSize:18}}>{icons[tabKey]||"•"}</span>
+                <span style={{fontSize:9,color:active?B.red:B.muted,fontWeight:active?800:400,fontFamily:"inherit"}}>{labels[tabKey]||l}</span>
                 {active&&<div style={{position:"absolute",bottom:-6,left:"50%",transform:"translateX(-50%)",width:20,height:2,background:B.red,borderRadius:99}}/>}
                 {tabKey==="feedback"&&isBoss&&unreadFb>0&&<span style={{position:"absolute",top:0,right:2,background:B.red,color:"#fff",borderRadius:"50%",width:14,height:14,fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900}}>{unreadFb}</span>}
               </button>
@@ -2255,6 +2551,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
         {tab==="mystats"&&(isStaff||isTechHead)&&<PersonalStats user={user} vehicles={vehicles}/>}
         {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
         {tab==="games"&&<GamesPage user={user} gameLogs={gameLogs} setGameLogs={setGameLogs} isBoss={isBoss}/>}
+        {tab==="appointments"&&<AppointmentsPage user={user} appointments={appointments} setAppointments={setAppointments} users={users} isBoss={isBoss}/>}
         {tab==="performance"&&canPerformance&&<StaffPerformance users={users} vehicles={vehicles}/>}
         {tab==="attendance"&&canAttendance&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
         {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
@@ -2679,7 +2976,7 @@ function Login({users,logoUrl,onLogin,lang,setLang}){
           }
         </>}
       </div>
-      <div style={{color:B.muted,fontSize:9,marginTop:11}}>KC Auto Workshop KPI System v5</div>
+      <div style={{color:B.muted,fontSize:9,marginTop:11}}>KC Auto Workshop KPI System v5.1</div>
     </div>
   );
 }
@@ -2699,6 +2996,7 @@ function App(){
   const [feedbacks,setFeedbacks]=useState([]);
   const [attendance,setAttendance]=useState({});
   const [gameLogs,setGameLogs]=useState([]);
+  const [appointments,setAppointments]=useState([]);
 
   useEffect(()=>{
     api.load().then(d=>{
@@ -2711,6 +3009,7 @@ function App(){
       setFeedbacks(d.feedbacks||[]);
       setAttendance(d.attendance||{});
       setGameLogs(d.gameLogs||[]);
+      setAppointments(d.appointments||[]);
       setReady(true);
     }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
   },[]);
@@ -2725,6 +3024,7 @@ function App(){
             bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} feedbacks={feedbacks} setFeedbacks={setFeedbacks}
             attendance={attendance} setAttendance={setAttendance}
             gameLogs={gameLogs} setGameLogs={setGameLogs}
+            appointments={appointments} setAppointments={setAppointments}
             onLogout={()=>setUser(null)}/>}
     </LangContext.Provider>
   );
