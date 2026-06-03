@@ -1783,27 +1783,37 @@ function AppointmentsPage({user,appointments,setAppointments,users,isBoss}){
     try{
       const resp=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         model:"claude-sonnet-4-20250514",max_tokens:1000,
-        messages:[{role:"user",content:`Extract appointment(s) from this WhatsApp message. Return ONLY a JSON array with no markdown, no explanation:
+        messages:[{role:"user",content:`Extract appointment(s) from this WhatsApp message. Return ONLY a JSON array, no markdown, no explanation, no extra text.
+
+Example format:
 [{"plate":"WA1234B","model":"Jazz","date":"2026-05-28","time":"10:00","services":["换机油"],"notes":"check engine noise"}]
 
 Rules:
-- date must be YYYY-MM-DD format. If year missing assume 2026.
-- time must be HH:MM 24h format. "10am"="10:00", "morning"="09:00", "afternoon"="14:00", "12点"="12:00"
-- plate: uppercase, remove spaces/dashes
-- model: car model name
-- services: array of service strings extracted from message
-- notes: any extra info
-- If multiple cars in message, return multiple objects
+- date: YYYY-MM-DD. If only day/month given assume 2026. "2/6/2026"="2026-06-02"
+- time: HH:MM 24h. "10am"="10:00", "12:30pm"="12:30", "morning"="09:00"
+- plate: uppercase, no spaces or dashes
+- model: car model only
+- services: extract all service/product items as array
+- notes: prices and other extra info
+- Multiple cars = multiple objects in array
 
 Message:
 ${aiText}`}]
       })});
+      if(!resp.ok){const err=await resp.text();throw new Error("Server error: "+err);}
       const data=await resp.json();
-      const text=data.content?.find(c=>c.type==="text")?.text||"[]";
+      if(data.error)throw new Error(data.error);
+      const text=data.content?.find(c=>c.type==="text")?.text||"";
+      if(!text)throw new Error("No response from AI");
       const clean=text.replace(/```json|```/g,"").trim();
       const parsed=JSON.parse(clean);
-      setAiResults(Array.isArray(parsed)?parsed:[parsed]);
-    }catch(e){alert("AI识别失败，请手动填写");console.error(e);}
+      const results=Array.isArray(parsed)?parsed:[parsed];
+      if(results.length===0)throw new Error("没有识别到预约资料");
+      setAiResults(results);
+    }catch(e){
+      alert("识别失败："+e.message+"\n\n请检查：\n1. API Key 是否设置正确\n2. 文字格式是否清晰");
+      console.error(e);
+    }
     setAiLoading(false);
   };
 
