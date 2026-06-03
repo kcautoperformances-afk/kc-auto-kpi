@@ -1631,6 +1631,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
   const [ev,setEv]=useState({});
   const [saving,setSaving]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
+  const [showMBTIFor,setShowMBTIFor]=useState(null);
   const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});
   const lRef=useRef(),aRef=useRef();
 
@@ -1649,6 +1650,13 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
 
   return(
     <div>
+      {showMBTIFor&&<MBTITest emp={showMBTIFor} onClose={()=>setShowMBTIFor(null)} onSave={(mbti)=>{
+        const upd=users.map(u=>u.id===showMBTIFor.id?{...u,mbti}:u);
+        setUsers(upd);api.save("users",upd);
+        const empUpd=employees.map(e=>e.name===showMBTIFor.name?{...e,mbti}:e);
+        setEmployees(empUpd);api.save("employees",empUpd);
+        setShowMBTIFor(null);
+      }}/>}
       <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>{t.settings}</div>
       <div style={{display:"flex",gap:6,marginBottom:13,flexWrap:"wrap"}}>
         {[["users",t.accounts],["logo",t.logo],["bonus",t.bonus]].map(([tabKey,l])=>(
@@ -1790,7 +1798,16 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                   style={{...S.card(),padding:10,cursor:"pointer",display:"flex",alignItems:"center",gap:9,transition:"border .2s"}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
                   <Av src={u.avatar} name={u.name} dept={u.dept} size={38}/>
-                  <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div><div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (manage)":""}{u.canViewAll?" · "+t.canViewAllShort:""}{u.canScore?" · ✏️":""}{u.canResetPin?" · 🔑":""}{u.canAttendance?" · 📋":""}{u.canVehicle?" · 🚗":""}</div></div>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div>
+                      {u.mbti&&<span style={{background:`${B.red}22`,color:B.red,fontSize:9,fontWeight:800,borderRadius:4,padding:"1px 6px",letterSpacing:1}}>{u.mbti} {MBTI_TYPES[u.mbti]?.emoji}</span>}
+                    </div>
+                    <div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (manage)":""}{u.canViewAll?" · "+t.canViewAllShort:""}{u.canScore?" · ✏️":""}{u.canResetPin?" · 🔑":""}{u.canAttendance?" · 📋":""}{u.canVehicle?" · 🚗":""}</div>
+                  </div>
+                  {(u.id===user.id||user.role==="boss")&&<button onClick={e=>{e.stopPropagation();setShowMBTIFor(u);}} style={{...S.btn(B.border,"#9B59B6",{fontSize:10,padding:"4px 8px",whiteSpace:"nowrap"})}}>
+                    🧠 {u.mbti?"重测":"MBTI"}
+                  </button>}
                   <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>{user.role==="boss"?u.pin:"••••"}</div>
                 </div>
               )}
