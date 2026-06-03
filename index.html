@@ -943,17 +943,42 @@ function exportVehicleReport(vehicles,allUsers){
 }
 
 // ── VEHICLE TRACKER ──────────────────────────────────
-function VehicleTracker({user,vehicles,setVehicles,allUsers}){
+function VehicleTracker({user,vehicles,setVehicles,allUsers,appointments,setTab}){
   const {t}=useLang();
   const today=new Date().toISOString().split("T")[0];
   const staffList=allUsers.filter(u=>u.role!=="boss");
-  const emptyF={plate:"",model:"",timeIn:"",timeStart:"",timeExpected:"",timeActual:"",staffIds:[],date:new Date().toLocaleDateString("en-GB").replace(/\//g,".")};
+  const emptyF={plate:"",model:"",timeIn:"",timeStart:"",timeExpected:"",timeActual:"",staffIds:[],notes:"",date:new Date().toLocaleDateString("en-GB").replace(/\//g,".")};
   const [showAdd,setShowAdd]=useState(false);
   const [editId,setEditId]=useState(null);
   const [form,setForm]=useState(emptyF);
   const [uploading,setUploading]=useState(false);
   const [aiResult,setAiResult]=useState(null);
+  const [detailVehicle,setDetailVehicle]=useState(null);
   const fRef=useRef();
+
+  // Today's appointments not yet converted to vehicles
+  const todayAppts=(appointments||[]).filter(a=>{
+    if(a.date!==today)return false;
+    if(a.status==="cancelled"||a.status==="done")return false;
+    // Check if already converted
+    const alreadyIn=vehicles.some(v=>v.plate===a.plate&&v.date===new Date().toLocaleDateString("en-GB").replace(/\//g,"."));
+    return !alreadyIn;
+  });
+
+  const convertAppt=(appt)=>{
+    const newRecord={
+      ...emptyF,
+      plate:appt.plate||"",
+      model:appt.model||"",
+      date:new Date().toLocaleDateString("en-GB").replace(/\//g,"."),
+      notes:(appt.services||[]).join(", ")+(appt.notes?" | "+appt.notes:""),
+      staffIds:appt.techId?[appt.techId]:[],
+      fromAppointment:appt.id,
+    };
+    setForm(newRecord);
+    setEditId(null);
+    setShowAdd(true);
+  };
 
   // ── FILTERS ──
   const [fDate,setFDate]=useState("all");
@@ -1043,6 +1068,78 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
 
   return(
     <div>
+      {/* Vehicle Detail Modal */}
+      {detailVehicle&&(()=>{
+        const v=detailVehicle;
+        const ot=v.overtime||calcOT(v);
+        const techs=(v.staffIds||[]).map(id=>allUsers.find(u=>u.id===id)).filter(Boolean);
+        const sc=v.status||"PENDING";
+        const scColor=sc==="GOOD"?"#2ECC71":sc==="OK"?"#F1C40F":sc==="LATE"?"#E74C3C":"#7A7F8E";
+        return(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:200,overflowY:"auto",padding:20}}>
+            <div style={{...S.card(),padding:20,maxWidth:420,margin:"0 auto"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                <div style={{color:B.text,fontWeight:800,fontSize:16}}>🚗 车辆详情</div>
+                <button onClick={()=>setDetailVehicle(null)} style={{...S.btn(B.border,B.muted,{fontSize:12,padding:"5px 12px"})}}>✕ 关闭</button>
+              </div>
+              <div style={{...S.card(),padding:14,marginBottom:12,background:B.dark}}>
+                <div style={{color:B.text,fontSize:22,fontWeight:900,marginBottom:4}}>{v.plate}</div>
+                <div style={{color:B.muted,fontSize:14}}>{v.model}</div>
+                <div style={{color:B.muted,fontSize:11,marginTop:4}}>{v.date} · No.{v.no}</div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:9,marginBottom:12}}>
+                {[{label:"进车时间",value:v.timeIn||"—"},{label:"开始维修",value:v.timeStart||"—"},{label:"预计出车",value:v.timeExpected||"—"},{label:"实际完成",value:v.timeActual||"—"}].map(item=>(
+                  <div key={item.label} style={{...S.card(),padding:10,textAlign:"center"}}>
+                    <div style={{color:B.muted,fontSize:9,marginBottom:3}}>{item.label}</div>
+                    <div style={{color:B.text,fontSize:16,fontWeight:700,fontFamily:"monospace"}}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{...S.card(),padding:12,marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div>
+                  <div style={{color:B.muted,fontSize:10,marginBottom:3}}>超时</div>
+                  <div style={{color:ot?(ot.isOver?"#E74C3C":"#2ECC71"):B.muted,fontSize:16,fontWeight:700,fontFamily:"monospace"}}>
+                    {ot?(ot.isOver?"+"+ot.overMin+"m":"-"+Math.abs(ot.overMin)+"m"):"—"}
+                  </div>
+                </div>
+                <span style={{background:scColor+"22",color:scColor,borderRadius:6,padding:"4px 14px",fontSize:14,fontWeight:800}}>{sc}</span>
+              </div>
+              {techs.length>0&&<div style={{...S.card(),padding:12,marginBottom:12}}>
+                <div style={{color:B.muted,fontSize:10,marginBottom:8}}>技师</div>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                  {techs.map(tt=>(
+                    <div key={tt.id} style={{display:"flex",alignItems:"center",gap:6}}>
+                      <Av src={tt.avatar} name={tt.name} dept={tt.dept} size={28}/>
+                      <span style={{color:B.text,fontSize:12}}>{tt.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>}
+              {v.notes&&<div style={{...S.card(),padding:12,marginBottom:12}}>
+                <div style={{color:B.muted,fontSize:10,marginBottom:6}}>维修内容</div>
+                <div style={{color:B.text,fontSize:12,lineHeight:1.6}}>{v.notes}</div>
+              </div>}
+              <div style={{color:B.muted,fontSize:10,textAlign:"center",marginBottom:8}}>填写人: {v.createdByName||"—"}</div>
+              {canEdit&&<button onClick={()=>{setForm({plate:v.plate,model:v.model,timeIn:v.timeIn||"",timeStart:v.timeStart||"",timeExpected:v.timeExpected||"",timeActual:v.timeActual||"",staffIds:v.staffIds||[],date:v.date});setEditId(v.id);setShowAdd(true);setDetailVehicle(null);}} style={{...S.btn(B.red,"#fff",{width:"100%",padding:11,fontSize:13})}}>✏️ 编辑此记录</button>}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Today's appointments quick-start */}
+      {todayAppts.length>0&&<div style={{...S.card(),padding:12,marginBottom:12,border:`1px solid ${B.red}44`,background:"#1A0A00"}}>
+        <div style={{color:B.red,fontWeight:700,fontSize:12,marginBottom:8}}>📅 今天预约 ({todayAppts.length}) — 一键开工</div>
+        {todayAppts.map(a=>(
+          <div key={a.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${B.border}`}}>
+            <div>
+              <div style={{color:B.text,fontWeight:700,fontSize:13}}>{a.plate} <span style={{color:B.muted,fontWeight:400,fontSize:11}}>{a.model}</span></div>
+              <div style={{color:B.muted,fontSize:10}}>{a.time} · {(a.services||[]).slice(0,2).join(", ")}{(a.services||[]).length>2?"...":""}</div>
+            </div>
+            <button onClick={()=>convertAppt(a)} style={{...S.btn(B.red,"#fff",{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"})}}>🚗 开工</button>
+          </div>
+        ))}
+      </div>}
+
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:10}}>
         <div>
           <div style={{color:B.text,fontSize:17,fontWeight:800}}>{t.vehicles_tracker}</div>
@@ -1171,6 +1268,11 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
           </div>}
         </div>}
 
+        <div style={{marginBottom:10}}>
+          <div style={{color:B.muted,fontSize:10,marginBottom:4}}>维修内容 / 备注</div>
+          <textarea value={form.notes||""} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} placeholder="机油品牌、零件、特别说明..." rows={2} style={{...S.inp,resize:"vertical",fontSize:11}}/>
+        </div>
+
         <div style={{display:"flex",gap:7}}>
           <button onClick={submitForm} style={{...S.btn(B.red)}}>{t.save}</button>
           <button onClick={()=>{setShowAdd(false);setEditId(null);setForm(emptyF);}} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
@@ -1186,7 +1288,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
             const share=techs.length||1;
             const creator=r.createdByName||"—";
             return(
-              <tr key={r.id} style={{background:r.status==="LATE"?"#1A0808":B.dark,borderBottom:`1px solid ${B.border}`}}>
+              <tr key={r.id} onClick={()=>setDetailVehicle(r)} style={{background:r.status==="LATE"?"#1A0808":B.dark,borderBottom:`1px solid ${B.border}`,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background=B.card2} onMouseLeave={e=>e.currentTarget.style.background=r.status==="LATE"?"#1A0808":B.dark}>
                 <td style={{padding:"7px 9px",color:B.muted,fontFamily:"monospace"}}>{r.no}</td>
                 <td style={{padding:"7px 9px",color:B.muted,fontSize:10}}>{r.date}</td>
                 <td style={{padding:"7px 9px",color:B.text,fontWeight:700}}>{r.plate}</td>
@@ -1208,7 +1310,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers}){
                 <td style={{padding:"7px 9px",color:B.muted,fontSize:10,whiteSpace:"nowrap"}}>{creator}</td>
                 {canEdit&&<td style={{padding:"7px 9px"}}>
                   <div style={{display:"flex",gap:3}}>
-                    <button onClick={()=>{setForm({plate:r.plate,model:r.model,timeIn:r.timeIn||"",timeStart:r.timeStart||"",timeExpected:r.timeExpected||"",timeActual:r.timeActual||"",staffIds:r.staffIds||[],date:r.date});setEditId(r.id);setShowAdd(true);}} style={{...S.btn("#252830",B.muted,{padding:"3px 7px",fontSize:9})}}>{t.save}</button>
+                    <button onClick={()=>{setForm({plate:r.plate,model:r.model,timeIn:r.timeIn||"",timeStart:r.timeStart||"",timeExpected:r.timeExpected||"",timeActual:r.timeActual||"",staffIds:r.staffIds||[],notes:r.notes||"",date:r.date});setEditId(r.id);setShowAdd(true);}} style={{...S.btn("#252830",B.muted,{padding:"3px 7px",fontSize:9})}}>{t.save}</button>
                     <button onClick={()=>{if(confirm(t.confirmDelete))save(vehicles.filter(v=>v.id!==r.id));}} style={{...S.btn("#2B0009","#E74C3C",{padding:"3px 7px",fontSize:9})}}>{t.delete}</button>
                   </div>
                 </td>}
@@ -2027,13 +2129,48 @@ ${aiText}`}]
 }
 
 // ── GAMES PAGE ────────────────────────────────────────
-function GamesPage({user,gameLogs,setGameLogs,isBoss}){
+const GAMES=[
+  {id:"snake",icon:"🐍",name:"贪吃蛇",desc:"经典游戏"},
+  {id:"tetris",icon:"🧱",name:"俄罗斯方块",desc:"消除方块"},
+  {id:"minesweeper",icon:"💣",name:"扫雷",desc:"找出地雷"},
+  {id:"flappy",icon:"🐦",name:"Flappy Bird",desc:"穿越障碍"},
+  {id:"pingpong",icon:"🏓",name:"Ping Pong",desc:"乒乓对战"},
+  {id:"breakout",icon:"🎯",name:"打砖块",desc:"弹球消砖"},
+  {id:"2048",icon:"🔢",name:"2048",desc:"合并数字"},
+  {id:"memory",icon:"🃏",name:"记忆翻牌",desc:"找配对"},
+];
+
+function GamesPage({user,gameLogs,setGameLogs,isBoss,employees}){
   const [activeGame,setActiveGame]=useState(null);
-  const [showLogs,setShowLogs]=useState(isBoss);
+  const [activeTab,setActiveTab]=useState("games");
+  const [selGame,setSelGame]=useState("all");
   const sessionStart=useRef(null);
   const currentGame=useRef(null);
 
-  // Auto-save when user leaves page or closes app
+  // Get last month's KPI score for this user
+  const unlockedCount=useMemo(()=>{
+    if(isBoss||user.role==="boss")return GAMES.length;
+    const now=new Date();
+    const lastMonth=now.getMonth()===0?12:now.getMonth();
+    const lastYear=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+    const key=`${lastMonth}月 ${lastYear}`;
+    const emp=employees.find(e=>e.name===user.name||e.userId===user.id);
+    if(!emp)return 0;
+    const lastScore=emp.history?.[key]?.total??emp.total??0;
+    if(lastScore<20)return 0;
+    if(lastScore<30)return 1;
+    if(lastScore<40)return 2;
+    if(lastScore<50)return 3;
+    if(lastScore<60)return 4;
+    if(lastScore<70)return 5;
+    if(lastScore<80)return 6;
+    if(lastScore<90)return 7;
+    return GAMES.length; // 90分+ 全部解锁
+  },[user,employees,isBoss]);
+
+  const unlockedGames=GAMES.slice(0,unlockedCount);
+  const lockedGames=GAMES.slice(unlockedCount);
+
   useEffect(()=>{
     const handleVisibility=()=>{
       if(document.hidden&&sessionStart.current&&currentGame.current){
@@ -2041,102 +2178,132 @@ function GamesPage({user,gameLogs,setGameLogs,isBoss}){
         if(duration<3)return;
         const log={id:Date.now(),userId:user.id,userName:user.name,dept:user.dept||user.role,game:currentGame.current,score:0,duration,time:new Date().toLocaleString()};
         const upd=[log,...gameLogs];
-        setGameLogs(upd);
-        api.save("gameLogs",upd);
+        setGameLogs(upd);api.save("gameLogs",upd);
       }
     };
     document.addEventListener("visibilitychange",handleVisibility);
     return()=>document.removeEventListener("visibilitychange",handleVisibility);
   },[gameLogs,user]);
 
-  const startGame=(name)=>{
-    sessionStart.current=Date.now();
-    currentGame.current=name;
-    setActiveGame(name);
-  };
-
+  const startGame=(name)=>{sessionStart.current=Date.now();currentGame.current=name;setActiveGame(name);};
   const endGame=(name,score)=>{
     if(!sessionStart.current)return;
     const duration=Math.round((Date.now()-sessionStart.current)/1000);
     const log={id:Date.now(),userId:user.id,userName:user.name,dept:user.dept||user.role,game:name,score:score||0,duration,time:new Date().toLocaleString()};
-    const upd=[log,...gameLogs];
-    setGameLogs(upd);
-    api.save("gameLogs",upd);
-    sessionStart.current=null;
-    currentGame.current=null;
-    setActiveGame(null);
+    const upd=[log,...gameLogs];setGameLogs(upd);api.save("gameLogs",upd);
+    sessionStart.current=null;currentGame.current=null;setActiveGame(null);
   };
+
+  const fmtDur=s=>{if(s<60)return s+"s";const m=Math.floor(s/60);return m+"m "+(s%60)+"s";};
+  const gameIcon=id=>GAMES.find(g=>g.id===id)?.icon||"🎮";
+  const gameName=id=>GAMES.find(g=>g.id===id)?.name||id;
+
+  const leaderboard=useMemo(()=>{
+    const filtered=selGame==="all"?gameLogs:gameLogs.filter(l=>l.game===selGame);
+    const best={};
+    filtered.forEach(l=>{
+      const key=l.userId+"_"+(selGame==="all"?l.game:selGame);
+      if(!best[key]||l.score>best[key].score)best[key]={...l};
+    });
+    return Object.values(best).sort((a,b)=>b.score-a.score).slice(0,20);
+  },[gameLogs,selGame]);
+
+  const myLogs=gameLogs.filter(l=>l.userId===user.id);
 
   if(activeGame==="snake") return <SnakeGame user={user} onExit={endGame}/>;
   if(activeGame==="tetris") return <TetrisGame user={user} onExit={endGame}/>;
   if(activeGame==="minesweeper") return <MinesweeperGame user={user} onExit={endGame}/>;
-
-  const fmtDur=s=>{if(s<60)return s+"s";const m=Math.floor(s/60);return m+"m "+(s%60)+"s";};
-  const myLogs=gameLogs.filter(l=>l.userId===user.id);
-  const allLogs=gameLogs;
+  if(activeGame==="flappy") return <FlappyGame user={user} onExit={endGame}/>;
+  if(activeGame==="pingpong") return <PingPongGame user={user} onExit={endGame}/>;
+  if(activeGame==="breakout") return <BreakoutGame user={user} onExit={endGame}/>;
+  if(activeGame==="2048") return <Game2048 user={user} onExit={endGame}/>;
+  if(activeGame==="memory") return <MemoryGame user={user} onExit={endGame}/>;
 
   return(
     <div>
-      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:16}}>🎮 Games</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
-        {[
-          {id:"snake",icon:"🐍",name:"贪吃蛇",desc:"经典游戏"},
-          {id:"tetris",icon:"🧱",name:"俄罗斯方块",desc:"消除方块"},
-          {id:"minesweeper",icon:"💣",name:"扫雷",desc:"找出地雷"},
-        ].map(g=>(
-          <div key={g.id} onClick={()=>startGame(g.id)} style={{...S.card(),padding:16,textAlign:"center",cursor:"pointer",transition:"border .2s"}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
-            <div style={{fontSize:32,marginBottom:6}}>{g.icon}</div>
-            <div style={{color:B.text,fontWeight:700,fontSize:13}}>{g.name}</div>
-            <div style={{color:B.muted,fontSize:10}}>{g.desc}</div>
-          </div>
+      <div style={{color:B.text,fontSize:17,fontWeight:800,marginBottom:12}}>🎮 Games</div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:6,marginBottom:14}}>
+        {[["games","游戏"],["leaderboard","🏆 排行榜"],["history",isBoss?"👁️ 记录":"我的记录"]].map(([v,l])=>(
+          <button key={v} onClick={()=>setActiveTab(v)} style={{...S.btn(activeTab===v?B.red:B.border,activeTab===v?"#fff":B.muted,{fontSize:11,padding:"5px 12px"})}}>{l}</button>
         ))}
       </div>
 
-      {isBoss&&<div style={{marginBottom:14}}>
-        <button onClick={()=>setShowLogs(s=>!s)} style={{...S.btn(showLogs?B.red:B.border,showLogs?"#fff":B.muted,{fontSize:12,marginBottom:showLogs?12:0})}}>
-          👁️ Boss 游戏记录 ({allLogs.length})
-        </button>
-        {showLogs&&<div>
-          <div style={{color:B.muted,fontSize:10,marginBottom:8}}>所有员工玩游戏记录（最新50条）</div>
-          {allLogs.length===0
-            ?<div style={{...S.card(),padding:24,textAlign:"center",color:B.muted}}>还没有人玩过游戏 😇</div>
-            :allLogs.slice(0,50).map(l=>(
-              <div key={l.id} style={{...S.card(),padding:"9px 13px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
-                <div style={{fontSize:20}}>{l.game==="snake"?"🐍":l.game==="tetris"?"🧱":"💣"}</div>
-                <div style={{flex:1}}>
-                  <div style={{color:B.text,fontWeight:700,fontSize:12}}>{l.userName} <span style={{color:B.muted,fontWeight:400}}>({l.dept})</span></div>
-                  <div style={{color:B.muted,fontSize:10}}>{l.time}</div>
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <div style={{color:"#F1C40F",fontWeight:800,fontSize:12}}>{fmtDur(l.duration)}</div>
-                  <div style={{color:B.muted,fontSize:10}}>分数: {l.score}</div>
-                </div>
-              </div>
-            ))
-          }
+      {activeTab==="games"&&<div>
+        {!isBoss&&<div style={{...S.card(),padding:10,marginBottom:12,background:"#0A1A0A",border:`1px solid #2ECC7144`}}>
+          <div style={{color:"#2ECC71",fontSize:11,fontWeight:700}}>🔓 已解锁 {unlockedCount}/{GAMES.length} 个游戏</div>
+          <div style={{color:B.muted,fontSize:10,marginTop:2}}>上月KPI 20分=没得玩 · 30=1个 · 40=2个 · 50=3个 · 60=4个 · 70=5个 · 80=6个 · 90+=全部</div>
         </div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+          {unlockedGames.map(g=>(
+            <div key={g.id} onClick={()=>startGame(g.id)} style={{...S.card(),padding:14,textAlign:"center",cursor:"pointer",transition:"border .2s"}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
+              <div style={{fontSize:36,marginBottom:6}}>{g.icon}</div>
+              <div style={{color:B.text,fontWeight:700,fontSize:13}}>{g.name}</div>
+              <div style={{color:B.muted,fontSize:10,marginBottom:6}}>{g.desc}</div>
+              {(()=>{const best=gameLogs.filter(l=>l.userId===user.id&&l.game===g.id).sort((a,b)=>b.score-a.score)[0];return best?<div style={{color:"#F1C40F",fontSize:10,fontWeight:700}}>最高 {best.score}分</div>:null;})()}
+            </div>
+          ))}
+          {lockedGames.map((g,i)=>{
+            const neededScore=(unlockedCount+i)*20;
+            return(
+              <div key={g.id} style={{...S.card(),padding:14,textAlign:"center",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.65)",zIndex:1,borderRadius:8,flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:22}}>🔒</div>
+                  <div style={{color:"#F1C40F",fontSize:10,fontWeight:700}}>上月需{(unlockedCount+i+2)*10}分解锁</div>
+                </div>
+                <div style={{fontSize:36,marginBottom:6,opacity:0.3}}>{g.icon}</div>
+                <div style={{color:B.text,fontWeight:700,fontSize:13,opacity:0.3}}>{g.name}</div>
+                <div style={{color:B.muted,fontSize:10,opacity:0.3}}>{g.desc}</div>
+              </div>
+            );
+          })}
+        </div>
       </div>}
 
-      <div style={{...S.card(),padding:14}}>
-        <div style={{color:B.text,fontWeight:700,marginBottom:10,fontSize:13}}>我的游戏记录</div>
-        {myLogs.length===0
-          ?<div style={{color:B.muted,fontSize:11,textAlign:"center",padding:16}}>你还没有玩过游戏</div>
-          :myLogs.slice(0,20).map(l=>(
-            <div key={l.id} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:`1px solid ${B.border}`}}>
-              <div style={{fontSize:18}}>{l.game==="snake"?"🐍":l.game==="tetris"?"🧱":"💣"}</div>
+      {activeTab==="leaderboard"&&<div>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
+          <button onClick={()=>setSelGame("all")} style={{...S.btn(selGame==="all"?B.red:B.border,selGame==="all"?"#fff":B.muted,{fontSize:10,padding:"4px 10px"})}}>全部</button>
+          {GAMES.map(g=><button key={g.id} onClick={()=>setSelGame(g.id)} style={{...S.btn(selGame===g.id?B.red:B.border,selGame===g.id?"#fff":B.muted,{fontSize:10,padding:"4px 10px"})}}>{g.icon}</button>)}
+        </div>
+        {leaderboard.length===0
+          ?<div style={{...S.card(),padding:30,textAlign:"center",color:B.muted}}>还没有记录 😇</div>
+          :leaderboard.map((l,i)=>(
+            <div key={l.id} style={{...S.card(),padding:"10px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10,border:`1px solid ${i===0?"#F1C40F44":i===1?"#aaa44":i===2?"#cd7f3244":B.border}`}}>
+              <div style={{fontSize:20,minWidth:28,textAlign:"center"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}`}</div>
+              <div style={{fontSize:18}}>{gameIcon(l.game)}</div>
               <div style={{flex:1}}>
-                <div style={{color:B.text,fontSize:12}}>{l.game==="snake"?"贪吃蛇":l.game==="tetris"?"俄罗斯方块":"扫雷"}</div>
-                <div style={{color:B.muted,fontSize:10}}>{l.time}</div>
+                <div style={{color:B.text,fontWeight:700,fontSize:12}}>{l.userName} <span style={{color:B.muted,fontWeight:400,fontSize:10}}>({l.dept})</span></div>
+                <div style={{color:B.muted,fontSize:10}}>{gameName(l.game)}</div>
               </div>
               <div style={{textAlign:"right"}}>
-                <div style={{color:"#F1C40F",fontWeight:800,fontSize:12}}>{fmtDur(l.duration)}</div>
-                <div style={{color:B.muted,fontSize:10}}>分数: {l.score}</div>
+                <div style={{color:"#F1C40F",fontWeight:900,fontSize:16,fontFamily:"monospace"}}>{l.score}</div>
+                <div style={{color:B.muted,fontSize:9}}>分</div>
               </div>
             </div>
           ))
         }
-      </div>
+      </div>}
+
+      {activeTab==="history"&&<div>
+        {(isBoss?gameLogs:myLogs).length===0
+          ?<div style={{...S.card(),padding:30,textAlign:"center",color:B.muted}}>没有记录</div>
+          :(isBoss?gameLogs:myLogs).slice(0,50).map(l=>(
+            <div key={l.id} style={{...S.card(),padding:"9px 13px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
+              <div style={{fontSize:20}}>{gameIcon(l.game)}</div>
+              <div style={{flex:1}}>
+                <div style={{color:B.text,fontWeight:700,fontSize:12}}>{isBoss?l.userName:gameName(l.game)} <span style={{color:B.muted,fontWeight:400,fontSize:10}}>{isBoss?"("+l.dept+")":""}</span></div>
+                <div style={{color:B.muted,fontSize:10}}>{isBoss?gameName(l.game):""} {l.time}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{color:"#F1C40F",fontWeight:800,fontSize:12}}>{l.score}分</div>
+                <div style={{color:B.muted,fontSize:10}}>{fmtDur(l.duration)}</div>
+              </div>
+            </div>
+          ))
+        }
+      </div>}
     </div>
   );
 }
@@ -2209,34 +2376,48 @@ function SnakeGame({user,onExit}){
   },[]);
 
   const handleSwipe=(()=>{
-    let sx=0,sy=0;
+    let sx=0,sy=0,moved=false;
     return{
-      start:e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},
-      end:e=>{
-        const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
-        const el=canvasRef.current;
-        if(!el)return;
-        const ev=new KeyboardEvent("keydown",{key:Math.abs(dx)>Math.abs(dy)?(dx>0?"ArrowRight":"ArrowLeft"):(dy>0?"ArrowDown":"ArrowUp")});
-        window.dispatchEvent(ev);
-      }
+      start:e=>{e.preventDefault();sx=e.touches[0].clientX;sy=e.touches[0].clientY;moved=false;},
+      move:e=>{e.preventDefault();
+        if(moved)return;
+        const dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
+        if(Math.abs(dx)<10&&Math.abs(dy)<10)return;
+        moved=true;
+        const key=Math.abs(dx)>Math.abs(dy)?(dx>0?"ArrowRight":"ArrowLeft"):(dy>0?"ArrowDown":"ArrowUp");
+        window.dispatchEvent(new KeyboardEvent("keydown",{key}));
+      },
+      end:e=>{e.preventDefault();}
     };
   })();
 
+  const dpad=(dir)=>{
+    const keys={U:"ArrowUp",D:"ArrowDown",L:"ArrowLeft",R:"ArrowRight"};
+    window.dispatchEvent(new KeyboardEvent("keydown",{key:keys[dir]}));
+  };
+
   return(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16}}>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16,userSelect:"none"}}>
       <div style={{display:"flex",justifyContent:"space-between",width:COLS*SZ,marginBottom:10,alignItems:"center"}}>
         <span style={{color:B.text,fontWeight:800,fontSize:16}}>🐍 贪吃蛇</span>
         <span style={{color:"#2ECC71",fontWeight:900,fontFamily:"monospace",fontSize:18}}>分数: {score}</span>
       </div>
       <canvas ref={canvasRef} width={COLS*SZ} height={ROWS*SZ}
-        style={{border:`2px solid ${B.border}`,borderRadius:8}}
-        onTouchStart={handleSwipe.start} onTouchEnd={handleSwipe.end}/>
-      <div style={{color:B.muted,fontSize:11,marginTop:8}}>手机滑动 / 键盘方向键控制</div>
+        style={{border:`2px solid ${B.border}`,borderRadius:8,touchAction:"none"}}
+        onTouchStart={handleSwipe.start} onTouchMove={handleSwipe.move} onTouchEnd={handleSwipe.end}/>
+      {/* D-Pad */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,56px)",gridTemplateRows:"repeat(3,56px)",gap:4,marginTop:12}}>
+        <div/><button onTouchStart={e=>{e.preventDefault();dpad("U");}} style={{...S.btn(B.border,B.text,{fontSize:22,padding:0,width:56,height:56,touchAction:"manipulation"})}}>↑</button><div/>
+        <button onTouchStart={e=>{e.preventDefault();dpad("L");}} style={{...S.btn(B.border,B.text,{fontSize:22,padding:0,width:56,height:56,touchAction:"manipulation"})}}>←</button>
+        <div style={{background:B.border,borderRadius:8}}/>
+        <button onTouchStart={e=>{e.preventDefault();dpad("R");}} style={{...S.btn(B.border,B.text,{fontSize:22,padding:0,width:56,height:56,touchAction:"manipulation"})}}>→</button>
+        <div/><button onTouchStart={e=>{e.preventDefault();dpad("D");}} style={{...S.btn(B.border,B.text,{fontSize:22,padding:0,width:56,height:56,touchAction:"manipulation"})}}>↓</button><div/>
+      </div>
       {dead&&<div style={{marginTop:12,textAlign:"center"}}>
         <div style={{color:B.red,fontWeight:800,fontSize:18,marginBottom:8}}>💀 游戏结束！分数: {score}</div>
         <button onClick={()=>onExit("snake",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
       </div>}
-      {!dead&&<button onClick={()=>onExit("snake",score)} style={{...S.btn(B.border,B.muted,{marginTop:12,fontSize:11})}}>退出游戏</button>}
+      {!dead&&<button onClick={()=>onExit("snake",score)} style={{...S.btn(B.border,B.muted,{marginTop:8,fontSize:11})}}>退出游戏</button>}
     </div>
   );
 }
@@ -2334,23 +2515,26 @@ function TetrisGame({user,onExit}){
   };
 
   return(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16}}>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16,userSelect:"none"}}>
       <div style={{display:"flex",justifyContent:"space-between",width:COLS*SZ,marginBottom:10,alignItems:"center"}}>
         <span style={{color:B.text,fontWeight:800,fontSize:16}}>🧱 俄罗斯方块</span>
         <span style={{color:"#F1C40F",fontWeight:900,fontFamily:"monospace",fontSize:18}}>{score}</span>
       </div>
-      <canvas ref={canvasRef} width={COLS*SZ} height={ROWS*SZ} style={{border:`2px solid ${B.border}`,borderRadius:8}}/>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,44px)",gap:5,marginTop:12}}>
-        <div/><button onTouchStart={()=>handleKey2("ArrowUp")} onClick={()=>handleKey2("ArrowUp")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>↺</button><div/>
-        <button onTouchStart={()=>handleKey2("ArrowLeft")} onClick={()=>handleKey2("ArrowLeft")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>←</button>
-        <button onTouchStart={()=>handleKey2("ArrowDown")} onClick={()=>handleKey2("ArrowDown")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>↓</button>
-        <button onTouchStart={()=>handleKey2("ArrowRight")} onClick={()=>handleKey2("ArrowRight")} style={{...S.btn(B.border,B.text,{fontSize:18,padding:8})}}>→</button>
+      <canvas ref={canvasRef} width={COLS*SZ} height={ROWS*SZ} style={{border:`2px solid ${B.border}`,borderRadius:8,touchAction:"none"}}/>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,64px)",gridTemplateRows:"repeat(2,64px)",gap:6,marginTop:14}}>
+        <div/>
+        <button onTouchStart={e=>{e.preventDefault();handleKey2("ArrowUp");}} style={{...S.btn(B.border,B.text,{fontSize:24,padding:0,width:64,height:64,touchAction:"manipulation"})}}>↺</button>
+        <div/>
+        <button onTouchStart={e=>{e.preventDefault();handleKey2("ArrowLeft");}} style={{...S.btn(B.border,B.text,{fontSize:24,padding:0,width:64,height:64,touchAction:"manipulation"})}}>←</button>
+        <button onTouchStart={e=>{e.preventDefault();handleKey2("ArrowDown");}} style={{...S.btn("#1A2A1A","#2ECC71",{fontSize:24,padding:0,width:64,height:64,touchAction:"manipulation"})}}>↓</button>
+        <button onTouchStart={e=>{e.preventDefault();handleKey2("ArrowRight");}} style={{...S.btn(B.border,B.text,{fontSize:24,padding:0,width:64,height:64,touchAction:"manipulation"})}}>→</button>
       </div>
+      <div style={{color:B.muted,fontSize:10,marginTop:4}}>↺ 旋转 · ↓ 加速</div>
       {dead&&<div style={{marginTop:12,textAlign:"center"}}>
         <div style={{color:B.red,fontWeight:800,fontSize:18,marginBottom:8}}>💀 游戏结束！分数: {score}</div>
         <button onClick={()=>onExit("tetris",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
       </div>}
-      {!dead&&<button onClick={()=>onExit("tetris",score)} style={{...S.btn(B.border,B.muted,{marginTop:10,fontSize:11})}}>退出游戏</button>}
+      {!dead&&<button onClick={()=>onExit("tetris",score)} style={{...S.btn(B.border,B.muted,{marginTop:8,fontSize:11})}}>退出游戏</button>}
     </div>
   );
 }
@@ -2452,6 +2636,330 @@ function MinesweeperGame({user,onExit}){
   );
 }
 
+// ── FLAPPY BIRD ───────────────────────────────────────
+function FlappyGame({user,onExit}){
+  const canvasRef=useRef(null);
+  const [score,setScore]=useState(0);
+  const [dead,setDead]=useState(false);
+  const stateRef=useRef({score:0,running:false});
+  const W=320,H=480,BIRD_X=60,GAP=130,PIPE_W=40,GRAVITY=0.5,JUMP=-9;
+
+  useEffect(()=>{
+    const canvas=canvasRef.current;const ctx=canvas.getContext("2d");
+    let bird={y:H/2,vy:0};let pipes=[];let sc=0;let frame=0;let raf;
+    stateRef.current.running=true;
+
+    const addPipe=()=>{const top=60+Math.random()*(H-GAP-120);pipes.push({x:W,top,bot:top+GAP});};
+    addPipe();
+
+    const jump=()=>{if(stateRef.current.running)bird.vy=JUMP;};
+    const handleTouch=e=>{e.preventDefault();jump();};
+    canvas.addEventListener("touchstart",handleTouch,{passive:false});
+    window.addEventListener("keydown",e=>{if(e.code==="Space")jump();});
+
+    const loop=()=>{
+      if(!stateRef.current.running)return;
+      ctx.clearRect(0,0,W,H);
+      // sky
+      ctx.fillStyle="#1a1a2e";ctx.fillRect(0,0,W,H);
+      // pipes
+      pipes.forEach(p=>{
+        p.x-=3;
+        ctx.fillStyle="#2ECC71";
+        ctx.fillRect(p.x,0,PIPE_W,p.top);
+        ctx.fillRect(p.x,p.bot,PIPE_W,H-p.bot);
+      });
+      pipes=pipes.filter(p=>p.x>-PIPE_W);
+      if(frame%90===0)addPipe();
+      // score
+      pipes.forEach(p=>{if(p.x+PIPE_W===BIRD_X){sc++;stateRef.current.score=sc;setScore(sc);}});
+      // bird
+      bird.vy+=GRAVITY;bird.y+=bird.vy;
+      ctx.fillStyle="#F1C40F";
+      ctx.beginPath();ctx.arc(BIRD_X,bird.y,14,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#fff";ctx.font="bold 10px Arial";ctx.fillText("KC",BIRD_X-8,bird.y+4);
+      // collision
+      const dead=bird.y<0||bird.y>H||pipes.some(p=>BIRD_X+14>p.x&&BIRD_X-14<p.x+PIPE_W&&(bird.y-14<p.top||bird.y+14>p.bot));
+      if(dead){stateRef.current.running=false;setDead(true);return;}
+      frame++;raf=requestAnimationFrame(loop);
+    };
+    raf=requestAnimationFrame(loop);
+    return()=>{cancelAnimationFrame(raf);canvas.removeEventListener("touchstart",handleTouch);stateRef.current.running=false;};
+  },[]);
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16,userSelect:"none"}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:W,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>🐦 Flappy Bird</span>
+        <span style={{color:"#F1C40F",fontWeight:900,fontFamily:"monospace",fontSize:18}}>{score}</span>
+      </div>
+      <canvas ref={canvasRef} width={W} height={H} style={{border:`2px solid ${B.border}`,borderRadius:8,touchAction:"none"}}/>
+      <div style={{color:B.muted,fontSize:11,marginTop:8}}>点击屏幕 / 空格键 跳跃</div>
+      {dead&&<div style={{marginTop:12,textAlign:"center"}}>
+        <div style={{color:B.red,fontWeight:800,fontSize:18,marginBottom:8}}>💀 Game Over! 分数: {score}</div>
+        <button onClick={()=>onExit("flappy",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!dead&&<button onClick={()=>onExit("flappy",score)} style={{...S.btn(B.border,B.muted,{marginTop:8,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
+// ── PING PONG ─────────────────────────────────────────
+function PingPongGame({user,onExit}){
+  const canvasRef=useRef(null);
+  const [score,setScore]=useState(0);
+  const [dead,setDead]=useState(false);
+  const stateRef=useRef({running:false,score:0});
+  const W=320,H=480,PAD_W=60,PAD_H=10,BALL_R=8;
+
+  useEffect(()=>{
+    const canvas=canvasRef.current;const ctx=canvas.getContext("2d");
+    let pad={x:W/2-PAD_W/2,y:H-30};
+    let ball={x:W/2,y:H/2,vx:3,vy:-4};
+    let sc=0;let raf;stateRef.current.running=true;
+
+    const movePad=e=>{
+      const rect=canvas.getBoundingClientRect();
+      const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+      pad.x=Math.max(0,Math.min(W-PAD_W,cx-PAD_W/2));
+    };
+    canvas.addEventListener("mousemove",movePad);
+    canvas.addEventListener("touchmove",e=>{e.preventDefault();movePad(e);},{passive:false});
+
+    const loop=()=>{
+      if(!stateRef.current.running)return;
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle="#1a1a2e";ctx.fillRect(0,0,W,H);
+      // walls
+      ball.x+=ball.vx;ball.y+=ball.vy;
+      if(ball.x<BALL_R||ball.x>W-BALL_R)ball.vx*=-1;
+      if(ball.y<BALL_R)ball.vy*=-1;
+      // paddle
+      if(ball.y+BALL_R>pad.y&&ball.y-BALL_R<pad.y+PAD_H&&ball.x>pad.x&&ball.x<pad.x+PAD_W){
+        ball.vy=Math.abs(ball.vy)*-1;
+        ball.vx+=((ball.x-(pad.x+PAD_W/2))/PAD_W)*3;
+        sc++;stateRef.current.score=sc;setScore(sc);
+        if(sc%5===0){ball.vx*=1.05;ball.vy*=1.05;}
+      }
+      // dead
+      if(ball.y>H+20){stateRef.current.running=false;setDead(true);return;}
+      // draw
+      ctx.fillStyle="#F1C40F";ctx.beginPath();ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#3498DB";ctx.fillRect(pad.x,pad.y,PAD_W,PAD_H);
+      ctx.fillStyle="#fff";ctx.font="12px Arial";ctx.fillText(sc,W/2-6,20);
+      raf=requestAnimationFrame(loop);
+    };
+    raf=requestAnimationFrame(loop);
+    return()=>{cancelAnimationFrame(raf);stateRef.current.running=false;};
+  },[]);
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16,userSelect:"none"}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:W,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>🏓 Ping Pong</span>
+        <span style={{color:"#3498DB",fontWeight:900,fontFamily:"monospace",fontSize:18}}>{score}</span>
+      </div>
+      <canvas ref={canvasRef} width={W} height={H} style={{border:`2px solid ${B.border}`,borderRadius:8,touchAction:"none"}}/>
+      <div style={{color:B.muted,fontSize:11,marginTop:8}}>滑动控制板子</div>
+      {dead&&<div style={{marginTop:12,textAlign:"center"}}>
+        <div style={{color:B.red,fontWeight:800,fontSize:18,marginBottom:8}}>💀 Game Over! 分数: {score}</div>
+        <button onClick={()=>onExit("pingpong",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!dead&&<button onClick={()=>onExit("pingpong",score)} style={{...S.btn(B.border,B.muted,{marginTop:8,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
+// ── BREAKOUT ──────────────────────────────────────────
+function BreakoutGame({user,onExit}){
+  const canvasRef=useRef(null);
+  const [score,setScore]=useState(0);
+  const [dead,setDead]=useState(false);
+  const stateRef=useRef({running:false,score:0});
+  const W=320,H=420,COLS=7,ROWS=5,BRKW=38,BRKH=14,PAD_W=64,PAD_H=10,BALL_R=7;
+
+  useEffect(()=>{
+    const canvas=canvasRef.current;const ctx=canvas.getContext("2d");
+    let pad={x:W/2-PAD_W/2,y:H-30};
+    let ball={x:W/2,y:H-60,vx:3,vy:-4};
+    let sc=0;let raf;stateRef.current.running=true;
+    const COLORS=["#E74C3C","#E67E22","#F1C40F","#2ECC71","#3498DB"];
+    let bricks=[];
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)bricks.push({x:8+c*(BRKW+4),y:40+r*(BRKH+5),alive:true,color:COLORS[r%COLORS.length]});
+
+    const movePad=e=>{const rect=canvas.getBoundingClientRect();const cx=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;pad.x=Math.max(0,Math.min(W-PAD_W,cx-PAD_W/2));};
+    canvas.addEventListener("mousemove",movePad);
+    canvas.addEventListener("touchmove",e=>{e.preventDefault();movePad(e);},{passive:false});
+
+    const loop=()=>{
+      if(!stateRef.current.running)return;
+      ctx.fillStyle="#1a1a2e";ctx.fillRect(0,0,W,H);
+      ball.x+=ball.vx;ball.y+=ball.vy;
+      if(ball.x<BALL_R||ball.x>W-BALL_R)ball.vx*=-1;
+      if(ball.y<BALL_R)ball.vy*=-1;
+      if(ball.y+BALL_R>pad.y&&ball.y<pad.y+PAD_H&&ball.x>pad.x&&ball.x<pad.x+PAD_W){ball.vy=Math.abs(ball.vy)*-1;ball.vx+=((ball.x-(pad.x+PAD_W/2))/PAD_W)*2;}
+      if(ball.y>H+20){stateRef.current.running=false;setDead(true);return;}
+      bricks.forEach(b=>{
+        if(!b.alive)return;
+        if(ball.x+BALL_R>b.x&&ball.x-BALL_R<b.x+BRKW&&ball.y+BALL_R>b.y&&ball.y-BALL_R<b.y+BRKH){
+          b.alive=false;ball.vy*=-1;sc+=10;stateRef.current.score=sc;setScore(sc);
+        }
+        ctx.fillStyle=b.color;ctx.fillRect(b.x,b.y,BRKW,BRKH);
+      });
+      if(bricks.every(b=>!b.alive)){stateRef.current.running=false;setDead(true);}
+      ctx.fillStyle="#F1C40F";ctx.beginPath();ctx.arc(ball.x,ball.y,BALL_R,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#3498DB";ctx.fillRect(pad.x,pad.y,PAD_W,PAD_H);
+      raf=requestAnimationFrame(loop);
+    };
+    raf=requestAnimationFrame(loop);
+    return()=>{cancelAnimationFrame(raf);stateRef.current.running=false;};
+  },[]);
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16,userSelect:"none"}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:W,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>🎯 打砖块</span>
+        <span style={{color:"#E74C3C",fontWeight:900,fontFamily:"monospace",fontSize:18}}>{score}</span>
+      </div>
+      <canvas ref={canvasRef} width={W} height={H} style={{border:`2px solid ${B.border}`,borderRadius:8,touchAction:"none"}}/>
+      <div style={{color:B.muted,fontSize:11,marginTop:8}}>滑动控制板子</div>
+      {dead&&<div style={{marginTop:12,textAlign:"center"}}>
+        <div style={{color:score>0&&score>=35*10?"#2ECC71":B.red,fontWeight:800,fontSize:18,marginBottom:8}}>{score>=350?"🎉 过关！":"💀 游戏结束！"} 分数: {score}</div>
+        <button onClick={()=>onExit("breakout",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!dead&&<button onClick={()=>onExit("breakout",score)} style={{...S.btn(B.border,B.muted,{marginTop:8,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
+// ── 2048 ──────────────────────────────────────────────
+function Game2048({user,onExit}){
+  const init=()=>addTile(addTile(Array(4).fill(null).map(()=>Array(4).fill(0))));
+  const [grid,setGrid]=useState(init);
+  const [score,setScore]=useState(0);
+  const [dead,setDead]=useState(false);
+  const scoreRef=useRef(0);
+
+  function addTile(g){
+    const empty=[];
+    g.forEach((r,ri)=>r.forEach((c,ci)=>{if(!c)empty.push([ri,ci]);}));
+    if(!empty.length)return g;
+    const ng=g.map(r=>[...r]);
+    const [r,c]=empty[Math.floor(Math.random()*empty.length)];
+    ng[r][c]=Math.random()<0.9?2:4;return ng;
+  }
+
+  function slide(row){
+    const r=row.filter(x=>x);let sc=0;
+    for(let i=0;i<r.length-1;i++){if(r[i]===r[i+1]){r[i]*=2;sc+=r[i];r.splice(i+1,1);i++;}}
+    while(r.length<4)r.push(0);
+    return{row:r,score:sc};
+  }
+
+  function move(dir){
+    if(dead)return;
+    let ng=grid.map(r=>[...r]);let sc=0;let moved=false;
+    const rotate=g=>g[0].map((_,i)=>g.map(r=>r[i]).reverse());
+    const rotL=g=>g[0].map((_,i)=>g.map(r=>r[r.length-1-i]));
+    if(dir==="left"){ng=ng.map(r=>{const s=slide(r);sc+=s.score;if(JSON.stringify(r)!==JSON.stringify(s.row))moved=true;return s.row;});}
+    else if(dir==="right"){ng=ng.map(r=>{const rev=[...r].reverse();const s=slide(rev);sc+=s.score;const res=s.row.reverse();if(JSON.stringify(r)!==JSON.stringify(res))moved=true;return res;});}
+    else if(dir==="up"){let t=rotL(ng);t=t.map(r=>{const s=slide(r);sc+=s.score;if(JSON.stringify(r)!==JSON.stringify(s.row))moved=true;return s.row;});ng=rotate(t);}
+    else if(dir==="down"){let t=rotate(ng);t=t.map(r=>{const s=slide(r);sc+=s.score;if(JSON.stringify(r)!==JSON.stringify(s.row))moved=true;return s.row;});ng=rotL(t);}
+    if(!moved)return;
+    ng=addTile(ng);scoreRef.current+=sc;setScore(scoreRef.current);setGrid(ng);
+    const hasMoves=ng.flat().some(v=>!v)||ng.some((r,ri)=>r.some((v,ci)=>(ci<3&&v===r[ci+1])||(ri<3&&v===ng[ri+1][ci])));
+    if(!hasMoves)setDead(true);
+  }
+
+  useEffect(()=>{
+    const h=e=>{const m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down"};if(m[e.key])move(m[e.key]);};
+    window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);
+  },[grid,dead]);
+
+  const tileColor=v=>({0:"#1a1a2e",2:"#eee4da",4:"#ede0c8",8:"#f2b179",16:"#f59563",32:"#f67c5f",64:"#f65e3b",128:"#edcf72",256:"#edcc61",512:"#edc850",1024:"#edc53f",2048:"#edc22e"}[v]||"#3c3a32");
+  const textColor=v=>v<=4?"#776e65":"#f9f6f2";
+
+  let sx=0,sy=0;
+  const onTS=e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;};
+  const onTE=e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>Math.abs(dy)){move(dx>0?"right":"left");}else{move(dy>0?"down":"up");}};
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16,userSelect:"none"}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:280,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>🔢 2048</span>
+        <span style={{color:"#edc22e",fontWeight:900,fontFamily:"monospace",fontSize:18}}>{score}</span>
+      </div>
+      <div onTouchStart={onTS} onTouchEnd={onTE} style={{display:"grid",gridTemplateColumns:"repeat(4,64px)",gap:6,background:"#3c3a32",padding:6,borderRadius:8,touchAction:"none"}}>
+        {grid.flat().map((v,i)=>(
+          <div key={i} style={{width:64,height:64,background:tileColor(v),borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:v>=1024?18:v>=100?22:26,fontWeight:900,color:textColor(v),fontFamily:"monospace"}}>
+            {v||""}
+          </div>
+        ))}
+      </div>
+      <div style={{color:B.muted,fontSize:11,marginTop:8}}>滑动或方向键</div>
+      {dead&&<div style={{marginTop:12,textAlign:"center"}}>
+        <div style={{color:B.red,fontWeight:800,fontSize:18,marginBottom:8}}>游戏结束！分数: {score}</div>
+        <button onClick={()=>onExit("2048",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!dead&&<button onClick={()=>onExit("2048",score)} style={{...S.btn(B.border,B.muted,{marginTop:8,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
+// ── MEMORY GAME ───────────────────────────────────────
+function MemoryGame({user,onExit}){
+  const EMOJIS=["🚗","🔧","🏎️","⚡","🔑","🛞","🔩","💨"];
+  const init=()=>{const c=[...EMOJIS,...EMOJIS];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}return c.map((e,i)=>({id:i,emoji:e,flipped:false,matched:false}));};
+  const [cards,setCards]=useState(init);
+  const [selected,setSelected]=useState([]);
+  const [moves,setMoves]=useState(0);
+  const [won,setWon]=useState(false);
+
+  const flip=(id)=>{
+    if(selected.length===2)return;
+    const card=cards.find(c=>c.id===id);
+    if(!card||card.flipped||card.matched)return;
+    const newCards=cards.map(c=>c.id===id?{...c,flipped:true}:c);
+    const newSel=[...selected,id];
+    setCards(newCards);setSelected(newSel);
+    if(newSel.length===2){
+      setMoves(m=>m+1);
+      const [a,b]=newSel.map(id=>newCards.find(c=>c.id===id));
+      if(a.emoji===b.emoji){
+        const matched=newCards.map(c=>newSel.includes(c.id)?{...c,matched:true}:c);
+        setCards(matched);setSelected([]);
+        if(matched.every(c=>c.matched))setWon(true);
+      } else {
+        setTimeout(()=>{setCards(cc=>cc.map(c=>newSel.includes(c.id)&&!c.matched?{...c,flipped:false}:c));setSelected([]);},900);
+      }
+    }
+  };
+
+  const score=Math.max(0,200-moves*5);
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:16,userSelect:"none"}}>
+      <div style={{display:"flex",justifyContent:"space-between",width:300,marginBottom:10,alignItems:"center"}}>
+        <span style={{color:B.text,fontWeight:800,fontSize:16}}>🃏 记忆翻牌</span>
+        <span style={{color:"#9B59B6",fontWeight:900,fontSize:14}}>步数: {moves}</span>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,68px)",gap:7}}>
+        {cards.map(c=>(
+          <div key={c.id} onClick={()=>flip(c.id)}
+            style={{width:68,height:68,background:c.flipped||c.matched?(c.matched?"#0D2B19":"#1a1a2e"):"#2a2d35",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,cursor:"pointer",border:`2px solid ${c.matched?"#2ECC71":c.flipped?"#9B59B6":B.border}`,transition:"all .2s"}}>
+            {(c.flipped||c.matched)?c.emoji:"❓"}
+          </div>
+        ))}
+      </div>
+      {won&&<div style={{marginTop:16,textAlign:"center"}}>
+        <div style={{color:"#2ECC71",fontWeight:800,fontSize:18,marginBottom:8}}>🎉 过关！{moves}步完成 · 分数: {score}</div>
+        <button onClick={()=>onExit("memory",score)} style={{...S.btn(B.red,"#fff",{padding:"10px 24px"})}}>退出</button>
+      </div>}
+      {!won&&<button onClick={()=>onExit("memory",score)} style={{...S.btn(B.border,B.muted,{marginTop:12,fontSize:11})}}>退出游戏</button>}
+    </div>
+  );
+}
+
 // ── DASHBOARD ────────────────────────────────────────
 function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,gameLogs,setGameLogs,appointments,setAppointments,onLogout}){
   const {lang,t,setLang}=useLang();
@@ -2498,6 +3006,33 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ...(canManage?[["history","历史"],["settings",t.settings]]:[]),
   ];
 
+  const [tabOrder,setTabOrder]=useState(()=>{
+    try{const s=localStorage.getItem("kc_tab_order");return s?JSON.parse(s):null;}catch{return null;}
+  });
+  const [editingTabs,setEditingTabs]=useState(false);
+  const [dragIdx,setDragIdx]=useState(null);
+
+  const orderedTabs=useMemo(()=>{
+    if(!tabOrder)return tabs;
+    const sorted=[...tabs].sort((a,b)=>{
+      const ai=tabOrder.indexOf(a[0]);const bi=tabOrder.indexOf(b[0]);
+      if(ai===-1)return 1;if(bi===-1)return -1;return ai-bi;
+    });
+    return sorted;
+  },[tabs,tabOrder]);
+
+  const saveTabOrder=(newOrder)=>{
+    localStorage.setItem("kc_tab_order",JSON.stringify(newOrder));
+    setTabOrder(newOrder);
+  };
+
+  const moveTab=(from,to)=>{
+    const order=orderedTabs.map(t=>t[0]);
+    const [moved]=order.splice(from,1);
+    order.splice(to,0,moved);
+    saveTabOrder(order);
+  };
+
   const [showChangePwd,setShowChangePwd]=useState(false);
   const [pwdForm,setPwdForm]=useState({old:"",new1:"",new2:""});
   const [pwdErr,setPwdErr]=useState("");
@@ -2522,6 +3057,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
         <div style={{maxWidth:920,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
           {logoUrl?<img src={logoUrl} style={{height:32,objectFit:"contain",maxWidth:100}}/>:<svg width="100" height="24" viewBox="0 0 140 28"><rect width="140" height="28" fill="#000" rx="4"/><text x="6" y="22" fontFamily="Arial Black,Impact,sans-serif" fontSize="22" fontWeight="900" fill="#D0021B" fontStyle="italic" letterSpacing="-1">KC</text><text x="52" y="14" fontFamily="Arial,sans-serif" fontSize="11" fontWeight="700" fill="#FFFFFF" letterSpacing="1" fontStyle="italic">AUTO</text><text x="52" y="25" fontFamily="Arial,sans-serif" fontSize="8" fontWeight="700" fill="#CCCCCC" letterSpacing="2">WORKSHOP</text></svg>}
           <button onClick={()=>{api.load().then(d=>{setVehicles(d.vehicles||[]);setEmployees(d.employees||[]);setFeedbacks(d.feedbacks||[]);setAttendance(d.attendance||{});setGameLogs(d.gameLogs||[]);setAppointments(d.appointments||[]);});}} style={{...S.btn(B.border,B.muted,{fontSize:14,padding:"4px 9px",marginLeft:6})}} title="Refresh">🔄</button>
+          <button onClick={()=>setEditingTabs(true)} style={{...S.btn(B.border,B.muted,{fontSize:14,padding:"4px 9px"})}} title="调整导航栏">⠿</button>
           <div style={{display:"flex",alignItems:"center",gap:7}}>
             <LangSwitcher lang={lang} setLang={setLang}/>
             <button onClick={()=>setShowChangePwd(true)} title="改密码" style={{...S.btn(B.border,B.muted,{fontSize:12,padding:"5px 9px"})}}>🔑</button>
@@ -2538,9 +3074,9 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
       </div>
 
       {/* BOTTOM TAB BAR */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:20,background:"#0A0C10",borderTop:`1px solid ${B.border}`,padding:"6px 4px 8px"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:20,background:"#0A0C10",borderTop:`1px solid ${editingTabs?B.red:B.border}`,padding:"6px 4px 8px"}}>
         <div style={{display:"flex",justifyContent:"space-around",maxWidth:920,margin:"0 auto"}}>
-          {tabs.map(([tabKey,l])=>{
+          {orderedTabs.map(([tabKey,l],idx)=>{
             const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",appointments:"📅",attendance:"📋",history:"🕐",settings:"⚙️"};
             const labels={kpi:"KPI",vehicle:"车辆",mystats:"我的",performance:"排名",feedback:"反馈",games:"游戏",appointments:"预约",attendance:"出席",history:"历史",settings:"设置"};
             const active=tab===tabKey;
@@ -2556,12 +3092,40 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
           })}
         </div>
       </div>
+
+      {/* Tab order editor modal */}
+      {editingTabs&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:300,overflowY:"auto",padding:20}}>
+        <div style={{...S.card(),padding:20,maxWidth:380,margin:"0 auto"}}>
+          <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:4}}>🔧 调整导航栏顺序</div>
+          <div style={{color:B.muted,fontSize:11,marginBottom:14}}>用 ↑ ↓ 按钮移动位置</div>
+          {orderedTabs.map(([tabKey,l],idx)=>{
+            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",appointments:"📅",attendance:"📋",history:"🕐",settings:"⚙️"};
+            const labels={kpi:"KPI",vehicle:"车辆",mystats:"我的",performance:"排名",feedback:"反馈",games:"游戏",appointments:"预约",attendance:"出席",history:"历史",settings:"设置"};
+            return(
+              <div key={tabKey} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:B.card2,borderRadius:9,marginBottom:6,border:`1px solid ${B.border}`}}>
+                <span style={{fontSize:20}}>{icons[tabKey]||"•"}</span>
+                <span style={{color:B.text,fontWeight:600,fontSize:13,flex:1}}>{labels[tabKey]||l}</span>
+                <div style={{display:"flex",gap:4}}>
+                  <button onClick={()=>idx>0&&moveTab(idx,idx-1)} disabled={idx===0}
+                    style={{...S.btn(idx===0?B.border:"#1A2A1A",idx===0?B.muted:"#2ECC71",{fontSize:14,padding:"3px 10px",opacity:idx===0?0.3:1})}}>↑</button>
+                  <button onClick={()=>idx<orderedTabs.length-1&&moveTab(idx,idx+1)} disabled={idx===orderedTabs.length-1}
+                    style={{...S.btn(idx===orderedTabs.length-1?B.border:"#1A2A1A",idx===orderedTabs.length-1?B.muted:"#2ECC71",{fontSize:14,padding:"3px 10px",opacity:idx===orderedTabs.length-1?0.3:1})}}>↓</button>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{display:"flex",gap:8,marginTop:14}}>
+            <button onClick={()=>{localStorage.removeItem("kc_tab_order");setTabOrder(null);}} style={{...S.btn(B.border,B.muted,{flex:1,fontSize:12})}}>🔄 重置默认</button>
+            <button onClick={()=>setEditingTabs(false)} style={{...S.btn(B.red,"#fff",{flex:2,fontSize:12})}}>✅ 完成</button>
+          </div>
+        </div>
+      </div>}
       <div style={{maxWidth:920,margin:"0 auto",padding:"15px 13px"}}>
-        {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles} allUsers={users}/>}
+        {tab==="vehicle"&&<VehicleTracker user={user} vehicles={vehicles} setVehicles={setVehicles} allUsers={users} appointments={appointments} setTab={setTab}/>}
         {tab==="mystats"&&(isStaff||isTechHead)&&<PersonalStats user={user} vehicles={vehicles}/>}
         {tab==="feedback"&&<FeedbackPage user={user} feedbacks={feedbacks} setFeedbacks={setFeedbacks}/>}
-        {tab==="games"&&<GamesPage user={user} gameLogs={gameLogs} setGameLogs={setGameLogs} isBoss={isBoss}/>}
-        {tab==="appointments"&&<AppointmentsPage user={user} appointments={appointments} setAppointments={setAppointments} users={users} isBoss={isBoss}/>}
+        {tab==="games"&&<GamesPage user={user} gameLogs={gameLogs} setGameLogs={setGameLogs} isBoss={isBoss} employees={employees}/>}
+        {tab==="appointments"&&<AppointmentsPage user={user} appointments={appointments} setAppointments={setAppointments} users={users} isBoss={isBoss} vehicles={vehicles} setVehicles={setVehicles} setTab={setTab}/>}
         {tab==="performance"&&canPerformance&&<StaffPerformance users={users} vehicles={vehicles}/>}
         {tab==="attendance"&&canAttendance&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
         {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
