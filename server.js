@@ -1,4 +1,18 @@
 const express=require("express"),fs=require("fs"),path=require("path"),app=express(),PORT=process.env.PORT||3000;
+
+// Build JSX on startup if needed
+function buildIfNeeded(){
+  try{
+    const indexPath=path.join(__dirname,"index.html");
+    const builtPath=path.join(__dirname,"index.built.html");
+    if(!fs.existsSync(builtPath)||fs.statSync(indexPath).mtime>fs.statSync(builtPath).mtime){
+      console.log("Building JSX...");
+      require("./build.js");
+    }
+  }catch(e){console.log("Build skipped:",e.message);}
+}
+buildIfNeeded();
+
 app.use(express.json({limit:"10mb"}));
 app.use(express.static(__dirname));
 if(!fs.existsSync(path.join(__dirname,"data")))fs.mkdirSync(path.join(__dirname,"data"));
@@ -15,7 +29,8 @@ app.post("/api/logo",(q,r)=>{try{const d=R();d.logoUrl=q.body.logoUrl;W(d);r.jso
 app.post("/api/bonusConfig",(q,r)=>{try{const d=R();d.bonusConfig=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/feedbacks",(q,r)=>{try{const d=R();d.feedbacks=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/attendance",(q,r)=>{try{const d=R();d.attendance=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
-app.post("/api/gameLogs",(q,r)=>{try{const d=R();d.gameLogs=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}}); 
+app.post("/api/gameLogs",(q,r)=>{try{const d=R();d.gameLogs=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
+app.post("/api/appointments",(q,r)=>{try{const d=R();d.appointments=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/ai",(q,r)=>{
   const https=require("https");
   const apiKey=process.env.ANTHROPIC_API_KEY||"";
@@ -25,17 +40,14 @@ app.post("/api/ai",(q,r)=>{
   const req=https.request(options,res=>{
     let data="";
     res.on("data",chunk=>data+=chunk);
-    res.on("end",()=>{
-      try{
-        const parsed=JSON.parse(data);
-        if(parsed.error){return r.status(400).json({error:parsed.error.message||JSON.stringify(parsed.error)});}
-        r.json(parsed);
-      }catch(e){r.status(500).json({error:"Parse error: "+data.substring(0,200)});}
-    });
+    res.on("end",()=>{try{const p=JSON.parse(data);if(p.error)return r.status(400).json({error:p.error.message||JSON.stringify(p.error)});r.json(p);}catch(e){r.status(500).json({error:"Parse error"});}});
   });
   req.on("error",e=>r.status(500).json({error:e.message}));
   req.write(body);req.end();
 });
-app.post("/api/appointments",(q,r)=>{try{const d=R();d.appointments=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
-app.get("*",(q,r)=>r.sendFile(path.join(__dirname,"index.html")));
+app.get("*",(q,r)=>{
+  const built=path.join(__dirname,"index.built.html");
+  const fallback=path.join(__dirname,"index.html");
+  r.sendFile(fs.existsSync(built)?built:fallback);
+});
 app.listen(PORT,()=>console.log("KC KPI on port "+PORT));
