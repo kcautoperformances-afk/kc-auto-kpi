@@ -2023,6 +2023,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
   const [saving,setSaving]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
   const [showMBTIFor,setShowMBTIFor]=useState(null);
+  const [mbtiDetailView,setMbtiDetailView]=useState(null);
   const [mbtiMode,setMbtiMode]=useState(null); // 'short' | 'full'
     const [showEmergencyFor,setShowEmergencyFor]=useState(null);
   const [aiCheckingRecord,setAiCheckingRecord]=useState(null);
@@ -2071,7 +2072,8 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
 
   return(
     <div>
-            {showMBTIFor&&mbtiMode&&<MBTITest emp={showMBTIFor} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTIFor(null);setMbtiMode(null);}} onSave={(record)=>{
+            {mbtiDetailView&&<MBTIResultDetail record={mbtiDetailView} onClose={()=>setMbtiDetailView(null)}/>}
+      {showMBTIFor&&mbtiMode&&<MBTITest emp={showMBTIFor} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTIFor(null);setMbtiMode(null);}} onSave={(record)=>{
         const upd=users.map(u=>u.id===showMBTIFor.id?{...u,mbti:record.type,mbtiHistory:[record,...(u.mbtiHistory||[])].slice(0,10)}:u);
         setUsers(upd);api.save("users",upd);
         const empUpd=employees.map(e=>e.name===showMBTIFor.name?{...e,mbti:record.type,mbtiHistory:[record,...(e.mbtiHistory||[])].slice(0,10)}:e);
@@ -2098,8 +2100,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
               const isChecking=aiCheckingRecord===key;
               const verdict=aiCheckResults[key];
               return(
-                <div key={i} style={{...S.card(),padding:"10px 12px",marginBottom:8}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:verdict?8:0}}>
+                <div key={i} style={{...S.card(),padding:"10px 12px",marginBottom:8,cursor:"pointer"}} onClick={e=>{if(e.target.tagName!=="BUTTON"){setMbtiDetailView(r);setShowMBTIFor(null);setMbtiMode(null);}}}>                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:verdict?8:0}}>
                     <div style={{flex:1}}>
                       <span style={{color:"#9B59B6",fontWeight:900,fontSize:14}}>{r.type}</span>
                       <span style={{color:B.muted,fontSize:10,marginLeft:8}}>{r.mode==="full"?"精准":"简约"} · {r.date}{user.role==="boss"&&r.duration?" · "+r.duration:""}</span>
