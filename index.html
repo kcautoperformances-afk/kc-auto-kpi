@@ -2102,7 +2102,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:verdict?8:0}}>
                     <div style={{flex:1}}>
                       <span style={{color:"#9B59B6",fontWeight:900,fontSize:14}}>{r.type}</span>
-                      <span style={{color:B.muted,fontSize:10,marginLeft:8}}>{r.mode==="full"?"精准":"简约"} · {r.date} · {r.duration||""}</span>
+                      <span style={{color:B.muted,fontSize:10,marginLeft:8}}>{r.mode==="full"?"精准":"简约"} · {r.date}{user.role==="boss"&&r.duration?" · "+r.duration:""}</span>
                       {r.sincere===true&&<span style={{marginLeft:6,fontSize:10}}>✅</span>}
                       {r.sincere===false&&<span style={{marginLeft:6,fontSize:10}}>⚠️</span>}
                     </div>
@@ -3730,7 +3730,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     setTimeout(()=>{setShowChangePwd(false);setPwdForm({old:"",new1:"",new2:""});setPwdErr("");},1500);
   };
 
-  if(sel)return<ScoringPage user={user} emp={{...sel,...getEmpScore(sel),quarter:scoreKey,userId:users.find(u=>u.name===sel.name)?.id,mbti:sel.mbti,mbtiHistory:sel.mbtiHistory||[]}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};const isCurrentPeriod=upd.quarter===scoreKey;return{...e,history,...(isCurrentPeriod&&kpiMonth==="all"?{total:upd.total,scores:upd.scores}:{}),...(upd.mbti?{mbti:upd.mbti}:{}),...(upd.mbtiHistory?{mbtiHistory:upd.mbtiHistory}:{})};});setEmployees(u);api.save("employees",u);setSel(null);}}/>;
+  if(sel)return<ScoringPage user={user} emp={{...sel,...getEmpScore(sel),quarter:scoreKey,userId:users.find(u=>u.name===sel.name)?.id,mbti:sel.mbti,mbtiHistory:sel.mbtiHistory||[]}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};const isCurrentPeriod=upd.quarter===scoreKey;return{...e,history,...(isCurrentPeriod&&kpiMonth==="all"?{total:upd.total,scores:upd.scores}:{}),...(upd.mbti?{mbti:upd.mbti}:{}),...(upd.mbtiHistory?{mbtiHistory:upd.mbtiHistory}:{})};});setEmployees(u);api.save("employees",u);if(upd.mbti){const empName=upd.name;const updUsers=users.map(usr=>{if(usr.name===empName||usr.id===upd.userId){return{...usr,mbti:upd.mbti,mbtiHistory:upd.mbtiHistory||[]};}return usr;});setUsers(updUsers);api.save("users",updUsers);}setSel(null);}}/>;
 
   return(
     <div style={{minHeight:"100vh",background:B.dark,paddingBottom:70}}>
