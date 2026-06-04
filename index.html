@@ -1865,8 +1865,9 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
   const mxBase=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+it.m,0),0);
   const grade=getGrade(total,cr.t,bonusCfg);
   const [showMBTI,setShowMBTI]=useState(false);
+  const [mbtiMode,setMbtiMode]=useState(null);
   const empMBTI=emp.mbti||null;
-  const mbtiInfo=empMBTI?MBTI_TYPES[empMBTI]:null;
+  const mbtiInfo=empMBTI?MBTI_DETAIL[empMBTI]:null;
   const isOwnProfile=user.name===emp.name||user.id===emp.userId;
   const canTakeMBTI=isOwnProfile||user.role==="boss";
   return(
@@ -1887,7 +1888,22 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
         {!canScore&&<div style={{...S.card(),padding:9,marginBottom:11,textAlign:"center",color:B.muted,fontSize:11}}>{t.viewOnly}</div>}
 
         {/* MBTI Card */}
-        {showMBTI&&<MBTITest emp={emp} onClose={()=>setShowMBTI(false)} onSave={(mbti)=>{onSave({...emp,total,scores:sc,grade:grade.label,bonusAmt:grade.amount,mbti});}}/>}
+        {showMBTI&&mbtiMode&&<MBTITest emp={emp} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTI(false);setMbtiMode(null);}} onSave={(record)=>{onSave({...emp,total,scores:sc,grade:grade.label,bonusAmt:grade.amount,mbti:record.type,mbtiHistory:[record,...(emp.mbtiHistory||[])].slice(0,10)});}}/>}
+        {showMBTI&&!mbtiMode&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{...S.card(),padding:24,maxWidth:340,width:"100%"}}>
+            <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:4}}>🧠 MBTI 测试</div>
+            <div style={{color:B.muted,fontSize:11,marginBottom:16}}>选择测试版本</div>
+            <button onClick={()=>setMbtiMode("short")} style={{...S.btn(B.border,"#9B59B6",{width:"100%",padding:14,marginBottom:10,display:"flex",flexDirection:"column",alignItems:"flex-start",gap:3})}} >
+              <span style={{fontWeight:800,fontSize:14}}>⚡ 简约版</span>
+              <span style={{fontSize:11,color:B.muted}}>20题 · 约5分钟</span>
+            </button>
+            <button onClick={()=>setMbtiMode("full")} style={{...S.btn(B.border,"#9B59B6",{width:"100%",padding:14,marginBottom:14,display:"flex",flexDirection:"column",alignItems:"flex-start",gap:3})}}>
+              <span style={{fontWeight:800,fontSize:14}}>🎯 精准版</span>
+              <span style={{fontSize:11,color:B.muted}}>93题 · 约20分钟</span>
+            </button>
+            <button onClick={()=>setShowMBTI(false)} style={{...S.btn(B.border,B.muted,{width:"100%"})}}>取消</button>
+          </div>
+        </div>}
         <div style={{...S.card(),padding:14,marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:mbtiInfo?10:0}}>
             <div style={{color:B.text,fontWeight:700,fontSize:13}}>🧠 MBTI 人格</div>
