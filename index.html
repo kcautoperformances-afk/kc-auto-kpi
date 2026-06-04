@@ -1368,44 +1368,412 @@ const MBTI_TYPES={
   ESFP:{name:"表演者",emoji:"🎭",desc:"活泼、自发、享受当下"},
 };
 
-function MBTITest({emp,onClose,onSave}){
+// ── MBTI FULL DATA ───────────────────────────────────
+const MBTI_Q_SHORT=[
+  {q:"在派对上，你通常会主动认识新朋友",d:"EI",dir:1},
+  {q:"你更喜欢独自工作而不是团队合作",d:"EI",dir:-1},
+  {q:"你喜欢制定详细的计划再行动",d:"JP",dir:1},
+  {q:"你倾向于依靠直觉而不是具体事实",d:"SN",dir:1},
+  {q:"当朋友遇到问题，你会先给出解决方案",d:"TF",dir:1},
+  {q:"你很容易感受到别人的情绪变化",d:"TF",dir:-1},
+  {q:"你喜欢尝试新事物而不是坚持熟悉的方式",d:"JP",dir:-1},
+  {q:"你更注重细节而不是大局",d:"SN",dir:-1},
+  {q:"做决定时你更依赖逻辑分析",d:"TF",dir:1},
+  {q:"你喜欢保持选择的灵活性而不是早早决定",d:"JP",dir:-1},
+  {q:"社交活动后你需要独处来恢复精力",d:"EI",dir:-1},
+  {q:"你更相信已证实的经验而非未来的可能性",d:"SN",dir:-1},
+  {q:"你认为效率比同理心更重要",d:"TF",dir:1},
+  {q:"你喜欢有条理的环境和固定的日程",d:"JP",dir:1},
+  {q:"你经常想象各种可能性和假设情景",d:"SN",dir:1},
+  {q:"你容易受到批评影响而感到难过",d:"TF",dir:-1},
+  {q:"你喜欢在截止日期前提早完成任务",d:"JP",dir:1},
+  {q:"你在认识新朋友时感到轻松自在",d:"EI",dir:1},
+  {q:"你更关注事情的意义而非实际操作",d:"SN",dir:1},
+  {q:"你认为保持和谐关系比坚持原则更重要",d:"TF",dir:-1},
+];
+
+const MBTI_Q_FULL=[
+  // E/I (23 questions)
+  {q:"你在聚会上会主动与陌生人交流",d:"EI",dir:1},
+  {q:"长时间独处会让你感到精力充沛",d:"EI",dir:-1},
+  {q:"你喜欢成为人群中的焦点",d:"EI",dir:1},
+  {q:"你倾向于先想清楚再开口说话",d:"EI",dir:-1},
+  {q:"你有很多朋友并且享受社交活动",d:"EI",dir:1},
+  {q:"你更喜欢小圈子的深度交流而非大型聚会",d:"EI",dir:-1},
+  {q:"你容易在新环境中快速融入",d:"EI",dir:1},
+  {q:"你通常在行动之前需要时间独自思考",d:"EI",dir:-1},
+  {q:"你喜欢分享自己的想法和经历",d:"EI",dir:1},
+  {q:"你更享受一个人完成任务",d:"EI",dir:-1},
+  {q:"你觉得与人交流能给你带来能量",d:"EI",dir:1},
+  {q:"你需要独处时间才能恢复精力",d:"EI",dir:-1},
+  {q:"你喜欢多任务并行和快节奏环境",d:"EI",dir:1},
+  {q:"你更喜欢安静的工作环境",d:"EI",dir:-1},
+  {q:"你容易与初次见面的人建立联系",d:"EI",dir:1},
+  {q:"你通常等别人先开口",d:"EI",dir:-1},
+  {q:"你享受成为团队的核心人物",d:"EI",dir:1},
+  {q:"你在人多的场合会感到疲惫",d:"EI",dir:-1},
+  {q:"你喜欢通过与他人讨论来解决问题",d:"EI",dir:1},
+  {q:"你有少数几个深交的朋友而非许多泛泛之交",d:"EI",dir:-1},
+  {q:"你在公开场合发言时感到轻松",d:"EI",dir:1},
+  {q:"你更喜欢书面沟通而非面对面交流",d:"EI",dir:-1},
+  {q:"你喜欢参加各种社交活动",d:"EI",dir:1},
+  // S/N (23 questions)
+  {q:"你更关注眼前的实际情况而非未来的可能性",d:"SN",dir:-1},
+  {q:"你经常思考事物背后的深层含义",d:"SN",dir:1},
+  {q:"你更喜欢有具体步骤的清晰指示",d:"SN",dir:-1},
+  {q:"你喜欢理论和抽象概念",d:"SN",dir:1},
+  {q:"你注重实用性和可操作性",d:"SN",dir:-1},
+  {q:"你经常想象各种假设情景",d:"SN",dir:1},
+  {q:"你相信已经被证实的方法",d:"SN",dir:-1},
+  {q:"你对新颖和创新的想法充满热情",d:"SN",dir:1},
+  {q:"你更关注细节而非整体框架",d:"SN",dir:-1},
+  {q:"你喜欢探索想法之间的联系和模式",d:"SN",dir:1},
+  {q:"你倾向于从过去的经验中学习",d:"SN",dir:-1},
+  {q:"你对未来的可能性比现在的现实更感兴趣",d:"SN",dir:1},
+  {q:"你更喜欢具体的事实而非抽象的理论",d:"SN",dir:-1},
+  {q:"你经常有独特的想法和创意",d:"SN",dir:1},
+  {q:"你更注重实际结果而非理论意义",d:"SN",dir:-1},
+  {q:"你喜欢思考事物的象征意义",d:"SN",dir:1},
+  {q:"你在处理问题时依赖经验和常识",d:"SN",dir:-1},
+  {q:"你对未被探索的可能性感到兴奋",d:"SN",dir:1},
+  {q:"你更喜欢脚踏实地而非天马行空",d:"SN",dir:-1},
+  {q:"你经常看到事物之间的隐含联系",d:"SN",dir:1},
+  {q:"你相信直觉往往比分析更可靠",d:"SN",dir:1},
+  {q:"你更喜欢有固定程序的工作",d:"SN",dir:-1},
+  {q:"你享受思考复杂的抽象问题",d:"SN",dir:1},
+  // T/F (23 questions)
+  {q:"做决定时你优先考虑逻辑而非情感",d:"TF",dir:1},
+  {q:"你很容易感受到他人的情绪",d:"TF",dir:-1},
+  {q:"你认为批评应该直接而非迂回",d:"TF",dir:1},
+  {q:"你在做决定时会考虑对他人的影响",d:"TF",dir:-1},
+  {q:"你更重视效率而非和谐",d:"TF",dir:1},
+  {q:"你很难在有人不开心时保持中立",d:"TF",dir:-1},
+  {q:"你认为公平比同情更重要",d:"TF",dir:1},
+  {q:"你会为了维护关系而妥协",d:"TF",dir:-1},
+  {q:"你更倾向于分析问题而非共情",d:"TF",dir:1},
+  {q:"你容易因批评而受伤",d:"TF",dir:-1},
+  {q:"你认为规则应该一视同仁地执行",d:"TF",dir:1},
+  {q:"你在团队中会优先考虑成员感受",d:"TF",dir:-1},
+  {q:"你更看重能力而非努力",d:"TF",dir:1},
+  {q:"你会为朋友的问题感同身受",d:"TF",dir:-1},
+  {q:"你相信理性比感性更可靠",d:"TF",dir:1},
+  {q:"你非常重视人际关系的和谐",d:"TF",dir:-1},
+  {q:"你更喜欢讨论观点而非感受",d:"TF",dir:1},
+  {q:"你认为帮助别人是最重要的事",d:"TF",dir:-1},
+  {q:"你在争论中更关注谁有道理",d:"TF",dir:1},
+  {q:"你对周围人的情绪变化很敏感",d:"TF",dir:-1},
+  {q:"你认为诚实比善意的谎言更重要",d:"TF",dir:1},
+  {q:"你很难拒绝别人的请求",d:"TF",dir:-1},
+  {q:"你更重视客观标准而非个人价值观",d:"TF",dir:1},
+  // J/P (24 questions)
+  {q:"你喜欢提前计划而不是临时决定",d:"JP",dir:1},
+  {q:"你喜欢保留各种选择的可能性",d:"JP",dir:-1},
+  {q:"你的工作空间通常是有条理的",d:"JP",dir:1},
+  {q:"你享受随机应变的生活方式",d:"JP",dir:-1},
+  {q:"你在截止日期前会提早完成任务",d:"JP",dir:1},
+  {q:"你喜欢在最后一刻才完成任务",d:"JP",dir:-1},
+  {q:"你喜欢有固定的日常规律",d:"JP",dir:1},
+  {q:"你更享受开放性和灵活性",d:"JP",dir:-1},
+  {q:"你在做重要决定前会充分准备",d:"JP",dir:1},
+  {q:"你更喜欢走一步看一步",d:"JP",dir:-1},
+  {q:"你的时间表和日程对你很重要",d:"JP",dir:1},
+  {q:"你不介意计划中途改变",d:"JP",dir:-1},
+  {q:"你喜欢按部就班地完成事情",d:"JP",dir:1},
+  {q:"你会把事情拖到最后才处理",d:"JP",dir:-1},
+  {q:"你认为整洁有序很重要",d:"JP",dir:1},
+  {q:"你享受即兴发挥而非预先计划",d:"JP",dir:-1},
+  {q:"你喜欢早早做出决定并坚持",d:"JP",dir:1},
+  {q:"你喜欢随时调整计划",d:"JP",dir:-1},
+  {q:"你对未完成的事情感到不安",d:"JP",dir:1},
+  {q:"你喜欢开始新项目多于完成旧项目",d:"JP",dir:-1},
+  {q:"你会为重要活动提前做好准备",d:"JP",dir:1},
+  {q:"你更享受探索新事物而非完成既定计划",d:"JP",dir:-1},
+  {q:"你喜欢有明确结果的任务",d:"JP",dir:1},
+  {q:"你觉得太多计划会限制创意",d:"JP",dir:-1},
+];
+
+const MBTI_DETAIL={
+  INTJ:{name:"建筑师",emoji:"🏛️",color:"#9B59B6",
+    desc:"独立、有远见、战略性思考者。INTJ 是完美主义者，总在寻找改进系统和流程的方法。",
+    strengths:["战略思维","独立自主","目标导向","高效执行","创新能力"],
+    weaknesses:["难以表达情感","对他人要求高","可能显得冷漠","不擅长小话"],
+    career:["工程师","科学家","战略顾问","建筑师","法官"],
+    famous:["埃隆·马斯克","尼古拉·特斯拉","马克·扎克伯格"],
+    love:"在感情中，INTJ 寻求深度和智识上的联结。他们忠诚但不善于表达爱意。"},
+  INTP:{name:"逻辑学家",emoji:"🔬",color:"#3498DB",
+    desc:"创新、好奇、喜欢理论分析。INTP 对各种想法充满热情，享受解决复杂问题。",
+    strengths:["逻辑分析","创新思维","客观中立","深度思考","灵活适应"],
+    weaknesses:["拖延症","不切实际","忽视细节","沟通困难"],
+    career:["程序员","数学家","哲学家","研究员","分析师"],
+    famous:["阿尔伯特·爱因斯坦","比尔·盖茨","艾伦·图灵"],
+    love:"INTP 在感情中需要空间和理解。他们用行动而非语言表达爱。"},
+  ENTJ:{name:"指挥官",emoji:"👑",color:"#E74C3C",
+    desc:"果断、领导力强、目标导向。ENTJ 天生是领导者，善于组织资源实现目标。",
+    strengths:["领导能力","战略规划","果断决策","高效执行","激励他人"],
+    weaknesses:["强势","不耐烦","忽视情感","可能独断"],
+    career:["CEO","律师","管理顾问","政治家","企业家"],
+    famous:["史蒂夫·乔布斯","戈登·拉姆齐","玛格丽特·撒切尔"],
+    love:"ENTJ 在感情中全力投入，但需要学会放慢脚步倾听伴侣。"},
+  ENTP:{name:"辩论家",emoji:"💡",color:"#F39C12",
+    desc:"聪明、好奇、喜欢挑战既有观念。ENTP 享受智识上的交锋和创新。",
+    strengths:["创新思维","口才出众","适应力强","解决问题","激发他人"],
+    weaknesses:["争强好胜","不够专注","可能忽视规则","容易无聊"],
+    career:["律师","企业家","创意总监","顾问","记者"],
+    famous:["马克·吐温","托马斯·爱迪生","本杰明·富兰克林"],
+    love:"ENTP 在感情中充满激情和创意，但需要保持对伴侣的承诺。"},
+  INFJ:{name:"提倡者",emoji:"🌟",color:"#8E44AD",
+    desc:"有洞察力、原则强、关心他人。INFJ 是罕见的理想主义者，致力于让世界更美好。",
+    strengths:["深度洞察","强烈同理心","坚定原则","创造力","激励他人"],
+    weaknesses:["完美主义","容易精疲力竭","过于私密","难以接受批评"],
+    career:["心理咨询师","作家","教师","社工","医生"],
+    famous:["纳尔逊·曼德拉","马丁·路德·金","特蕾莎修女"],
+    love:"INFJ 渴望深度的灵魂连接，是最忠诚的伴侣之一。"},
+  INFP:{name:"调停者",emoji:"🎨",color:"#1ABC9C",
+    desc:"理想主义、有创意、重视内心价值。INFP 是天生的艺术家和梦想家。",
+    strengths:["创造力","同理心","开放包容","忠诚","理想主义"],
+    weaknesses:["过于理想化","容易受伤","拖延","自我批评过重"],
+    career:["作家","艺术家","心理咨询师","社工","音乐家"],
+    famous:["J.K.罗琳","约翰尼·德普","奥黛丽·赫本"],
+    love:"INFP 在感情中深情而忠诚，寻找灵魂伴侣式的深度连接。"},
+  ENFJ:{name:"主人公",emoji:"🌈",color:"#E67E22",
+    desc:"有魅力、有同理心、天生领导者。ENFJ 善于激励他人，致力于帮助人们成长。",
+    strengths:["领导力","同理心","口才","组织能力","激励他人"],
+    weaknesses:["过于理想化","难以说不","太在意他人看法","自我牺牲"],
+    career:["教师","心理咨询师","政治家","HR经理","社会活动家"],
+    famous:["奥巴马","奥普拉·温弗瑞","约翰·库萨克"],
+    love:"ENFJ 是充满爱心的伴侣，总是把对方的需求放在首位。"},
+  ENFP:{name:"活动家",emoji:"🎉",color:"#F1C40F",
+    desc:"热情、有创意、充满正能量。ENFP 对生活充满热情，善于发现每个人的潜力。",
+    strengths:["热情活力","创造力","人际关系","适应力","激励他人"],
+    weaknesses:["注意力分散","过于情绪化","不擅长细节","容易无聊"],
+    career:["演员","记者","创意总监","教练","社会企业家"],
+    famous:["罗宾·威廉姆斯","威尔·史密斯","艾伦·德杰尼勒斯"],
+    love:"ENFP 在感情中充满激情和创意，总是让关系充满活力。"},
+  ISTJ:{name:"检查员",emoji:"📋",color:"#2C3E50",
+    desc:"可靠、尽职、重视传统和秩序。ISTJ 是组织的支柱，以可靠和负责著称。",
+    strengths:["可靠负责","有条理","专注细节","坚持原则","务实"],
+    weaknesses:["固执保守","难以接受变化","可能显得冷漠","不善表达"],
+    career:["会计师","律师","医生","工程师","军官"],
+    famous:["沃伦·巴菲特","安格拉·默克尔","乔治·华盛顿"],
+    love:"ISTJ 是最可靠的伴侣，用实际行动而非甜言蜜语表达爱。"},
+  ISFJ:{name:"守护者",emoji:"🛡️",color:"#27AE60",
+    desc:"忠诚、体贴、默默付出。ISFJ 是最无私的类型，总是在背后默默支持他人。",
+    strengths:["体贴关心","可靠负责","观察细致","耐心温和","忠诚"],
+    weaknesses:["过于谦虚","难以说不","不擅自我推销","太在意他人"],
+    career:["护士","教师","社工","行政","图书馆员"],
+    famous:["比昂塞","凯特王妃","罗莎·帕克斯"],
+    love:"ISFJ 是温柔体贴的伴侣，总是把家庭和爱人放在第一位。"},
+  ESTJ:{name:"总经理",emoji:"💼",color:"#E74C3C",
+    desc:"组织能力强、务实、重视效率。ESTJ 是天生的管理者，善于建立和维护秩序。",
+    strengths:["组织能力","领导力","务实高效","可靠负责","执行力强"],
+    weaknesses:["固执","不善表达情感","过于墨守成规","可能独断"],
+    career:["管理者","法官","银行家","警察","军官"],
+    famous:["山姆·沃尔顿","弗兰克·辛纳特拉","米歇尔·奥巴马"],
+    love:"ESTJ 是负责任的伴侣，重视承诺和稳定的家庭关系。"},
+  ESFJ:{name:"执政官",emoji:"🤝",color:"#3498DB",
+    desc:"热心、负责、重视和谐关系。ESFJ 是天生的照顾者，总是关心周围人的需求。",
+    strengths:["关怀他人","负责可靠","社交能力","组织能力","团队合作"],
+    weaknesses:["太在意他人评价","难以接受批评","可能忽视自身需求","回避冲突"],
+    career:["护士","教师","活动策划","销售","HR"],
+    famous:["泰勒·斯威夫特","詹妮弗·加纳","比尔·克林顿"],
+    love:"ESFJ 是热情温暖的伴侣，总是努力维护关系的和谐。"},
+  ISTP:{name:"鉴赏家",emoji:"🔧",color:"#7F8C8D",
+    desc:"冷静、实际、擅长解决问题。ISTP 是最实用的类型，善于用双手解决实际问题。",
+    strengths:["动手能力强","冷静理性","适应力强","解决问题","观察敏锐"],
+    weaknesses:["情感表达困难","可能显得冷漠","不擅长长期规划","厌倦规则"],
+    career:["工程师","机械师","飞行员","外科医生","侦探"],
+    famous:["克林特·伊斯特伍德","迈克尔·乔丹","布鲁斯·李"],
+    love:"ISTP 不善言辞，但会用实际行动证明对伴侣的爱。"},
+  ISFP:{name:"探险家",emoji:"🌿",color:"#2ECC71",
+    desc:"温和、灵活、欣赏美好事物。ISFP 是艺术家型的人，活在当下，享受生活的美好。",
+    strengths:["艺术审美","温和体贴","适应力强","真诚善良","活在当下"],
+    weaknesses:["过于敏感","缺乏长远规划","回避冲突","容易分心"],
+    career:["设计师","音乐家","厨师","兽医","摄影师"],
+    famous:["迈克尔·杰克逊","碧昂斯","凯文·科斯特纳"],
+    love:"ISFP 是温柔体贴的伴侣，用细腻的方式表达深深的爱意。"},
+  ESTP:{name:"企业家",emoji:"⚡",color:"#E74C3C",
+    desc:"大胆、直接、擅长即兴发挥。ESTP 是行动派，享受刺激和挑战。",
+    strengths:["行动力强","社交能力","解决危机","适应力强","实用主义"],
+    weaknesses:["冲动","不善长远规划","可能忽视规则","难以保持专注"],
+    career:["企业家","销售","运动员","侦探","急救人员"],
+    famous:["唐纳德·特朗普","麦当娜","杰克·尼克尔森"],
+    love:"ESTP 在感情中充满活力和激情，但需要学会稳定和承诺。"},
+  ESFP:{name:"表演者",emoji:"🎭",color:"#E91E63",
+    desc:"活泼、自发、享受当下。ESFP 是天生的表演者，让周围的人都感到快乐。",
+    strengths:["活力四射","热爱生活","社交能力","即兴能力","关心他人"],
+    weaknesses:["容易分心","回避冲突","不善长远规划","过于感性"],
+    career:["演员","歌手","活动策划","教师","销售"],
+    famous:["艾尔顿·约翰","梅丽尔·斯特里普","金·卡戴珊"],
+    love:"ESFP 是热情浪漫的伴侣，总是为关系带来欢乐和惊喜。"},
+};
+
+function calcMBTIResult(answers,questions){
+  let scores={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  questions.forEach((q,i)=>{
+    const a=answers[i];if(a===undefined)return;
+    const val=(a-3)*q.dir; // -2 to +2, positive = first letter
+    if(q.d==="EI"){if(val>0)scores.E+=Math.abs(val);else scores.I+=Math.abs(val);}
+    else if(q.d==="SN"){if(val>0)scores.N+=Math.abs(val);else scores.S+=Math.abs(val);}
+    else if(q.d==="TF"){if(val>0)scores.T+=Math.abs(val);else scores.F+=Math.abs(val);}
+    else if(q.d==="JP"){if(val>0)scores.J+=Math.abs(val);else scores.P+=Math.abs(val);}
+  });
+  const type=(scores.E>=scores.I?"E":"I")+(scores.S>=scores.N?"S":"N")+(scores.T>=scores.F?"T":"F")+(scores.J>=scores.P?"J":"P");
+  const pcts={
+    EI:Math.round(scores.E/(scores.E+scores.I||1)*100),
+    SN:Math.round(scores.N/(scores.S+scores.N||1)*100),
+    TF:Math.round(scores.T/(scores.T+scores.F||1)*100),
+    JP:Math.round(scores.J/(scores.J+scores.P||1)*100),
+  };
+  return{type,scores,pcts};
+}
+
+function MBTIResultDetail({record,onClose}){
+  const info=MBTI_DETAIL[record.type]||{name:record.type,emoji:"🧠",color:B.red,desc:"",strengths:[],weaknesses:[],career:[],famous:[],love:""};
+  const pcts=record.pcts||{EI:50,SN:50,TF:50,JP:50};
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:400,overflowY:"auto",padding:16}}>
+      <div style={{maxWidth:420,margin:"0 auto"}}>
+        <button onClick={onClose} style={{...S.btn(B.border,B.muted,{fontSize:12,marginBottom:14})}}>← 返回</button>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:64,marginBottom:8}}>{info.emoji}</div>
+          <div style={{color:info.color,fontSize:36,fontWeight:900,letterSpacing:4,marginBottom:4}}>{record.type}</div>
+          <div style={{color:B.text,fontSize:20,fontWeight:800,marginBottom:6}}>{info.name}</div>
+          <div style={{color:B.muted,fontSize:11}}>{record.mode==="full"?"精准版 93题":"简约版 20题"} · {record.date}</div>
+        </div>
+
+        {/* Score bars */}
+        <div style={{...S.card(),padding:14,marginBottom:12}}>
+          <div style={{color:B.text,fontWeight:700,fontSize:13,marginBottom:10}}>维度分析</div>
+          {[
+            {a:"E",b:"I",label:"外向/内向",pct:pcts.EI,ca:"#E74C3C",cb:"#3498DB"},
+            {a:"N",b:"S",label:"直觉/感觉",pct:pcts.SN,ca:"#9B59B6",cb:"#2ECC71"},
+            {a:"T",b:"F",label:"思考/情感",pct:pcts.TF,ca:"#F39C12",cb:"#E91E63"},
+            {a:"J",b:"P",label:"判断/感知",pct:pcts.JP,ca:"#1ABC9C",cb:"#E67E22"},
+          ].map(({a,b,label,pct,ca,cb})=>(
+            <div key={label} style={{marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                <span style={{color:ca,fontSize:11,fontWeight:700}}>{a} {pct}%</span>
+                <span style={{color:B.muted,fontSize:10}}>{label}</span>
+                <span style={{color:cb,fontSize:11,fontWeight:700}}>{100-pct}% {b}</span>
+              </div>
+              <div style={{background:B.border,borderRadius:99,height:8,overflow:"hidden"}}>
+                <div style={{width:pct+"%",height:"100%",background:ca,borderRadius:99}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Description */}
+        <div style={{...S.card(),padding:14,marginBottom:12}}>
+          <div style={{color:B.muted,fontSize:12,lineHeight:1.8}}>{info.desc}</div>
+        </div>
+
+        {/* Strengths & Weaknesses */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+          <div style={{...S.card(),padding:12}}>
+            <div style={{color:"#2ECC71",fontWeight:700,fontSize:12,marginBottom:8}}>✅ 优势</div>
+            {info.strengths.map(s=><div key={s} style={{color:B.muted,fontSize:11,marginBottom:4}}>• {s}</div>)}
+          </div>
+          <div style={{...S.card(),padding:12}}>
+            <div style={{color:"#E74C3C",fontWeight:700,fontSize:12,marginBottom:8}}>⚠️ 盲点</div>
+            {info.weaknesses.map(s=><div key={s} style={{color:B.muted,fontSize:11,marginBottom:4}}>• {s}</div>)}
+          </div>
+        </div>
+
+        {/* Career */}
+        <div style={{...S.card(),padding:12,marginBottom:12}}>
+          <div style={{color:B.text,fontWeight:700,fontSize:12,marginBottom:8}}>💼 适合职业</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {info.career.map(c=><span key={c} style={{background:info.color+"22",color:info.color,borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:600}}>{c}</span>)}
+          </div>
+        </div>
+
+        {/* Famous */}
+        <div style={{...S.card(),padding:12,marginBottom:12}}>
+          <div style={{color:B.text,fontWeight:700,fontSize:12,marginBottom:8}}>⭐ 同类型名人</div>
+          <div style={{color:B.muted,fontSize:12}}>{info.famous.join(" · ")}</div>
+        </div>
+
+        {/* Love */}
+        <div style={{...S.card(),padding:12,marginBottom:20}}>
+          <div style={{color:B.text,fontWeight:700,fontSize:12,marginBottom:8}}>💕 感情特质</div>
+          <div style={{color:B.muted,fontSize:12,lineHeight:1.7}}>{info.love}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MBTITest({emp,mode,isBoss,onClose,onSave}){
+  const questions=mode==="full"?MBTI_Q_FULL:MBTI_Q_SHORT;
+  const minRequired=mode==="full"?70:15;
   const [step,setStep]=useState(0);
   const [answers,setAnswers]=useState({});
   const [result,setResult]=useState(null);
+  const startTime=useRef(Date.now());
+  const answerTimes=useRef([]);
 
-  const calcMBTI=()=>{
-    let E=0,I=0,S=0,N=0,T=0,F=0,J=0,P=0;
-    MBTI_Q.forEach((q,i)=>{
-      const a=answers[i];if(a===undefined)return;
-      const agree=a>=3;
-      if(q.d==="EI"){if((agree&&q.e)||(!agree&&!q.e))E++;else I++;}
-      else if(q.d==="SN"){if((agree&&q.n)||(!agree&&!q.n))N++;else S++;}
-      else if(q.d==="TF"){if((agree&&q.t)||(!agree&&!q.t))T++;else F++;}
-      else if(q.d==="JP"){if((agree&&q.j)||(!agree&&!q.j))J++;else P++;}
-    });
-    return (E>=I?"E":"I")+(S>=N?"S":"N")+(T>=F?"T":"F")+(J>=P?"J":"P");
+  const recordAnswer=(i,v)=>{
+    const now=Date.now();
+    answerTimes.current[i]={v,ms:now-(answerTimes.current[i-1]?.t||startTime.current),t:now};
+    setAnswers(a=>({...a,[i]:v}));
+    if(i<questions.length-1){
+      setTimeout(()=>setStep(s=>Math.min(s+1,questions.length-1)),200);
+    }
   };
 
-  const submit=()=>{
-    const mbti=calcMBTI();
-    setResult(mbti);
+  const submit=async()=>{
+    const totalMs=Date.now()-startTime.current;
+    const totalSec=Math.round(totalMs/1000);
+    const mins=Math.floor(totalSec/60);
+    const secs=totalSec%60;
+    const timeStr=mins>0?`${mins}分${secs}秒`:`${secs}秒`;
+    const{type,scores,pcts}=calcMBTIResult(answers,questions);
+    setResult({type,scores,pcts,timeStr});
   };
 
-  const save=()=>{onSave(result);onClose();};
+  const save=()=>{
+    const record={
+      type:result.type,pcts:result.pcts,
+      mode,date:new Date().toLocaleDateString("zh-CN"),
+      time:new Date().toLocaleString(),
+      duration:result.timeStr,
+      sincere:result.aiVerdict?.sincere,
+    };
+    onSave(record);
+    onClose();
+  };
 
-  const q=MBTI_Q[step];
+  const info=result?MBTI_DETAIL[result.type]:null;
   const answered=Object.keys(answers).length;
+  const q=questions[Math.min(step,questions.length-1)]||{q:""};
 
-  if(result){
-    const info=MBTI_TYPES[result]||{name:result,emoji:"🧠",desc:""};
+  if(result&&info){
     return(
-      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.95)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-        <div style={{...S.card(),padding:24,maxWidth:360,width:"100%",textAlign:"center"}}>
-          <div style={{fontSize:60,marginBottom:12}}>{info.emoji}</div>
-          <div style={{color:B.muted,fontSize:12,letterSpacing:3,marginBottom:4}}>你的MBTI人格是</div>
-          <div style={{color:B.red,fontSize:36,fontWeight:900,letterSpacing:4,marginBottom:4}}>{result}</div>
-          <div style={{color:B.text,fontSize:18,fontWeight:700,marginBottom:8}}>{info.name}</div>
-          <div style={{color:B.muted,fontSize:13,lineHeight:1.6,marginBottom:20}}>{info.desc}</div>
+      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div style={{...S.card(),padding:24,maxWidth:380,width:"100%",textAlign:"center",overflowY:"auto",maxHeight:"90vh"}}>
+          <div style={{fontSize:56,marginBottom:10}}>{info.emoji}</div>
+          <div style={{color:B.muted,fontSize:11,letterSpacing:3,marginBottom:4}}>你的MBTI人格是</div>
+          <div style={{color:info.color||B.red,fontSize:36,fontWeight:900,letterSpacing:4,marginBottom:4}}>{result.type}</div>
+          <div style={{color:B.text,fontSize:18,fontWeight:800,marginBottom:6}}>{info.name}</div>
+          <div style={{color:B.muted,fontSize:12,lineHeight:1.6,marginBottom:12}}>{info.desc}</div>
+          {/* Time */}
+          <div style={{...S.card(),padding:"8px 14px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <span style={{color:B.muted,fontSize:11}}>⏱️ 作答时间</span>
+            <span style={{color:B.text,fontWeight:700,fontSize:12}}>{result.timeStr}</span>
+          </div>
+          {/* Mini bars */}
+          <div style={{marginBottom:18}}>
+            {[["E/I",result.pcts.EI,"E","I"],["N/S",result.pcts.SN,"N","S"],["T/F",result.pcts.TF,"T","F"],["J/P",result.pcts.JP,"J","P"]].map(([l,p,a,b])=>(
+              <div key={l} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
+                <span style={{color:B.muted,fontSize:9,width:28}}>{a} {p}%</span>
+                <div style={{flex:1,background:B.border,borderRadius:99,height:6,overflow:"hidden"}}>
+                  <div style={{width:p+"%",height:"100%",background:info.color||B.red,borderRadius:99}}/>
+                </div>
+                <span style={{color:B.muted,fontSize:9,width:28,textAlign:"right"}}>{100-p}% {b}</span>
+              </div>
+            ))}
+          </div>
           <button onClick={save} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:14,marginBottom:8})}}>💾 保存结果</button>
           <button onClick={()=>setResult(null)} style={{...S.btn(B.border,B.muted,{width:"100%",padding:10,fontSize:12})}}>重新测试</button>
         </div>
@@ -1414,67 +1782,60 @@ function MBTITest({emp,onClose,onSave}){
   }
 
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.95)",zIndex:300,overflowY:"auto",padding:20}}>
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:300,overflowY:"auto",padding:16}}>
       <div style={{...S.card(),padding:20,maxWidth:420,margin:"0 auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-          <div style={{color:B.text,fontWeight:800,fontSize:15}}>🧠 MBTI 人格测试</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div>
+            <div style={{color:B.text,fontWeight:800,fontSize:15}}>🧠 MBTI 人格测试</div>
+            <div style={{color:B.muted,fontSize:10}}>{mode==="full"?"精准版 93题":"简约版 20题"}</div>
+          </div>
           <button onClick={onClose} style={{...S.btn(B.border,B.muted,{fontSize:11,padding:"4px 10px"})}}>✕</button>
         </div>
-
-        {/* Progress */}
-        <div style={{marginBottom:16}}>
+        <div style={{marginBottom:14}}>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-            <span style={{color:B.muted,fontSize:10}}>{step+1} / {MBTI_Q.length}</span>
+            <span style={{color:B.muted,fontSize:10}}>{step+1} / {questions.length}</span>
             <span style={{color:B.muted,fontSize:10}}>已答 {answered}题</span>
           </div>
-          <div style={{background:B.border,borderRadius:99,height:4,overflow:"hidden"}}>
-            <div style={{width:`${((step+1)/MBTI_Q.length)*100}%`,height:"100%",background:B.red,borderRadius:99,transition:"width .3s"}}/>
+          <div style={{background:B.border,borderRadius:99,height:5,overflow:"hidden"}}>
+            <div style={{width:`${((step+1)/questions.length)*100}%`,height:"100%",background:B.red,borderRadius:99,transition:"width .3s"}}/>
           </div>
         </div>
-
-        {/* Question */}
-        <div style={{...S.card(),padding:16,marginBottom:16,minHeight:80,display:"flex",alignItems:"center"}}>
-          <div style={{color:B.text,fontSize:14,lineHeight:1.6,textAlign:"center",width:"100%"}}>
-            {q.q}
-          </div>
+        <div style={{...S.card(),padding:16,marginBottom:16,minHeight:72,display:"flex",alignItems:"center"}}>
+          <div style={{color:B.text,fontSize:14,lineHeight:1.7,textAlign:"center",width:"100%"}}>{q.q}</div>
         </div>
-
-        {/* Scale */}
-        <div style={{marginBottom:20}}>
+        <div style={{marginBottom:18}}>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-            <span style={{color:B.muted,fontSize:10}}>不同意</span>
-            <span style={{color:B.muted,fontSize:10}}>同意</span>
+            <span style={{color:B.muted,fontSize:10}}>完全不同意</span>
+            <span style={{color:B.muted,fontSize:10}}>完全同意</span>
           </div>
-          <div style={{display:"flex",gap:8,justifyContent:"center"}}>
+          <div style={{display:"flex",gap:6,justifyContent:"center"}}>
             {[1,2,3,4,5].map(v=>(
-              <button key={v} onClick={()=>{setAnswers(a=>({...a,[step]:v}));setTimeout(()=>step<MBTI_Q.length-1?setStep(s=>s+1):null,200);}}
-                style={{width:52,height:52,borderRadius:10,border:`2px solid ${answers[step]===v?B.red:B.border}`,
+              <button key={v} onClick={()=>recordAnswer(step,v)}
+                style={{width:56,height:56,borderRadius:10,border:`2px solid ${answers[step]===v?B.red:B.border}`,
                   background:answers[step]===v?`${B.red}33`:"transparent",
-                  color:answers[step]===v?B.red:B.muted,fontSize:18,fontWeight:800,cursor:"pointer",
-                  transition:"all .15s"}}>
+                  color:answers[step]===v?B.red:B.muted,fontSize:20,cursor:"pointer",transition:"all .15s",touchAction:"manipulation"}}>
                 {v===1?"😤":v===2?"🙁":v===3?"😐":v===4?"🙂":"😄"}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Navigation */}
         <div style={{display:"flex",gap:8,marginBottom:10}}>
           <button onClick={()=>step>0&&setStep(s=>s-1)} disabled={step===0}
             style={{...S.btn(B.border,B.muted,{flex:1,opacity:step===0?0.3:1})}}>← 上一题</button>
-          {step<MBTI_Q.length-1
+          {step<questions.length-1
             ?<button onClick={()=>setStep(s=>s+1)} style={{...S.btn(B.border,B.text,{flex:1})}}>下一题 →</button>
-            :<button onClick={submit} disabled={answered<15}
-              style={{...S.btn(answered>=15?B.red:B.border,answered>=15?"#fff":B.muted,{flex:2,opacity:answered<15?0.5:1})}}>
-              {answered>=15?"🧠 查看结果":`还需答 ${15-answered} 题`}
+            :<button onClick={submit} disabled={answered<minRequired}
+              style={{...S.btn(answered>=minRequired?B.red:B.border,answered>=minRequired?"#fff":B.muted,{flex:2,opacity:answered<minRequired?0.5:1})}}>
+              {answered>=minRequired?"🧠 查看结果":`还需答 ${minRequired-answered} 题`}
             </button>
           }
         </div>
-        <div style={{color:B.muted,fontSize:10,textAlign:"center"}}>至少答15题才能查看结果</div>
+        <div style={{color:B.muted,fontSize:10,textAlign:"center"}}>至少答{minRequired}题才能查看结果</div>
       </div>
     </div>
   );
 }
+
 
 function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
   const {t,lang}=useLang();
@@ -1624,6 +1985,31 @@ function BonusConfig({bonusCfg,setBonusCfg}){
 }
 
 // ── SETTINGS ─────────────────────────────────────────
+// ── EMERGENCY CONTACT MODAL ──────────────────────────
+function EmergencyModal({u,onClose,onSave}){
+  const [form,setForm]=useState(u.emergency||{name:"",phone:"",relation:""});
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{...S.card(),padding:20,maxWidth:380,width:"100%"}}>
+        <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:14}}>‼️ 紧急联络人 — {u.name}</div>
+        <div style={{marginBottom:10}}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>联络人名字</div><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="例：陈大明" style={S.inp}/></div>
+        <div style={{marginBottom:10}}><div style={{color:B.muted,fontSize:10,marginBottom:3}}>联络电话</div><input value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))} placeholder="0123456789" style={S.inp} type="tel"/></div>
+        <div style={{marginBottom:16}}>
+          <div style={{color:B.muted,fontSize:10,marginBottom:3}}>关系</div>
+          <select value={form.relation} onChange={e=>setForm(f=>({...f,relation:e.target.value}))} style={S.inp}>
+            <option value="">— 选择 —</option>
+            {["妻子","丈夫","父亲","母亲","兄弟","姐妹","朋友","其他"].map(r=><option key={r}>{r}</option>)}
+          </select>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={onClose} style={{...S.btn(B.border,B.muted,{flex:1})}}>取消</button>
+          <button onClick={()=>onSave(form)} style={{...S.btn(B.red,"#fff",{flex:2})}}>💾 保存</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusCfg,employees,setEmployees}){
   const {t}=useLang();
   const [tab,setTab]=useState("users");
@@ -1632,8 +2018,39 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
   const [saving,setSaving]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
   const [showMBTIFor,setShowMBTIFor]=useState(null);
+  const [mbtiMode,setMbtiMode]=useState(null); // 'short' | 'full'
+  const [mbtiDetail,setMbtiDetail]=useState(null);
+  const [showEmergencyFor,setShowEmergencyFor]=useState(null);
+  const [aiCheckingRecord,setAiCheckingRecord]=useState(null);
+  const [aiCheckResults,setAiCheckResults]=useState({});
   const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});
   const lRef=useRef(),aRef=useRef();
+
+  const checkMBTISincerity=async(record,userName,idx)=>{
+    const key=`${userName}_${idx}`;
+    setAiCheckingRecord(key);
+    try{
+      const resp=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        model:"claude-sonnet-4-5",max_tokens:300,
+        messages:[{role:"user",content:`你是一个HR分析师。分析这份MBTI测试记录是否认真作答。用中文回答，50字以内。
+
+员工：${userName}
+测试版本：${record.mode==="full"?"精准版93题":"简约版20题"}
+作答时间：${record.duration||"未记录"}
+测试日期：${record.date}
+维度结果：E/I=${record.pcts?.EI||50}%, N/S=${record.pcts?.SN||50}%, T/F=${record.pcts?.TF||50}%, J/P=${record.pcts?.JP||50}%
+之前诚意记录：${record.sincere===true?"✅认真":record.sincere===false?"⚠️可疑":"未检测"}
+
+判断是否认真作答，给出结论和建议。格式：✅认真 或 ⚠️可疑 — [原因]`}]
+      })});
+      const data=await resp.json();
+      const verdict=data.content?.find(c=>c.type==="text")?.text||"检测失败";
+      setAiCheckResults(r=>({...r,[key]:verdict}));
+    }catch(e){
+      setAiCheckResults(r=>({...r,[key]:"AI检测失败，请重试"}));
+    }
+    setAiCheckingRecord(null);
+  };
 
   const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
   const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,...ev,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
@@ -1650,12 +2067,64 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
 
   return(
     <div>
-      {showMBTIFor&&<MBTITest emp={showMBTIFor} onClose={()=>setShowMBTIFor(null)} onSave={(mbti)=>{
-        const upd=users.map(u=>u.id===showMBTIFor.id?{...u,mbti}:u);
+      {mbtiDetail&&<MBTIResultDetail record={mbtiDetail} onClose={()=>setMbtiDetail(null)}/>}
+      {showMBTIFor&&mbtiMode&&<MBTITest emp={showMBTIFor} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTIFor(null);setMbtiMode(null);}} onSave={(record)=>{
+        const upd=users.map(u=>u.id===showMBTIFor.id?{...u,mbti:record.type,mbtiHistory:[record,...(u.mbtiHistory||[])].slice(0,10)}:u);
         setUsers(upd);api.save("users",upd);
-        const empUpd=employees.map(e=>e.name===showMBTIFor.name?{...e,mbti}:e);
+        const empUpd=employees.map(e=>e.name===showMBTIFor.name?{...e,mbti:record.type,mbtiHistory:[record,...(e.mbtiHistory||[])].slice(0,10)}:e);
         setEmployees(empUpd);api.save("employees",empUpd);
-        setShowMBTIFor(null);
+        setShowMBTIFor(null);setMbtiMode(null);
+      }}/>}
+      {showMBTIFor&&!mbtiMode&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div style={{...S.card(),padding:24,maxWidth:360,width:"100%"}}>
+          <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:4}}>🧠 MBTI 测试</div>
+          <div style={{color:B.muted,fontSize:11,marginBottom:20}}>为 {showMBTIFor.name} 选择测试版本</div>
+          <button onClick={()=>setMbtiMode("short")} style={{...S.btn(B.border,"#9B59B6",{width:"100%",padding:14,marginBottom:10,display:"flex",flexDirection:"column",alignItems:"flex-start",gap:3})}}>
+            <span style={{fontWeight:800,fontSize:14}}>⚡ 简约版</span>
+            <span style={{fontSize:11,color:B.muted}}>20题 · 约5分钟 · 快速了解人格</span>
+          </button>
+          <button onClick={()=>setMbtiMode("full")} style={{...S.btn(B.border,"#9B59B6",{width:"100%",padding:14,marginBottom:16,display:"flex",flexDirection:"column",alignItems:"flex-start",gap:3})}}>
+            <span style={{fontWeight:800,fontSize:14}}>🎯 精准版</span>
+            <span style={{fontSize:11,color:B.muted}}>93题 · 约20分钟 · 深度精准分析</span>
+          </button>
+          {/* Past results */}
+          {(showMBTIFor.mbtiHistory||[]).length>0&&<div style={{marginBottom:16}}>
+            <div style={{color:B.muted,fontSize:11,marginBottom:8}}>历史记录</div>
+            {(showMBTIFor.mbtiHistory||[]).slice(0,5).map((r,i)=>{
+              const key=`${showMBTIFor.name}_${i}`;
+              const isChecking=aiCheckingRecord===key;
+              const verdict=aiCheckResults[key];
+              return(
+                <div key={i} style={{...S.card(),padding:"10px 12px",marginBottom:8}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:verdict?8:0}}>
+                    <div onClick={()=>setMbtiDetail(r)} style={{flex:1,cursor:"pointer"}}>
+                      <span style={{color:"#9B59B6",fontWeight:900,fontSize:14}}>{r.type}</span>
+                      <span style={{color:B.muted,fontSize:10,marginLeft:8}}>{r.mode==="full"?"精准":"简约"} · {r.date} · {r.duration||""}</span>
+                      {r.sincere===true&&<span style={{marginLeft:6,fontSize:10}}>✅</span>}
+                      {r.sincere===false&&<span style={{marginLeft:6,fontSize:10}}>⚠️</span>}
+                    </div>
+                    {user.role==="boss"&&<button
+                      onClick={()=>checkMBTISincerity(r,showMBTIFor.name,i)}
+                      disabled={isChecking}
+                      style={{...S.btn("#0A1A2A","#F1C40F",{fontSize:10,padding:"4px 10px",whiteSpace:"nowrap",border:"1px solid #F1C40F44"})}}>
+                      {isChecking?"⏳ 检测中...":"🤖 AI检测"}
+                    </button>}
+                  </div>
+                  {verdict&&<div style={{background:verdict.includes("✅")?"#0D2B19":"#2B0009",borderRadius:7,padding:"8px 11px",border:`1px solid ${verdict.includes("✅")?"#2ECC71":"#E74C3C"}44`}}>
+                    <div style={{color:verdict.includes("✅")?"#2ECC71":"#E74C3C",fontSize:11,lineHeight:1.6}}>{verdict}</div>
+                  </div>}
+                </div>
+              );
+            })}
+          </div>}
+          <button onClick={()=>{setShowMBTIFor(null);setMbtiMode(null);}} style={{...S.btn(B.border,B.muted,{width:"100%"})}}>取消</button>
+        </div>
+      </div>}
+
+      {/* Emergency contact modal */}
+      {showEmergencyFor&&<EmergencyModal u={showEmergencyFor} onClose={()=>setShowEmergencyFor(null)} onSave={(form)=>{
+        const upd=users.map(u=>u.id===showEmergencyFor.id?{...u,emergency:form}:u);
+        setUsers(upd);api.save("users",upd);setShowEmergencyFor(null);
       }}/>}
       <div style={{color:B.text,fontSize:15,fontWeight:800,marginBottom:13}}>{t.settings}</div>
       <div style={{display:"flex",gap:6,marginBottom:13,flexWrap:"wrap"}}>
@@ -1786,6 +2255,14 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                     <input type="checkbox" checked={ev.canPerformance||false} onChange={e=>setEv(v=>({...v,canPerformance:e.target.checked}))}/>
                     <span style={{color:B.text,fontSize:11}}>📊 可以查看 Staff Performance</span>
                   </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canViewMBTI||false} onChange={e=>setEv(v=>({...v,canViewMBTI:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>🧠 可以查看所有人 MBTI</span>
+                  </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canViewEmergency||false} onChange={e=>setEv(v=>({...v,canViewEmergency:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>‼️ 可以查看所有人紧急联络人</span>
+                  </label>}
                   <div style={{display:"flex",gap:7}}>
                     <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?t.saving:t.save}</button>
                     <button onClick={()=>setEditing(null)} style={{...S.btn(B.border,B.muted,{fontSize:12})}}>{t.cancel}</button>
@@ -1801,12 +2278,20 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                   <div style={{flex:1}}>
                     <div style={{display:"flex",alignItems:"center",gap:6}}>
                       <div style={{color:B.text,fontWeight:700,fontSize:13}}>{u.name}</div>
-                      {u.mbti&&<span style={{background:`${B.red}22`,color:B.red,fontSize:9,fontWeight:800,borderRadius:4,padding:"1px 6px",letterSpacing:1}}>{u.mbti} {MBTI_TYPES[u.mbti]?.emoji}</span>}
+                      {u.mbti&&<span style={{background:`${"#9B59B6"}22`,color:"#9B59B6",fontSize:9,fontWeight:800,borderRadius:4,padding:"1px 6px",letterSpacing:1}}>{u.mbti} {MBTI_DETAIL[u.mbti]?.emoji}</span>}
+                      {u.emergency?.name&&(user.role==="boss"||user.canViewEmergency||u.id===user.id)&&<span style={{background:"#E74C3C22",color:"#E74C3C",fontSize:9,fontWeight:700,borderRadius:4,padding:"1px 6px"}}>‼️ {u.emergency.relation}</span>}
                     </div>
                     <div style={{color:B.muted,fontSize:10,marginTop:1}}>{RL[u.role]}{u.dept?" - "+u.dept:""}{u.canManage?" (manage)":""}{u.canViewAll?" · "+t.canViewAllShort:""}{u.canScore?" · ✏️":""}{u.canResetPin?" · 🔑":""}{u.canAttendance?" · 📋":""}{u.canVehicle?" · 🚗":""}</div>
                   </div>
                   {(u.id===user.id||user.role==="boss")&&<button onClick={e=>{e.stopPropagation();setShowMBTIFor(u);}} style={{...S.btn(B.border,"#9B59B6",{fontSize:10,padding:"4px 8px",whiteSpace:"nowrap"})}}>
-                    🧠 {u.mbti?"重测":"MBTI"}
+                    🧠 {u.mbti?u.mbti:"MBTI"}
+                  </button>}
+                  {(u.id===user.id||user.role==="boss")&&<button onClick={e=>{e.stopPropagation();setShowEmergencyFor(u);}} style={{...S.btn(B.border,"#E74C3C",{fontSize:10,padding:"4px 8px",whiteSpace:"nowrap"})}}>
+                    ‼️ {u.emergency?.name?"更新":"紧急"}
+                  </button>}
+                  {/* View emergency for others - with permission */}
+                  {u.id!==user.id&&user.role!=="boss"&&user.canViewEmergency&&u.emergency?.name&&<button onClick={e=>{e.stopPropagation();alert(`‼️ ${u.name} 紧急联络人\n\n姓名：${u.emergency.name}\n电话：${u.emergency.phone}\n关系：${u.emergency.relation}`);}} style={{...S.btn("#2B0009","#E74C3C",{fontSize:10,padding:"4px 8px",whiteSpace:"nowrap"})}}>
+                    ‼️ 查看
                   </button>}
                   <div style={{fontFamily:"monospace",color:B.muted,fontSize:10}}>{user.role==="boss"?u.pin:"••••"}</div>
                 </div>
