@@ -1,6 +1,5 @@
 const express=require("express"),fs=require("fs"),path=require("path"),app=express(),PORT=process.env.PORT||3000;
 
-// Build JSX on startup if needed
 function buildIfNeeded(){
   try{
     const indexPath=path.join(__dirname,"index.html");
@@ -31,6 +30,10 @@ app.post("/api/feedbacks",(q,r)=>{try{const d=R();d.feedbacks=q.body;W(d);r.json
 app.post("/api/attendance",(q,r)=>{try{const d=R();d.attendance=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/gameLogs",(q,r)=>{try{const d=R();d.gameLogs=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/appointments",(q,r)=>{try{const d=R();d.appointments=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
+
+// 🔧 EMERGENCY FIX: Clear corrupted MBTI data
+app.get("/api/fix-mbti",(q,r)=>{try{const d=R();let fixed=0;if(d.employees){d.employees=d.employees.map(e=>{if(e.mbti||e.mbtiResult||e.mbtiAnswers||e.mbtiData){delete e.mbti;delete e.mbtiResult;delete e.mbtiAnswers;delete e.mbtiData;fixed++;}return e;});}if(d.users){d.users=d.users.map(u=>{if(u.mbti||u.mbtiResult||u.mbtiAnswers||u.mbtiData){delete u.mbti;delete u.mbtiResult;delete u.mbtiAnswers;delete u.mbtiData;fixed++;}return u;});}W(d);r.json({ok:true,fixed,msg:`Cleared MBTI data from ${fixed} records`});}catch(e){r.status(500).json({error:e.message})}});
+
 app.post("/api/ai",(q,r)=>{
   const https=require("https");
   const apiKey=process.env.ANTHROPIC_API_KEY||"";
