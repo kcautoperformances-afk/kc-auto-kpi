@@ -981,7 +981,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers,appointments,setTab}
   };
 
   // ── FILTERS ──
-  const [fDate,setFDate]=useState("all");
+  const [fDate,setFDate]=useState("today");
   const [fCustom,setFCustom]=useState({from:today,to:today});
   const [fModel,setFModel]=useState("");
   const [fStatus,setFStatus]=useState("all");
@@ -1003,6 +1003,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers,appointments,setTab}
         const vd=parseVDate(v.date);
         const now=new Date();
         if(fDate==="today"){const s=new Date(now);s.setHours(0,0,0,0);if(!vd||vd<s)return false;}
+        else if(fDate==="yesterday"){const s=new Date(now);s.setDate(now.getDate()-1);s.setHours(0,0,0,0);const e=new Date(now);e.setHours(0,0,0,0);if(!vd||vd<s||vd>=e)return false;}
         else if(fDate==="week"){const s=new Date(now);s.setDate(now.getDate()-7);if(!vd||vd<s)return false;}
         else if(fDate==="month"){const s=new Date(now.getFullYear(),now.getMonth(),1);if(!vd||vd<s)return false;}
         else if(fDate==="custom"){
@@ -1160,7 +1161,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers,appointments,setTab}
           <button onClick={()=>setShowFilters(s=>!s)} style={{...S.btn(activeFilters>0?B.red:B.border,activeFilters>0?"#fff":B.muted,{fontSize:11,padding:"5px 12px",display:"flex",alignItems:"center",gap:5})}}>
             🔍 筛选 {activeFilters>0&&<span style={{background:"#fff",color:B.red,borderRadius:99,width:16,height:16,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900}}>{activeFilters}</span>}
           </button>
-          {activeFilters>0&&<button onClick={()=>{setFDate("all");setFModel("");setFStatus("all");setFCreator("all");}} style={{...S.btn("transparent","#E74C3C",{fontSize:10,padding:"4px 10px"})}}>✕ 清除</button>}
+          {activeFilters>0&&<button onClick={()=>{setFDate("today");setFModel("");setFStatus("all");setFCreator("all");}} style={{...S.btn("transparent","#E74C3C",{fontSize:10,padding:"4px 10px"})}}>✕ 清除</button>}
           <span style={{color:B.muted,fontSize:10,marginLeft:"auto"}}>显示 {filteredVehicles.length} / {vehicles.length} 条</span>
         </div>
 
@@ -1169,7 +1170,7 @@ function VehicleTracker({user,vehicles,setVehicles,allUsers,appointments,setTab}
           <div style={{gridColumn:"1/-1"}}>
             <div style={{color:B.muted,fontSize:9,marginBottom:4}}>📅 日期</div>
             <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-              {[["all","全部"],["today","今天"],["week","本周"],["month","本月"],["custom","自定义"]].map(([v,l])=>(
+              {[["today","今天"],["yesterday","昨天"],["week","本周"],["month","本月"],["all","全部"],["custom","自定义"]].map(([v,l])=>(
                 <button key={v} onClick={()=>setFDate(v)} style={{...S.btn(fDate===v?B.red:B.border,fDate===v?"#fff":B.muted,{fontSize:10,padding:"4px 10px"})}}>{l}</button>
               ))}
             </div>
