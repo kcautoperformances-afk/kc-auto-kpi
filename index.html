@@ -1370,126 +1370,127 @@ const MBTI_TYPES={
 
 // ── MBTI FULL DATA ───────────────────────────────────
 const MBTI_Q_SHORT=[
-  {q:"在派对上，你通常会主动认识新朋友",d:"EI",dir:1},
-  {q:"你更喜欢独自工作而不是团队合作",d:"EI",dir:-1},
-  {q:"你喜欢制定详细的计划再行动",d:"JP",dir:1},
-  {q:"你倾向于依靠直觉而不是具体事实",d:"SN",dir:1},
-  {q:"当朋友遇到问题，你会先给出解决方案",d:"TF",dir:1},
-  {q:"你很容易感受到别人的情绪变化",d:"TF",dir:-1},
-  {q:"你喜欢尝试新事物而不是坚持熟悉的方式",d:"JP",dir:-1},
-  {q:"你更注重细节而不是大局",d:"SN",dir:-1},
-  {q:"做决定时你更依赖逻辑分析",d:"TF",dir:1},
-  {q:"你喜欢保持选择的灵活性而不是早早决定",d:"JP",dir:-1},
-  {q:"社交活动后你需要独处来恢复精力",d:"EI",dir:-1},
-  {q:"你更相信已证实的经验而非未来的可能性",d:"SN",dir:-1},
-  {q:"你认为效率比同理心更重要",d:"TF",dir:1},
-  {q:"你喜欢有条理的环境和固定的日程",d:"JP",dir:1},
-  {q:"你经常想象各种可能性和假设情景",d:"SN",dir:1},
-  {q:"你容易受到批评影响而感到难过",d:"TF",dir:-1},
-  {q:"你喜欢在截止日期前提早完成任务",d:"JP",dir:1},
-  {q:"你在认识新朋友时感到轻松自在",d:"EI",dir:1},
-  {q:"你更关注事情的意义而非实际操作",d:"SN",dir:1},
-  {q:"你认为保持和谐关系比坚持原则更重要",d:"TF",dir:-1},
+  {q:{zh:"在派对上，你通常会主动认识新朋友"},d:"EI",dir:1},
+  {q:{zh:"你更喜欢独自工作而不是团队合作"},d:"EI",dir:-1},
+  {q:{zh:"你喜欢制定详细的计划再行动"},d:"JP",dir:1},
+  {q:{zh:"你倾向于依靠直觉而不是具体事实"},d:"SN",dir:1},
+  {q:{zh:"当朋友遇到问题，你会先给出解决方案"},d:"TF",dir:1},
+  {q:{zh:"你很容易感受到别人的情绪变化"},d:"TF",dir:-1},
+  {q:{zh:"你喜欢尝试新事物而不是坚持熟悉的方式"},d:"JP",dir:-1},
+  {q:{zh:"你更注重细节而不是大局"},d:"SN",dir:-1},
+  {q:{zh:"做决定时你更依赖逻辑分析"},d:"TF",dir:1},
+  {q:{zh:"你喜欢保持选择的灵活性而不是早早决定"},d:"JP",dir:-1},
+  {q:{zh:"社交活动后你需要独处来恢复精力"},d:"EI",dir:-1},
+  {q:{zh:"你更相信已证实的经验而非未来的可能性"},d:"SN",dir:-1},
+  {q:{zh:"你认为效率比同理心更重要"},d:"TF",dir:1},
+  {q:{zh:"你喜欢有条理的环境和固定的日程"},d:"JP",dir:1},
+  {q:{zh:"你经常想象各种可能性和假设情景"},d:"SN",dir:1},
+  {q:{zh:"你容易受到批评影响而感到难过"},d:"TF",dir:-1},
+  {q:{zh:"你喜欢在截止日期前提早完成任务"},d:"JP",dir:1},
+  {q:{zh:"你在认识新朋友时感到轻松自在"},d:"EI",dir:1},
+  {q:{zh:"你更关注事情的意义而非实际操作"},d:"SN",dir:1},
+  {q:{zh:"你认为保持和谐关系比坚持原则更重要"},d:"TF",dir:-1},
 ];
 
+const MBTI_Q_FULL_ZH=["你在聚会上会主动与陌生人交流","长时间独处会让你感到精力充沛","你喜欢成为人群中的焦点","你倾向于先想清楚再开口说话","你有很多朋友并且享受社交活动","你更喜欢小圈子的深度交流而非大型聚会","你容易在新环境中快速融入","你通常在行动之前需要时间独自思考","你喜欢分享自己的想法和经历","你更享受一个人完成任务","你觉得与人交流能给你带来能量","你需要独处时间才能恢复精力","你喜欢多任务并行和快节奏环境","你更喜欢安静的工作环境","你容易与初次见面的人建立联系","你通常等别人先开口","你享受成为团队的核心人物","你在人多的场合会感到疲惫","你喜欢通过与他人讨论来解决问题","你有少数几个深交的朋友而非许多泛泛之交","你在公开场合发言时感到轻松","你更喜欢书面沟通而非面对面交流","你喜欢参加各种社交活动","你更关注眼前的实际情况而非未来的可能性","你经常思考事物背后的深层含义","你更喜欢有具体步骤的清晰指示","你喜欢理论和抽象概念","你注重实用性和可操作性","你经常想象各种假设情景","你相信已经被证实的方法","你对新颖和创新的想法充满热情","你更关注细节而非整体框架","你喜欢探索想法之间的联系和模式","你倾向于从过去的经验中学习","你对未来的可能性比现在的现实更感兴趣","你更喜欢具体的事实而非抽象的理论","你经常有独特的想法和创意","你更注重实际结果而非理论意义","你喜欢思考事物的象征意义","你在处理问题时依赖经验和常识","你对未被探索的可能性感到兴奋","你更喜欢脚踏实地而非天马行空","你经常看到事物之间的隐含联系","你相信直觉往往比分析更可靠","你更喜欢有固定程序的工作","你享受思考复杂的抽象问题","做决定时你优先考虑逻辑而非情感","你很容易感受到他人的情绪","你认为批评应该直接而非迂回","你在做决定时会考虑对他人的影响","你更重视效率而非和谐","你很难在有人不开心时保持中立","你认为公平比同情更重要","你会为了维护关系而妥协","你更倾向于分析问题而非共情","你容易因批评而受伤","你认为规则应该一视同仁地执行","你在团队中会优先考虑成员感受","你更看重能力而非努力","你会为朋友的问题感同身受","你相信理性比感性更可靠","你非常重视人际关系的和谐","你更喜欢讨论观点而非感受","你认为帮助别人是最重要的事","你在争论中更关注谁有道理","你对周围人的情绪变化很敏感","你认为诚实比善意的谎言更重要","你很难拒绝别人的请求","你更重视客观标准而非个人价值观","你喜欢提前计划而不是临时决定","你喜欢保留各种选择的可能性","你的工作空间通常是有条理的","你享受随机应变的生活方式","你在截止日期前会提早完成任务","你喜欢在最后一刻才完成任务","你喜欢有固定的日常规律","你更享受开放性和灵活性","你在做重要决定前会充分准备","你更喜欢走一步看一步","你的时间表和日程对你很重要","你不介意计划中途改变","你喜欢按部就班地完成事情","你会把事情拖到最后才处理","你认为整洁有序很重要","你享受即兴发挥而非预先计划","你喜欢早早做出决定并坚持","你喜欢随时调整计划","你对未完成的事情感到不安","你喜欢开始新项目多于完成旧项目","你会为重要活动提前做好准备","你更享受探索新事物而非完成既定计划","你喜欢有明确结果的任务","你觉得太多计划会限制创意"];
+const MBTI_Q_FULL_EN=[];
+const MBTI_Q_FULL_MS=[];
+const MBTI_Q_FULL_TH=[];
+const MBTI_Q_FULL_MY=[];
 const MBTI_Q_FULL=[
-  // E/I (23 questions)
-  {q:"你在聚会上会主动与陌生人交流",d:"EI",dir:1},
-  {q:"长时间独处会让你感到精力充沛",d:"EI",dir:-1},
-  {q:"你喜欢成为人群中的焦点",d:"EI",dir:1},
-  {q:"你倾向于先想清楚再开口说话",d:"EI",dir:-1},
-  {q:"你有很多朋友并且享受社交活动",d:"EI",dir:1},
-  {q:"你更喜欢小圈子的深度交流而非大型聚会",d:"EI",dir:-1},
-  {q:"你容易在新环境中快速融入",d:"EI",dir:1},
-  {q:"你通常在行动之前需要时间独自思考",d:"EI",dir:-1},
-  {q:"你喜欢分享自己的想法和经历",d:"EI",dir:1},
-  {q:"你更享受一个人完成任务",d:"EI",dir:-1},
-  {q:"你觉得与人交流能给你带来能量",d:"EI",dir:1},
-  {q:"你需要独处时间才能恢复精力",d:"EI",dir:-1},
-  {q:"你喜欢多任务并行和快节奏环境",d:"EI",dir:1},
-  {q:"你更喜欢安静的工作环境",d:"EI",dir:-1},
-  {q:"你容易与初次见面的人建立联系",d:"EI",dir:1},
-  {q:"你通常等别人先开口",d:"EI",dir:-1},
-  {q:"你享受成为团队的核心人物",d:"EI",dir:1},
-  {q:"你在人多的场合会感到疲惫",d:"EI",dir:-1},
-  {q:"你喜欢通过与他人讨论来解决问题",d:"EI",dir:1},
-  {q:"你有少数几个深交的朋友而非许多泛泛之交",d:"EI",dir:-1},
-  {q:"你在公开场合发言时感到轻松",d:"EI",dir:1},
-  {q:"你更喜欢书面沟通而非面对面交流",d:"EI",dir:-1},
-  {q:"你喜欢参加各种社交活动",d:"EI",dir:1},
-  // S/N (23 questions)
-  {q:"你更关注眼前的实际情况而非未来的可能性",d:"SN",dir:-1},
-  {q:"你经常思考事物背后的深层含义",d:"SN",dir:1},
-  {q:"你更喜欢有具体步骤的清晰指示",d:"SN",dir:-1},
-  {q:"你喜欢理论和抽象概念",d:"SN",dir:1},
-  {q:"你注重实用性和可操作性",d:"SN",dir:-1},
-  {q:"你经常想象各种假设情景",d:"SN",dir:1},
-  {q:"你相信已经被证实的方法",d:"SN",dir:-1},
-  {q:"你对新颖和创新的想法充满热情",d:"SN",dir:1},
-  {q:"你更关注细节而非整体框架",d:"SN",dir:-1},
-  {q:"你喜欢探索想法之间的联系和模式",d:"SN",dir:1},
-  {q:"你倾向于从过去的经验中学习",d:"SN",dir:-1},
-  {q:"你对未来的可能性比现在的现实更感兴趣",d:"SN",dir:1},
-  {q:"你更喜欢具体的事实而非抽象的理论",d:"SN",dir:-1},
-  {q:"你经常有独特的想法和创意",d:"SN",dir:1},
-  {q:"你更注重实际结果而非理论意义",d:"SN",dir:-1},
-  {q:"你喜欢思考事物的象征意义",d:"SN",dir:1},
-  {q:"你在处理问题时依赖经验和常识",d:"SN",dir:-1},
-  {q:"你对未被探索的可能性感到兴奋",d:"SN",dir:1},
-  {q:"你更喜欢脚踏实地而非天马行空",d:"SN",dir:-1},
-  {q:"你经常看到事物之间的隐含联系",d:"SN",dir:1},
-  {q:"你相信直觉往往比分析更可靠",d:"SN",dir:1},
-  {q:"你更喜欢有固定程序的工作",d:"SN",dir:-1},
-  {q:"你享受思考复杂的抽象问题",d:"SN",dir:1},
-  // T/F (23 questions)
-  {q:"做决定时你优先考虑逻辑而非情感",d:"TF",dir:1},
-  {q:"你很容易感受到他人的情绪",d:"TF",dir:-1},
-  {q:"你认为批评应该直接而非迂回",d:"TF",dir:1},
-  {q:"你在做决定时会考虑对他人的影响",d:"TF",dir:-1},
-  {q:"你更重视效率而非和谐",d:"TF",dir:1},
-  {q:"你很难在有人不开心时保持中立",d:"TF",dir:-1},
-  {q:"你认为公平比同情更重要",d:"TF",dir:1},
-  {q:"你会为了维护关系而妥协",d:"TF",dir:-1},
-  {q:"你更倾向于分析问题而非共情",d:"TF",dir:1},
-  {q:"你容易因批评而受伤",d:"TF",dir:-1},
-  {q:"你认为规则应该一视同仁地执行",d:"TF",dir:1},
-  {q:"你在团队中会优先考虑成员感受",d:"TF",dir:-1},
-  {q:"你更看重能力而非努力",d:"TF",dir:1},
-  {q:"你会为朋友的问题感同身受",d:"TF",dir:-1},
-  {q:"你相信理性比感性更可靠",d:"TF",dir:1},
-  {q:"你非常重视人际关系的和谐",d:"TF",dir:-1},
-  {q:"你更喜欢讨论观点而非感受",d:"TF",dir:1},
-  {q:"你认为帮助别人是最重要的事",d:"TF",dir:-1},
-  {q:"你在争论中更关注谁有道理",d:"TF",dir:1},
-  {q:"你对周围人的情绪变化很敏感",d:"TF",dir:-1},
-  {q:"你认为诚实比善意的谎言更重要",d:"TF",dir:1},
-  {q:"你很难拒绝别人的请求",d:"TF",dir:-1},
-  {q:"你更重视客观标准而非个人价值观",d:"TF",dir:1},
-  // J/P (24 questions)
-  {q:"你喜欢提前计划而不是临时决定",d:"JP",dir:1},
-  {q:"你喜欢保留各种选择的可能性",d:"JP",dir:-1},
-  {q:"你的工作空间通常是有条理的",d:"JP",dir:1},
-  {q:"你享受随机应变的生活方式",d:"JP",dir:-1},
-  {q:"你在截止日期前会提早完成任务",d:"JP",dir:1},
-  {q:"你喜欢在最后一刻才完成任务",d:"JP",dir:-1},
-  {q:"你喜欢有固定的日常规律",d:"JP",dir:1},
-  {q:"你更享受开放性和灵活性",d:"JP",dir:-1},
-  {q:"你在做重要决定前会充分准备",d:"JP",dir:1},
-  {q:"你更喜欢走一步看一步",d:"JP",dir:-1},
-  {q:"你的时间表和日程对你很重要",d:"JP",dir:1},
-  {q:"你不介意计划中途改变",d:"JP",dir:-1},
-  {q:"你喜欢按部就班地完成事情",d:"JP",dir:1},
-  {q:"你会把事情拖到最后才处理",d:"JP",dir:-1},
-  {q:"你认为整洁有序很重要",d:"JP",dir:1},
-  {q:"你享受即兴发挥而非预先计划",d:"JP",dir:-1},
-  {q:"你喜欢早早做出决定并坚持",d:"JP",dir:1},
-  {q:"你喜欢随时调整计划",d:"JP",dir:-1},
-  {q:"你对未完成的事情感到不安",d:"JP",dir:1},
-  {q:"你喜欢开始新项目多于完成旧项目",d:"JP",dir:-1},
-  {q:"你会为重要活动提前做好准备",d:"JP",dir:1},
-  {q:"你更享受探索新事物而非完成既定计划",d:"JP",dir:-1},
-  {q:"你喜欢有明确结果的任务",d:"JP",dir:1},
-  {q:"你觉得太多计划会限制创意",d:"JP",dir:-1},
+  {i:0,d:"EI",dir:1},
+  {i:1,d:"EI",dir:-1},
+  {i:2,d:"EI",dir:1},
+  {i:3,d:"EI",dir:-1},
+  {i:4,d:"EI",dir:1},
+  {i:5,d:"EI",dir:-1},
+  {i:6,d:"EI",dir:1},
+  {i:7,d:"EI",dir:-1},
+  {i:8,d:"EI",dir:1},
+  {i:9,d:"EI",dir:-1},
+  {i:10,d:"EI",dir:1},
+  {i:11,d:"EI",dir:-1},
+  {i:12,d:"EI",dir:1},
+  {i:13,d:"EI",dir:-1},
+  {i:14,d:"EI",dir:1},
+  {i:15,d:"EI",dir:-1},
+  {i:16,d:"EI",dir:1},
+  {i:17,d:"EI",dir:-1},
+  {i:18,d:"EI",dir:1},
+  {i:19,d:"EI",dir:-1},
+  {i:20,d:"EI",dir:1},
+  {i:21,d:"EI",dir:-1},
+  {i:22,d:"EI",dir:1},
+  {i:23,d:"SN",dir:-1},
+  {i:24,d:"SN",dir:1},
+  {i:25,d:"SN",dir:-1},
+  {i:26,d:"SN",dir:1},
+  {i:27,d:"SN",dir:-1},
+  {i:28,d:"SN",dir:1},
+  {i:29,d:"SN",dir:-1},
+  {i:30,d:"SN",dir:1},
+  {i:31,d:"SN",dir:-1},
+  {i:32,d:"SN",dir:1},
+  {i:33,d:"SN",dir:-1},
+  {i:34,d:"SN",dir:1},
+  {i:35,d:"SN",dir:-1},
+  {i:36,d:"SN",dir:1},
+  {i:37,d:"SN",dir:-1},
+  {i:38,d:"SN",dir:1},
+  {i:39,d:"SN",dir:-1},
+  {i:40,d:"SN",dir:1},
+  {i:41,d:"SN",dir:-1},
+  {i:42,d:"SN",dir:1},
+  {i:43,d:"SN",dir:1},
+  {i:44,d:"SN",dir:-1},
+  {i:45,d:"SN",dir:1},
+  {i:46,d:"TF",dir:1},
+  {i:47,d:"TF",dir:-1},
+  {i:48,d:"TF",dir:1},
+  {i:49,d:"TF",dir:-1},
+  {i:50,d:"TF",dir:1},
+  {i:51,d:"TF",dir:-1},
+  {i:52,d:"TF",dir:1},
+  {i:53,d:"TF",dir:-1},
+  {i:54,d:"TF",dir:1},
+  {i:55,d:"TF",dir:-1},
+  {i:56,d:"TF",dir:1},
+  {i:57,d:"TF",dir:-1},
+  {i:58,d:"TF",dir:1},
+  {i:59,d:"TF",dir:-1},
+  {i:60,d:"TF",dir:1},
+  {i:61,d:"TF",dir:-1},
+  {i:62,d:"TF",dir:1},
+  {i:63,d:"TF",dir:-1},
+  {i:64,d:"TF",dir:1},
+  {i:65,d:"TF",dir:-1},
+  {i:66,d:"TF",dir:1},
+  {i:67,d:"TF",dir:-1},
+  {i:68,d:"TF",dir:1},
+  {i:69,d:"JP",dir:1},
+  {i:70,d:"JP",dir:-1},
+  {i:71,d:"JP",dir:1},
+  {i:72,d:"JP",dir:-1},
+  {i:73,d:"JP",dir:1},
+  {i:74,d:"JP",dir:-1},
+  {i:75,d:"JP",dir:1},
+  {i:76,d:"JP",dir:-1},
+  {i:77,d:"JP",dir:1},
+  {i:78,d:"JP",dir:-1},
+  {i:79,d:"JP",dir:1},
+  {i:80,d:"JP",dir:-1},
+  {i:81,d:"JP",dir:1},
+  {i:82,d:"JP",dir:-1},
+  {i:83,d:"JP",dir:1},
+  {i:84,d:"JP",dir:-1},
+  {i:85,d:"JP",dir:1},
+  {i:86,d:"JP",dir:-1},
+  {i:87,d:"JP",dir:1},
+  {i:88,d:"JP",dir:-1},
+  {i:89,d:"JP",dir:1},
+  {i:90,d:"JP",dir:-1},
+  {i:91,d:"JP",dir:1},
+  {i:92,d:"JP",dir:-1},
 ];
 
 const MBTI_DETAIL={
@@ -1628,7 +1629,7 @@ function calcMBTIResult(answers,questions){
 }
 
 function MBTIResultDetail({record,onClose}){
-  const info=MBTI_DETAIL[record.type]||{name:record.type,emoji:"🧠",color:B.red,desc:"",strengths:[],weaknesses:[],career:[],famous:[],love:""};
+  const info=MBTI_DETAIL[record.type]||{name:record.type,emoji:"🧠",color:B.red,desc:"",strengths:[],weaknesses:[],career:[],famous:[]};
   const pcts=record.pcts||{EI:50,SN:50,TF:50,JP:50};
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:400,overflowY:"auto",padding:16}}>
@@ -1688,204 +1689,7 @@ function MBTIResultDetail({record,onClose}){
           </div>
         </div>
 
-        {/* Famous */}
-        <div style={{...S.card(),padding:12,marginBottom:12}}>
-          <div style={{color:B.text,fontWeight:700,fontSize:12,marginBottom:8}}>⭐ 同类型名人</div>
-          <div style={{color:B.muted,fontSize:12}}>{info.famous.join(" · ")}</div>
-        </div>
-
-        {/* Love */}
-        <div style={{...S.card(),padding:12,marginBottom:20}}>
-          <div style={{color:B.text,fontWeight:700,fontSize:12,marginBottom:8}}>💕 感情特质</div>
-          <div style={{color:B.muted,fontSize:12,lineHeight:1.7}}>{info.love}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MBTITest({emp,mode,isBoss,onClose,onSave}){
-  const questions=mode==="full"?MBTI_Q_FULL:MBTI_Q_SHORT;
-  const minRequired=mode==="full"?70:15;
-  const [step,setStep]=useState(0);
-  const [answers,setAnswers]=useState({});
-  const [result,setResult]=useState(null);
-  const startTime=useRef(Date.now());
-  const answerTimes=useRef([]);
-
-  const recordAnswer=(i,v)=>{
-    const now=Date.now();
-    answerTimes.current[i]={v,ms:now-(answerTimes.current[i-1]?.t||startTime.current),t:now};
-    setAnswers(a=>({...a,[i]:v}));
-    if(i<questions.length-1){
-      setTimeout(()=>setStep(s=>Math.min(s+1,questions.length-1)),200);
-    }
-  };
-
-  const submit=async()=>{
-    const totalMs=Date.now()-startTime.current;
-    const totalSec=Math.round(totalMs/1000);
-    const mins=Math.floor(totalSec/60);
-    const secs=totalSec%60;
-    const timeStr=mins>0?`${mins}分${secs}秒`:`${secs}秒`;
-    const{type,scores,pcts}=calcMBTIResult(answers,questions);
-    setResult({type,scores,pcts,timeStr});
-  };
-
-  const save=()=>{
-    const record={
-      type:result.type,pcts:result.pcts,
-      mode,date:new Date().toLocaleDateString("zh-CN"),
-      time:new Date().toLocaleString(),
-      duration:result.timeStr,
-      sincere:result.aiVerdict?.sincere,
-    };
-    onSave(record);
-    onClose();
-  };
-
-  const info=result?MBTI_DETAIL[result.type]:null;
-  const answered=Object.keys(answers).length;
-  const q=questions[Math.min(step,questions.length-1)]||{q:""};
-
-  if(result&&info){
-    return(
-      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-        <div style={{...S.card(),padding:24,maxWidth:380,width:"100%",textAlign:"center",overflowY:"auto",maxHeight:"90vh"}}>
-          <div style={{fontSize:56,marginBottom:10}}>{info.emoji}</div>
-          <div style={{color:B.muted,fontSize:11,letterSpacing:3,marginBottom:4}}>你的MBTI人格是</div>
-          <div style={{color:info.color||B.red,fontSize:36,fontWeight:900,letterSpacing:4,marginBottom:4}}>{result.type}</div>
-          <div style={{color:B.text,fontSize:18,fontWeight:800,marginBottom:6}}>{info.name}</div>
-          <div style={{color:B.muted,fontSize:12,lineHeight:1.6,marginBottom:12}}>{info.desc}</div>
-          {/* Time */}
-          <div style={{...S.card(),padding:"8px 14px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <span style={{color:B.muted,fontSize:11}}>⏱️ 作答时间</span>
-            <span style={{color:B.text,fontWeight:700,fontSize:12}}>{result.timeStr}</span>
-          </div>
-          {/* Mini bars */}
-          <div style={{marginBottom:18}}>
-            {[["E/I",result.pcts.EI,"E","I"],["N/S",result.pcts.SN,"N","S"],["T/F",result.pcts.TF,"T","F"],["J/P",result.pcts.JP,"J","P"]].map(([l,p,a,b])=>(
-              <div key={l} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
-                <span style={{color:B.muted,fontSize:9,width:28}}>{a} {p}%</span>
-                <div style={{flex:1,background:B.border,borderRadius:99,height:6,overflow:"hidden"}}>
-                  <div style={{width:p+"%",height:"100%",background:info.color||B.red,borderRadius:99}}/>
-                </div>
-                <span style={{color:B.muted,fontSize:9,width:28,textAlign:"right"}}>{100-p}% {b}</span>
-              </div>
-            ))}
-          </div>
-          <button onClick={save} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:14,marginBottom:8})}}>💾 保存结果</button>
-          <button onClick={()=>setResult(null)} style={{...S.btn(B.border,B.muted,{width:"100%",padding:10,fontSize:12})}}>重新测试</button>
-        </div>
-      </div>
-    );
-  }
-
-  return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:300,overflowY:"auto",padding:16}}>
-      <div style={{...S.card(),padding:20,maxWidth:420,margin:"0 auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <div>
-            <div style={{color:B.text,fontWeight:800,fontSize:15}}>🧠 MBTI 人格测试</div>
-            <div style={{color:B.muted,fontSize:10}}>{mode==="full"?"精准版 93题":"简约版 20题"}</div>
-          </div>
-          <button onClick={onClose} style={{...S.btn(B.border,B.muted,{fontSize:11,padding:"4px 10px"})}}>✕</button>
-        </div>
-        <div style={{marginBottom:14}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-            <span style={{color:B.muted,fontSize:10}}>{step+1} / {questions.length}</span>
-            <span style={{color:B.muted,fontSize:10}}>已答 {answered}题</span>
-          </div>
-          <div style={{background:B.border,borderRadius:99,height:5,overflow:"hidden"}}>
-            <div style={{width:`${((step+1)/questions.length)*100}%`,height:"100%",background:B.red,borderRadius:99,transition:"width .3s"}}/>
-          </div>
-        </div>
-        <div style={{...S.card(),padding:16,marginBottom:16,minHeight:72,display:"flex",alignItems:"center"}}>
-          <div style={{color:B.text,fontSize:14,lineHeight:1.7,textAlign:"center",width:"100%"}}>{q.q}</div>
-        </div>
-        <div style={{marginBottom:18}}>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-            <span style={{color:B.muted,fontSize:10}}>完全不同意</span>
-            <span style={{color:B.muted,fontSize:10}}>完全同意</span>
-          </div>
-          <div style={{display:"flex",gap:6,justifyContent:"center"}}>
-            {[1,2,3,4,5].map(v=>(
-              <button key={v} onClick={()=>recordAnswer(step,v)}
-                style={{width:56,height:56,borderRadius:10,border:`2px solid ${answers[step]===v?B.red:B.border}`,
-                  background:answers[step]===v?`${B.red}33`:"transparent",
-                  color:answers[step]===v?B.red:B.muted,fontSize:20,cursor:"pointer",transition:"all .15s",touchAction:"manipulation"}}>
-                {v===1?"😤":v===2?"🙁":v===3?"😐":v===4?"🙂":"😄"}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={{display:"flex",gap:8,marginBottom:10}}>
-          <button onClick={()=>step>0&&setStep(s=>s-1)} disabled={step===0}
-            style={{...S.btn(B.border,B.muted,{flex:1,opacity:step===0?0.3:1})}}>← 上一题</button>
-          {step<questions.length-1
-            ?<button onClick={()=>setStep(s=>s+1)} style={{...S.btn(B.border,B.text,{flex:1})}}>下一题 →</button>
-            :<button onClick={submit} disabled={answered<minRequired}
-              style={{...S.btn(answered>=minRequired?B.red:B.border,answered>=minRequired?"#fff":B.muted,{flex:2,opacity:answered<minRequired?0.5:1})}}>
-              {answered>=minRequired?"🧠 查看结果":`还需答 ${minRequired-answered} 题`}
-            </button>
-          }
-        </div>
-        <div style={{color:B.muted,fontSize:10,textAlign:"center"}}>至少答{minRequired}题才能查看结果</div>
-      </div>
-    </div>
-  );
-}
-
-
-function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
-  const {t,lang}=useLang();
-  const cr=CRIT[emp.role];const dc=DC[emp.role];
-  const ct=CRIT_T[lang]||CRIT_T.en;
-  const tn=k=>ct.items[k]||k;
-  const td=k=>ct.desc[k]||k;
-  const ts=k=>ct.sec[k]||k;
-  const tb=k=>ct.bonus[k]||k;
-  const tbd=k=>ct.bonusDesc[k]||k;
-  const canScore=user.role==="boss"||user.canScore||(user.canManage&&user.dept===emp.role)||(user.role==="manager"&&user.dept===emp.role);
-  const empUserId=emp.userId||null;
-  const init=()=>{
-    const s={};
-    cr.s.forEach(sec=>sec.i.forEach(it=>{
-      if(it.auto&&empUserId){s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??calcAutoScore(empUserId,vehicles,it.m);}
-      else{s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??0;}
-    }));
-    BONUS_ITEMS.forEach(b=>{s["B__"+b.n]=emp.scores?.["B__"+b.n]??0;});
-    return s;
-  };
-  const [sc,setSc]=useState(init);
-  const set=(k,v)=>setSc(s=>({...s,[k]:v}));
-  const base=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+(sc[sec.n+"__"+it.n]||0),0),0);
-  const bon=Math.min(10,BONUS_ITEMS.reduce((a,b)=>a+(sc["B__"+b.n]||0),0));
-  const total=base+bon;
-  const mxBase=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+it.m,0),0);
-  const grade=getGrade(total,cr.t,bonusCfg);
-  const [showMBTI,setShowMBTI]=useState(false);
-  const [mbtiMode,setMbtiMode]=useState(null);
-  const empMBTI=emp.mbti||null;
-  const mbtiInfo=empMBTI?MBTI_DETAIL[empMBTI]:null;
-  const isOwnProfile=user.name===emp.name||user.id===emp.userId;
-  const canTakeMBTI=isOwnProfile||user.role==="boss";
-  return(
-    <div style={{minHeight:"100vh",background:B.dark}}>
-      <div style={{background:"#0A0C10",borderBottom:`1px solid ${B.border}`,padding:"12px 16px",position:"sticky",top:0,zIndex:10}}>
-        <div style={{maxWidth:680,margin:"0 auto",display:"flex",alignItems:"center",gap:11}}>
-          <button onClick={onBack} style={{...S.btn(B.border,B.muted,{padding:"6px 12px"})}}>{t.backBtn}</button>
-          <Av src={emp.avatar} name={emp.name} dept={emp.role} size={34}/>
-          <div style={{flex:1}}><div style={{color:B.muted,fontSize:10,letterSpacing:2}}>{emp.role} - {emp.quarter}</div><div style={{color:B.text,fontSize:15,fontWeight:800}}>{emp.name}</div></div>
-          <div style={{textAlign:"right"}}><div style={{color:dc,fontSize:24,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{total}</div><div style={{color:B.muted,fontSize:10}}>/ {mxBase+10}</div></div>
-        </div>
-      </div>
-      <div style={{maxWidth:680,margin:"0 auto",padding:"15px 14px"}}>
-        <div style={{...S.card(),padding:"11px 15px",marginBottom:11,background:grade.color+"15",border:`1px solid ${grade.color}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div><div style={{color:grade.color,fontWeight:800,fontSize:15}}>{grade.label}</div><div style={{color:B.muted,fontSize:10,marginTop:2}}>{t.threshold}: {cr.t}pts</div></div>
-          <div style={{background:grade.color,color:"#fff",borderRadius:9,padding:"5px 13px",fontWeight:900,fontSize:14}}>RM {grade.amount}</div>
-        </div>
-        {!canScore&&<div style={{...S.card(),padding:9,marginBottom:11,textAlign:"center",color:B.muted,fontSize:11}}>{t.viewOnly}</div>}
+        
 
         {/* MBTI Card */}
         {showMBTI&&mbtiMode&&<MBTITest emp={emp} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTI(false);setMbtiMode(null);}} onSave={(record)=>{onSave({...emp,total,scores:sc,grade:grade.label,bonusAmt:grade.amount,mbti:record.type,mbtiHistory:[record,...(emp.mbtiHistory||[])].slice(0,10)});}}/>}
@@ -2002,6 +1806,209 @@ function BonusConfig({bonusCfg,setBonusCfg}){
 
 // ── SETTINGS ─────────────────────────────────────────
 // ── EMERGENCY CONTACT MODAL ──────────────────────────
+function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
+  const {t,lang}=useLang();
+  const cr=CRIT[emp.role];const dc=DC[emp.role];
+  const ct=CRIT_T[lang]||CRIT_T.en;
+  const tn=k=>ct.items[k]||k;
+  const td=k=>ct.desc[k]||k;
+  const ts=k=>ct.sec[k]||k;
+  const tb=k=>ct.bonus[k]||k;
+  const tbd=k=>ct.bonusDesc[k]||k;
+  const canScore=user.role==="boss"||user.canScore||(user.canManage&&user.dept===emp.role)||(user.role==="manager"&&user.dept===emp.role);
+  const empUserId=emp.userId||null;
+  const init=()=>{
+    const s={};
+    cr.s.forEach(sec=>sec.i.forEach(it=>{
+      if(it.auto&&empUserId){s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??calcAutoScore(empUserId,vehicles,it.m);}
+      else{s[sec.n+"__"+it.n]=emp.scores?.[sec.n+"__"+it.n]??0;}
+    }));
+    BONUS_ITEMS.forEach(b=>{s["B__"+b.n]=emp.scores?.["B__"+b.n]??0;});
+    return s;
+  };
+  const [sc,setSc]=useState(init);
+  const set=(k,v)=>setSc(s=>({...s,[k]:v}));
+  const base=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+(sc[sec.n+"__"+it.n]||0),0),0);
+  const bon=Math.min(10,BONUS_ITEMS.reduce((a,b)=>a+(sc["B__"+b.n]||0),0));
+  const total=base+bon;
+  const mxBase=cr.s.reduce((a,sec)=>a+sec.i.reduce((b,it)=>b+it.m,0),0);
+  const grade=getGrade(total,cr.t,bonusCfg);
+  return(
+    <div style={{minHeight:"100vh",background:B.dark}}>
+      <div style={{background:"#0A0C10",borderBottom:`1px solid ${B.border}`,padding:"12px 16px",position:"sticky",top:0,zIndex:10}}>
+        <div style={{maxWidth:680,margin:"0 auto",display:"flex",alignItems:"center",gap:11}}>
+          <button onClick={onBack} style={{...S.btn(B.border,B.muted,{padding:"6px 12px"})}}>{t.backBtn}</button>
+          <Av src={emp.avatar} name={emp.name} dept={emp.role} size={34}/>
+          <div style={{flex:1}}><div style={{color:B.muted,fontSize:10,letterSpacing:2}}>{emp.role} - {emp.quarter}</div><div style={{color:B.text,fontSize:15,fontWeight:800}}>{emp.name}</div></div>
+          <div style={{textAlign:"right"}}><div style={{color:dc,fontSize:24,fontWeight:900,fontFamily:"'IBM Plex Mono',monospace"}}>{total}</div><div style={{color:B.muted,fontSize:10}}>/ {mxBase+10}</div></div>
+        </div>
+      </div>
+      <div style={{maxWidth:680,margin:"0 auto",padding:"15px 14px"}}>
+        <div style={{...S.card(),padding:"11px 15px",marginBottom:11,background:grade.color+"15",border:`1px solid ${grade.color}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><div style={{color:grade.color,fontWeight:800,fontSize:15}}>{grade.label}</div><div style={{color:B.muted,fontSize:10,marginTop:2}}>{t.threshold}: {cr.t}pts</div></div>
+          <div style={{background:grade.color,color:"#fff",borderRadius:9,padding:"5px 13px",fontWeight:900,fontSize:14}}>RM {grade.amount}</div>
+        </div>
+        {!canScore&&<div style={{...S.card(),padding:9,marginBottom:11,textAlign:"center",color:B.muted,fontSize:11}}>{t.viewOnly}</div>}
+        {cr.s.map(sec=>(
+          <div key={sec.n} style={{...S.card(),marginBottom:9,overflow:"hidden"}}>
+            <div style={{background:sec.c,padding:"7px 13px"}}><span style={{color:"#fff",fontWeight:700,fontSize:11}}>{ts(sec.n)}</span></div>
+            {sec.i.map(it=>(
+              <div key={it.n} style={{padding:"9px 13px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:9}}>
+                <div style={{flex:1}}>
+                  <div style={{color:B.text,fontWeight:700,fontSize:12}}>
+                    {tn(it.n)}
+                    {it.auto&&<span style={{background:"#D0021B22",color:B.red,fontSize:9,marginLeft:6,borderRadius:4,padding:"1px 5px"}}>{t.autoLabel}</span>}
+                  </div>
+                  <div style={{color:B.muted,fontSize:10,marginTop:1}}>{td(it.d)}</div>
+                </div>
+                <SI value={sc[sec.n+"__"+it.n]||0} max={it.m} onChange={v=>set(sec.n+"__"+it.n,v)} locked={!canScore}/>
+              </div>
+            ))}
+          </div>
+        ))}
+        <div style={{...S.card(),marginBottom:13,overflow:"hidden"}}>
+          <div style={{background:"#7D5A00",padding:"7px 13px",display:"flex",justifyContent:"space-between"}}>
+            <span style={{color:"#FFD700",fontWeight:700,fontSize:11}}>{t.bonusItems}</span>
+            <span style={{color:"#FFD700",fontWeight:800}}>+{bon}</span>
+          </div>
+          {BONUS_ITEMS.map(b=>(
+            <div key={b.n} style={{padding:"9px 13px",borderBottom:`1px solid ${B.border}`,display:"flex",alignItems:"center",gap:9}}>
+              <div style={{flex:1}}><div style={{color:B.text,fontWeight:700,fontSize:12}}>{tb(b.n)}</div><div style={{color:B.muted,fontSize:10}}>{tbd(b.d)}</div></div>
+              <SI value={sc["B__"+b.n]||0} max={b.m} onChange={v=>set("B__"+b.n,v)} locked={!canScore}/>
+            </div>
+          ))}
+        </div>
+        {canScore&&<button onClick={()=>onSave({...emp,scores:sc,total,grade:grade.label,bonusAmt:grade.amount})} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:13,boxShadow:`0 4px 18px ${B.red}44`})}}>{t.saveScore}</button>}
+      </div>
+    </div>
+  );
+}
+
+// ── BONUS CONFIG ─────────────────────────────────────
+function MBTITest({emp,mode,isBoss,onClose,onSave}){
+  const {lang}=useLang();
+  const getLang=()=>lang==="en"?"en":"zh";
+  const getQ=(q)=>{
+    if(typeof q==="object"&&q.zh)return getLang()==="en"?(q.en||q.zh):q.zh;
+    if(typeof q==="object"&&"i" in q)return MBTI_Q_FULL_ZH[q.i]||"";
+    return q||"";
+  };
+  const questions=mode==="full"?MBTI_Q_FULL:MBTI_Q_SHORT;
+  const minRequired=mode==="full"?70:15;
+  const [step,setStep]=useState(0);
+  const [answers,setAnswers]=useState({});
+  const [result,setResult]=useState(null);
+  const startTime=useRef(Date.now());
+  const answerTimes=useRef([]);
+
+  const recordAnswer=(i,v)=>{
+    const now=Date.now();
+    answerTimes.current[i]={v,t:now};
+    setAnswers(a=>({...a,[i]:v}));
+    if(i<questions.length-1)setTimeout(()=>setStep(s=>Math.min(s+1,questions.length-1)),200);
+  };
+
+  const submit=()=>{
+    const totalMs=Date.now()-startTime.current;
+    const totalSec=Math.round(totalMs/1000);
+    const mins=Math.floor(totalSec/60),secs=totalSec%60;
+    const timeStr=mins>0?`${mins}分${secs}秒`:`${secs}秒`;
+    const{type,scores,pcts}=calcMBTIResult(answers,questions);
+    setResult({type,scores,pcts,timeStr});
+  };
+
+  const save=()=>{
+    onSave({type:result.type,pcts:result.pcts,mode,date:new Date().toLocaleDateString("zh-CN"),time:new Date().toLocaleString(),duration:result.timeStr});
+    onClose();
+  };
+
+  const q=questions[Math.min(step,questions.length-1)]||{q:""};
+  const answered=Object.keys(answers).length;
+  const info=result?MBTI_DETAIL[result.type]:null;
+
+  if(result&&info)return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{...S.card(),padding:24,maxWidth:380,width:"100%",textAlign:"center",overflowY:"auto",maxHeight:"90vh"}}>
+        <div style={{fontSize:56,marginBottom:10}}>{info.emoji}</div>
+        <div style={{color:info.color||B.red,fontSize:36,fontWeight:900,letterSpacing:4,marginBottom:4}}>{result.type}</div>
+        <div style={{color:B.text,fontSize:18,fontWeight:800,marginBottom:6}}>{info.name}</div>
+        <div style={{color:B.muted,fontSize:12,lineHeight:1.6,marginBottom:10}}>{info.desc}</div>
+        <div style={{...S.card(),padding:"8px 14px",marginBottom:12,display:"flex",justifyContent:"space-between"}}>
+          <span style={{color:B.muted,fontSize:11}}>⏱️ 作答时间</span>
+          <span style={{color:B.text,fontWeight:700,fontSize:12}}>{result.timeStr}</span>
+        </div>
+        <div style={{marginBottom:16}}>
+          {[["E/I",result.pcts.EI,"E","I"],["N/S",result.pcts.SN,"N","S"],["T/F",result.pcts.TF,"T","F"],["J/P",result.pcts.JP,"J","P"]].map(([l,p,a,b])=>(
+            <div key={l} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
+              <span style={{color:B.muted,fontSize:9,width:28}}>{a} {p}%</span>
+              <div style={{flex:1,background:B.border,borderRadius:99,height:6,overflow:"hidden"}}>
+                <div style={{width:p+"%",height:"100%",background:info.color||B.red,borderRadius:99}}/>
+              </div>
+              <span style={{color:B.muted,fontSize:9,width:28,textAlign:"right"}}>{100-p}% {b}</span>
+            </div>
+          ))}
+        </div>
+        <button onClick={save} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:14,marginBottom:8})}}>💾 保存结果</button>
+        <button onClick={()=>setResult(null)} style={{...S.btn(B.border,B.muted,{width:"100%",padding:10,fontSize:12})}}>重新测试</button>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:300,overflowY:"auto",padding:16}}>
+      <div style={{...S.card(),padding:20,maxWidth:420,margin:"0 auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div>
+            <div style={{color:B.text,fontWeight:800,fontSize:15}}>🧠 MBTI 人格测试</div>
+            <div style={{color:B.muted,fontSize:10}}>{mode==="full"?"精准版 93题":"简约版 20题"}</div>
+          </div>
+          <button onClick={onClose} style={{...S.btn(B.border,B.muted,{fontSize:11,padding:"4px 10px"})}}>✕</button>
+        </div>
+        <div style={{marginBottom:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+            <span style={{color:B.muted,fontSize:10}}>{step+1} / {questions.length}</span>
+            <span style={{color:B.muted,fontSize:10}}>已答 {answered}题</span>
+          </div>
+          <div style={{background:B.border,borderRadius:99,height:5,overflow:"hidden"}}>
+            <div style={{width:`${((step+1)/questions.length)*100}%`,height:"100%",background:B.red,borderRadius:99,transition:"width .3s"}}/>
+          </div>
+        </div>
+        <div style={{...S.card(),padding:16,marginBottom:16,minHeight:72,display:"flex",alignItems:"center"}}>
+          <div style={{color:B.text,fontSize:14,lineHeight:1.7,textAlign:"center",width:"100%"}}>{getQ(q.q||q)}</div>
+        </div>
+        <div style={{marginBottom:18}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+            <span style={{color:B.muted,fontSize:10}}>完全不同意</span>
+            <span style={{color:B.muted,fontSize:10}}>完全同意</span>
+          </div>
+          <div style={{display:"flex",gap:6,justifyContent:"center"}}>
+            {[1,2,3,4,5].map(v=>(
+              <button key={v} onClick={()=>recordAnswer(step,v)}
+                style={{width:56,height:56,borderRadius:10,border:`2px solid ${answers[step]===v?B.red:B.border}`,
+                  background:answers[step]===v?`${B.red}33`:"transparent",
+                  color:answers[step]===v?B.red:B.muted,fontSize:20,cursor:"pointer",transition:"all .15s",touchAction:"manipulation"}}>
+                {v===1?"😤":v===2?"🙁":v===3?"😐":v===4?"🙂":"😄"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{display:"flex",gap:8,marginBottom:10}}>
+          <button onClick={()=>step>0&&setStep(s=>s-1)} disabled={step===0}
+            style={{...S.btn(B.border,B.muted,{flex:1,opacity:step===0?0.3:1})}}>← 上一题</button>
+          {step<questions.length-1
+            ?<button onClick={()=>setStep(s=>s+1)} style={{...S.btn(B.border,B.text,{flex:1})}}>下一题 →</button>
+            :<button onClick={submit} disabled={answered<minRequired}
+              style={{...S.btn(answered>=minRequired?B.red:B.border,answered>=minRequired?"#fff":B.muted,{flex:2,opacity:answered<minRequired?0.5:1})}}>
+              {answered>=minRequired?"🧠 查看结果":`还需答 ${minRequired-answered} 题`}
+            </button>
+          }
+        </div>
+        <div style={{color:B.muted,fontSize:10,textAlign:"center"}}>至少答{minRequired}题才能查看结果</div>
+      </div>
+    </div>
+  );
+}
+
 function EmergencyModal({u,onClose,onSave}){
   const [form,setForm]=useState(u.emergency||{name:"",phone:"",relation:""});
   return(
@@ -2035,8 +2042,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
   const [showAdd,setShowAdd]=useState(false);
   const [showMBTIFor,setShowMBTIFor]=useState(null);
   const [mbtiMode,setMbtiMode]=useState(null); // 'short' | 'full'
-  const [mbtiDetail,setMbtiDetail]=useState(null);
-  const [showEmergencyFor,setShowEmergencyFor]=useState(null);
+    const [showEmergencyFor,setShowEmergencyFor]=useState(null);
   const [aiCheckingRecord,setAiCheckingRecord]=useState(null);
   const [aiCheckResults,setAiCheckResults]=useState({});
   const [nu,setNu]=useState({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});
@@ -2083,8 +2089,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
 
   return(
     <div>
-      {mbtiDetail&&<MBTIResultDetail record={mbtiDetail} onClose={()=>setMbtiDetail(null)}/>}
-      {showMBTIFor&&mbtiMode&&<MBTITest emp={showMBTIFor} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTIFor(null);setMbtiMode(null);}} onSave={(record)=>{
+            {showMBTIFor&&mbtiMode&&<MBTITest emp={showMBTIFor} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTIFor(null);setMbtiMode(null);}} onSave={(record)=>{
         const upd=users.map(u=>u.id===showMBTIFor.id?{...u,mbti:record.type,mbtiHistory:[record,...(u.mbtiHistory||[])].slice(0,10)}:u);
         setUsers(upd);api.save("users",upd);
         const empUpd=employees.map(e=>e.name===showMBTIFor.name?{...e,mbti:record.type,mbtiHistory:[record,...(e.mbtiHistory||[])].slice(0,10)}:e);
@@ -2113,7 +2118,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
               return(
                 <div key={i} style={{...S.card(),padding:"10px 12px",marginBottom:8}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:verdict?8:0}}>
-                    <div onClick={()=>setMbtiDetail(r)} style={{flex:1,cursor:"pointer"}}>
+                    <div style={{flex:1}}>
                       <span style={{color:"#9B59B6",fontWeight:900,fontSize:14}}>{r.type}</span>
                       <span style={{color:B.muted,fontSize:10,marginLeft:8}}>{r.mode==="full"?"精准":"简约"} · {r.date} · {r.duration||""}</span>
                       {r.sincere===true&&<span style={{marginLeft:6,fontSize:10}}>✅</span>}
