@@ -1694,7 +1694,7 @@ function calcMBTIResult(answers,questions){
   return{type,scores,pcts};
 }
 
-function MBTIResultDetail({record,onClose}){
+function MBTIResultDetail({record,onClose,empName}){
   const info=MBTI_DETAIL[record.type]||{name:record.type,emoji:"🧠",color:B.red,desc:"",strengths:[],weaknesses:[],career:[],famous:[]};
   const pcts=record.pcts||{EI:50,SN:50,TF:50,JP:50};
   return(
@@ -1703,6 +1703,7 @@ function MBTIResultDetail({record,onClose}){
         <button onClick={onClose} style={{...S.btn(B.border,B.muted,{fontSize:12,marginBottom:14})}}>← 返回</button>
         <div style={{textAlign:"center",marginBottom:20}}>
           <div style={{fontSize:64,marginBottom:8}}>{info.emoji}</div>
+          {empName&&<div style={{color:B.muted,fontSize:13,marginBottom:6}}>👤 {empName}</div>}
           <div style={{color:info.color,fontSize:36,fontWeight:900,letterSpacing:4,marginBottom:4}}>{record.type}</div>
           <div style={{color:B.text,fontSize:20,fontWeight:800,marginBottom:6}}>{info.name}</div>
           <div style={{color:B.muted,fontSize:11}}>{record.mode==="full"?"精准版 93题":"简约版 20题"} · {record.date}</div>
@@ -1919,7 +1920,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
             <button onClick={()=>setShowMBTI(false)} style={{...S.btn(B.border,B.muted,{width:"100%"})}}>取消</button>
           </div>
         </div>}
-        {mbtiDetail&&<MBTIResultDetail record={mbtiDetail} onClose={()=>setMbtiDetail(null)}/>}
+        {mbtiDetail&&<MBTIResultDetail record={mbtiDetail} empName={emp.name} onClose={()=>setMbtiDetail(null)}/>}
         {canScore&&<button onClick={()=>onSave({...emp,scores:sc,total,grade:grade.label,bonusAmt:grade.amount})} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:13,boxShadow:`0 4px 18px ${B.red}44`})}}>{t.saveScore}</button>}
       </div>
     </div>
@@ -2138,7 +2139,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
 
   return(
     <div>
-            {mbtiDetailView&&<MBTIResultDetail record={mbtiDetailView} onClose={()=>setMbtiDetailView(null)}/>}
+            {mbtiDetailView&&<MBTIResultDetail record={mbtiDetailView} empName={showMBTIFor?.name} onClose={()=>setMbtiDetailView(null)}/>}
       {showMBTIFor&&mbtiMode&&<MBTITest emp={showMBTIFor} mode={mbtiMode} isBoss={user.role==="boss"} onClose={()=>{setShowMBTIFor(null);setMbtiMode(null);}} onSave={(record)=>{
         const upd=users.map(u=>u.id===showMBTIFor.id?{...u,mbti:record.type,mbtiHistory:[record,...(u.mbtiHistory||[])].slice(0,10)}:u);
         setUsers(upd);api.save("users",upd);
