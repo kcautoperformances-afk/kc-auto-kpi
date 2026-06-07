@@ -16,7 +16,7 @@ app.use(express.json({limit:"10mb"}));
 app.use(express.static(__dirname));
 if(!fs.existsSync(path.join(__dirname,"data")))fs.mkdirSync(path.join(__dirname,"data"));
 const F=path.join(__dirname,"data","kc_data.json");
-const DEF={users:[{id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,canViewAll:true,canScore:true,avatar:null}],employees:[],vehicles:[],logoUrl:null,bonusConfig:null,feedbacks:[],attendance:{},gameLogs:[],appointments:[],revenueData:{}};
+const DEF={users:[{id:"boss",name:"Boss KC",role:"boss",pin:"0000",dept:null,canManage:true,canViewAll:true,canScore:true,avatar:null}],employees:[],vehicles:[],logoUrl:null,bonusConfig:null,feedbacks:[],attendance:{},gameLogs:[],appointments:[]};
 if(!fs.existsSync(F))fs.writeFileSync(F,JSON.stringify(DEF),"utf8");
 const R=()=>JSON.parse(fs.readFileSync(F,"utf8"));
 const W=(d)=>fs.writeFileSync(F,JSON.stringify(d,null,2),"utf8");
@@ -30,7 +30,6 @@ app.post("/api/feedbacks",(q,r)=>{try{const d=R();d.feedbacks=q.body;W(d);r.json
 app.post("/api/attendance",(q,r)=>{try{const d=R();d.attendance=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/gameLogs",(q,r)=>{try{const d=R();d.gameLogs=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/appointments",(q,r)=>{try{const d=R();d.appointments=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
-app.post("/api/revenueData",(q,r)=>{try{const d=R();d.revenueData=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 
 // 🔧 EMERGENCY FIX: Clear corrupted MBTI data
 app.get("/api/fix-mbti",(q,r)=>{try{const d=R();let fixed=0;if(d.employees){d.employees=d.employees.map(e=>{if(e.mbti||e.mbtiResult||e.mbtiAnswers||e.mbtiData){delete e.mbti;delete e.mbtiResult;delete e.mbtiAnswers;delete e.mbtiData;fixed++;}return e;});}if(d.users){d.users=d.users.map(u=>{if(u.mbti||u.mbtiResult||u.mbtiAnswers||u.mbtiData){delete u.mbti;delete u.mbtiResult;delete u.mbtiAnswers;delete u.mbtiData;fixed++;}return u;});}W(d);r.json({ok:true,fixed,msg:`Cleared MBTI data from ${fixed} records`});}catch(e){r.status(500).json({error:e.message})}});
