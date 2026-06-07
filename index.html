@@ -2374,7 +2374,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                   </div>
                 </div>
               ):(
-                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false,canViewAll:u.canViewAll||false,canScore:u.canScore||false,canResetPin:u.canResetPin||false,canAttendance:u.canAttendance||false,canVehicle:u.canVehicle||false,canPerformance:u.canPerformance||false});}}
+                <div onClick={()=>{setEditing(u.id);setEv({name:u.name,pin:u.pin,dept:u.dept||"",role:u.role,canManage:u.canManage||false,canViewAll:u.canViewAll||false,canScore:u.canScore||false,canResetPin:u.canResetPin||false,canAttendance:u.canAttendance||false,canVehicle:u.canVehicle||false,canPerformance:u.canPerformance||false,canViewMBTI:u.canViewMBTI||false,canViewEmergency:u.canViewEmergency||false,canRevenue:u.canRevenue||false,canEditRevenue:u.canEditRevenue||false});}}
                   style={{...S.card(),padding:10,cursor:"pointer",display:"flex",alignItems:"center",gap:9,transition:"border .2s"}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor=B.red} onMouseLeave={e=>e.currentTarget.style.borderColor=B.border}>
                   <Av src={u.avatar} name={u.name} dept={u.dept} size={38}/>
