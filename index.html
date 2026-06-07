@@ -2275,6 +2275,14 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
             <input type="checkbox" checked={nu.canPerformance||false} onChange={e=>setNu(p=>({...p,canPerformance:e.target.checked}))}/>
             <span style={{color:B.text,fontSize:11}}>📊 可以查看 Staff Performance</span>
           </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canRevenue||false} onChange={e=>setNu(p=>({...p,canRevenue:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>💰 可以查看业绩页面</span>
+          </label>
+          <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+            <input type="checkbox" checked={nu.canEditRevenue||false} onChange={e=>setNu(p=>({...p,canEditRevenue:e.target.checked}))}/>
+            <span style={{color:B.text,fontSize:11}}>✏️ 可以录入业绩数据</span>
+          </label>
           <div style={{display:"flex",gap:7}}>
             <button onClick={addUser} style={{...S.btn(B.red)}}>{t.add}</button>
             <button onClick={()=>setShowAdd(false)} style={{...S.btn(B.border,B.muted)}}>{t.cancel}</button>
@@ -2333,6 +2341,14 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
                   {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
                     <input type="checkbox" checked={ev.canViewEmergency||false} onChange={e=>setEv(v=>({...v,canViewEmergency:e.target.checked}))}/>
                     <span style={{color:B.text,fontSize:11}}>‼️ 可以查看所有人紧急联络人</span>
+                  </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canRevenue||false} onChange={e=>setEv(v=>({...v,canRevenue:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>💰 可以查看业绩页面</span>
+                  </label>}
+                  {ev.role!=="boss"&&user.role==="boss"&&<label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer",marginBottom:9}}>
+                    <input type="checkbox" checked={ev.canEditRevenue||false} onChange={e=>setEv(v=>({...v,canEditRevenue:e.target.checked}))}/>
+                    <span style={{color:B.text,fontSize:11}}>✏️ 可以录入业绩数据</span>
                   </label>}
                   <div style={{display:"flex",gap:7}}>
                     <button onClick={saveEdit} style={{...S.btn(B.red,{fontSize:12})}}>{saving?t.saving:t.save}</button>
@@ -3717,6 +3733,7 @@ function MemoryGame({user,onExit}){
 function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,gameLogs,setGameLogs,appointments,setAppointments,onLogout}){
   const {lang,t,setLang}=useLang();
   const [tab,setTab]=useState("kpi");
+  const [revenueData,setRevenueData]=useState({});
   const [sel,setSel]=useState(null);
   const [quarter,setQuarter]=useState("Q2 2026");
   const [kpiMonth,setKpiMonth]=useState("all");
@@ -3731,6 +3748,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
   const canVehicle=isBoss||user.role==="manager"||isTechHead||user.canVehicle;
   const canResetPin=isBoss||user.canResetPin;
   const canPerformance=isBoss||user.role==="manager"||user.canPerformance;
+  const canRevenue=isBoss||user.canRevenue;
   const MONTHS=["1","2","3","4","5","6","7","8","9","10","11","12"];
   const MONTH_NAMES={"1":t.jan,"2":t.feb,"3":t.mar,"4":t.apr,"5":t.may,"6":t.jun,"7":t.jul,"8":t.aug,"9":t.sep,"10":t.oct,"11":t.nov,"12":t.dec};
   const monthLabel=kpiMonth==="all"?null:`${MONTH_NAMES[kpiMonth]||kpiMonth} ${quarter.split(" ")[1]}`;
@@ -3771,6 +3789,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     ["games","🎮"],
     ["appointments","📅"],
     ...(canAttendance?[["attendance",t.attendance]]:[]),
+    ...(canRevenue?[["revenue","💰"]]:[]),
     ...(canManage?[["history",t.history],["settings",t.settings]]:[]),
   ];
 
@@ -3846,8 +3865,8 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:20,background:"#0A0C10",borderTop:`1px solid ${editingTabs?B.red:B.border}`,padding:"6px 4px 8px"}}>
         <div style={{display:"flex",justifyContent:"space-around",maxWidth:920,margin:"0 auto"}}>
           {orderedTabs.map(([tabKey,l],idx)=>{
-            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",appointments:"📅",attendance:"📋",history:"🕐",settings:"⚙️"};
-            const labels={kpi:"KPI",vehicle:t.vehicles,mystats:"我的",performance:t.ranking,feedback:t.feedback,games:"Games",appointments:t.appointments,attendance:t.attendance,history:t.history,settings:t.settings};
+            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",appointments:"📅",attendance:"📋",history:"🕐",settings:"⚙️",revenue:"💰"};
+            const labels={kpi:"KPI",vehicle:t.vehicles,mystats:"我的",performance:t.ranking,feedback:t.feedback,games:"Games",appointments:t.appointments,attendance:t.attendance,history:t.history,settings:t.settings,revenue:"业绩"};
             const active=tab===tabKey;
             return(
               <button key={tabKey} onClick={()=>setTab(tabKey)}
@@ -3868,8 +3887,8 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
           <div style={{color:B.text,fontWeight:800,fontSize:15,marginBottom:4}}>🔧 调整导航栏顺序</div>
           <div style={{color:B.muted,fontSize:11,marginBottom:14}}>用 ↑ ↓ 按钮移动位置</div>
           {orderedTabs.map(([tabKey,l],idx)=>{
-            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",appointments:"📅",attendance:"📋",history:"🕐",settings:"⚙️"};
-            const labels={kpi:"KPI",vehicle:t.vehicles,mystats:"我的",performance:t.ranking,feedback:t.feedback,games:"Games",appointments:t.appointments,attendance:t.attendance,history:t.history,settings:t.settings};
+            const icons={kpi:"📊",vehicle:"🚗",mystats:"📈",performance:"🏆",feedback:"💬",games:"🎮",appointments:"📅",attendance:"📋",history:"🕐",settings:"⚙️",revenue:"💰"};
+            const labels={kpi:"KPI",vehicle:t.vehicles,mystats:"我的",performance:t.ranking,feedback:t.feedback,games:"Games",appointments:t.appointments,attendance:t.attendance,history:t.history,settings:t.settings,revenue:"业绩"};
             return(
               <div key={tabKey} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",background:B.card2,borderRadius:9,marginBottom:6,border:`1px solid ${B.border}`}}>
                 <span style={{fontSize:20}}>{icons[tabKey]||"•"}</span>
@@ -3897,6 +3916,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
         {tab==="appointments"&&<AppointmentsPage user={user} appointments={appointments} setAppointments={setAppointments} users={users} isBoss={isBoss} vehicles={vehicles} setVehicles={setVehicles} setTab={setTab}/>}
         {tab==="performance"&&canPerformance&&<StaffPerformance users={users} vehicles={vehicles}/>}
         {tab==="attendance"&&canAttendance&&<AttendanceTracker employees={employees} attendance={attendance} setAttendance={setAttendance} quarter={quarter}/>}
+        {tab==="revenue"&&canRevenue&&<RevenuePage user={user} revenueData={revenueData} setRevenueData={setRevenueData} isBoss={isBoss}/>}
         {tab==="history"&&canManage&&<QuarterHistory employees={employees} bonusCfg={bonusCfg}/>}
         {tab==="settings"&&canManage&&<SettingsPage user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl} bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} employees={employees} setEmployees={setEmployees}/>}
         {tab==="kpi"&&<>
@@ -4315,6 +4335,127 @@ async function verifyBiometric(userId){
   }catch(e){console.log("Biometric verify failed:",e);return false;}
 }
 
+function RevenuePage({user,revenueData,setRevenueData,isBoss}){
+  const {t}=React.useContext(LangContext);
+  const canEdit=isBoss||user.canEditRevenue;
+  const today=new Date().toISOString().slice(0,10);
+  const [selDate,setSelDate]=React.useState(today);
+  const [inputVal,setInputVal]=React.useState("");
+  const [saving,setSaving]=React.useState(false);
+
+  const MILESTONES=[
+    {min:40000,label:"一天四万 家财万贯 💰",color:"#FFD700",reward:"RM400 饭钱"},
+    {min:30000,label:"一天三万 老板请吃麦当当 🍔",color:"#E74C3C",reward:"RM300 饭钱"},
+    {min:20000,label:"一天两万 老板请吃鸡饭 🍗",color:"#2ECC71",reward:"RM150 饭钱"},
+    {min:10000,label:"一天一万 家常便饭 🍱",color:"#3498DB",reward:""},
+  ];
+
+  const getMilestone=(amt)=>{
+    if(!amt&&amt!==0)return null;
+    for(const m of MILESTONES){if(amt>=m.min)return m;}
+    return null;
+  };
+
+  const todayAmt=revenueData[today]??null;
+  const selAmt=revenueData[selDate]??null;
+  const todayMS=getMilestone(todayAmt);
+
+  const saveRevenue=async()=>{
+    const val=parseFloat(inputVal.replace(/,/g,""));
+    if(isNaN(val)||val<0)return alert("请输入有效金额");
+    setSaving(true);
+    const upd={...revenueData,[selDate]:val};
+    setRevenueData(upd);
+    await api.save("revenueData",upd);
+    setSaving(false);
+    setInputVal("");
+  };
+
+  // sorted history newest first
+  const history=Object.entries(revenueData).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,30);
+
+  return(
+    <div style={{padding:"14px 14px 90px"}}>
+      <div style={{fontWeight:800,fontSize:18,color:B.text,marginBottom:14}}>💰 业绩追踪</div>
+
+      {/* Today highlight */}
+      <div style={{background:todayMS?`linear-gradient(135deg,${todayMS.color}22,${B.card2})`:`linear-gradient(135deg,#1a1a2e,${B.card2})`,border:`1.5px solid ${todayMS?todayMS.color:B.border}`,borderRadius:16,padding:"18px 18px 14px",marginBottom:14}}>
+        <div style={{fontSize:11,color:B.muted,marginBottom:4}}>今日业绩 ({today})</div>
+        {todayAmt!==null
+          ?<>
+            <div style={{fontSize:36,fontWeight:900,color:todayMS?todayMS.color:B.text,letterSpacing:-1}}>RM {todayAmt.toLocaleString()}</div>
+            {todayMS
+              ?<div style={{marginTop:8}}>
+                <span style={{background:todayMS.color,color:"#000",borderRadius:20,padding:"3px 12px",fontSize:12,fontWeight:700}}>{todayMS.label}</span>
+                {todayMS.reward&&<span style={{marginLeft:8,color:todayMS.color,fontSize:12,fontWeight:600}}>{todayMS.reward}</span>}
+              </div>
+              :<div style={{color:B.muted,fontSize:13,marginTop:6}}>还差 RM {(10000-todayAmt).toLocaleString()} 到一万 💪</div>
+            }
+            {todayMS&&todayMS.min<40000&&(()=>{
+              const next=MILESTONES[MILESTONES.indexOf(todayMS)-1];
+              return next?<div style={{color:B.muted,fontSize:12,marginTop:5}}>再加 RM {(next.min-todayAmt).toLocaleString()} 就达到 {next.label}</div>:null;
+            })()}
+          </>
+          :<div style={{color:B.muted,fontSize:15,marginTop:4}}>今日未录入业绩</div>
+        }
+      </div>
+
+      {/* Milestone reference */}
+      <div style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:12,padding:"12px 14px",marginBottom:14}}>
+        <div style={{fontSize:11,color:B.muted,marginBottom:10,fontWeight:600}}>🎯 激励级别</div>
+        {MILESTONES.slice().reverse().map(m=>{
+          const reached=todayAmt!==null&&todayAmt>=m.min;
+          return(
+            <div key={m.min} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <div style={{width:10,height:10,borderRadius:"50%",background:reached?m.color:B.border,flexShrink:0}}/>
+              <div style={{flex:1,color:reached?m.color:B.muted,fontSize:13,fontWeight:reached?700:400}}>{m.label}</div>
+              {m.reward&&<div style={{color:reached?m.color:B.muted,fontSize:12,fontWeight:600}}>{m.reward}</div>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Input section - only for boss/canEditRevenue */}
+      {canEdit&&(
+        <div style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:12,padding:"12px 14px",marginBottom:14}}>
+          <div style={{fontSize:11,color:B.muted,marginBottom:10,fontWeight:600}}>📝 录入业绩</div>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <input type="date" value={selDate} onChange={e=>setSelDate(e.target.value)}
+              style={{flex:1,background:B.card2,border:`1px solid ${B.border}`,borderRadius:8,padding:"8px 10px",color:B.text,fontSize:13}}/>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <input type="number" placeholder={selAmt!==null?`现有: RM ${selAmt.toLocaleString()}`:"输入金额 (e.g. 25000)"}
+              value={inputVal} onChange={e=>setInputVal(e.target.value)}
+              style={{flex:1,background:B.card2,border:`1px solid ${B.border}`,borderRadius:8,padding:"8px 10px",color:B.text,fontSize:13}}/>
+            <button onClick={saveRevenue} style={{...S.btn(B.red,"#fff",{padding:"8px 16px",fontSize:13})}}>
+              {saving?"保存中...":"保存"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* History */}
+      <div style={{background:B.card,border:`1px solid ${B.border}`,borderRadius:12,padding:"12px 14px"}}>
+        <div style={{fontSize:11,color:B.muted,marginBottom:10,fontWeight:600}}>📅 历史记录</div>
+        {history.length===0
+          ?<div style={{color:B.muted,fontSize:13,textAlign:"center",padding:"20px 0"}}>暂无记录</div>
+          :history.map(([date,amt])=>{
+            const ms=getMilestone(amt);
+            return(
+              <div key={date} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${B.border}`}}>
+                <div style={{color:B.muted,fontSize:12,width:90,flexShrink:0}}>{date}</div>
+                <div style={{fontWeight:700,color:ms?ms.color:B.text,fontSize:14,flex:1}}>RM {amt.toLocaleString()}</div>
+                {ms&&<span style={{background:ms.color+"33",color:ms.color,borderRadius:10,padding:"2px 8px",fontSize:10,fontWeight:600}}>{ms.label.split(" ").slice(0,3).join(" ")}</span>}
+              </div>
+            );
+          })
+        }
+      </div>
+    </div>
+  );
+}
+
+
 function Login({users,logoUrl,onLogin,lang,setLang}){
   const [sel,setSel]=useState(null);
   const [pwd,setPwd]=useState("");
@@ -4482,6 +4623,7 @@ function App(){
       setAttendance(d.attendance||{});
       setGameLogs(d.gameLogs||[]);
       setAppointments(d.appointments||[]);
+      setRevenueData(d.revenueData||{});
       setReady(true);
     }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
   },[]);
