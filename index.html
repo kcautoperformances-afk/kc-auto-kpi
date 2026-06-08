@@ -2151,7 +2151,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
     alert(`✅ ${name} 密码已重置`);
   };
   const delUser=async id=>{if(!confirm(t.confirmDelete))return;const target=users.find(u=>u.id===id);const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);if(target){const empUpd=employees.filter(e=>e.name!==target.name);setEmployees(empUpd);await api.save("employees",empUpd);}};
-  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});};
+  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);await new Promise(r=>setTimeout(r,300));if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});};
 
   return(
     <div>
