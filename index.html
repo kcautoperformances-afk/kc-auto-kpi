@@ -3941,9 +3941,11 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
               {["Q1 2025","Q2 2025","Q3 2025","Q4 2025","Q1 2026","Q2 2026","Q3 2026","Q4 2026"].map(q=><option key={q}>{q}</option>)}
             </select>
             {canManage&&<div style={{display:"flex",gap:6}}>
-              <button onClick={()=>{
+              <button onClick={async()=>{
                 let synced=0;
-                const updUsers=users.map(u=>{
+                const freshData=await api.load();
+                const baseUsers=freshData&&freshData.users?freshData.users:users;
+                const updUsers=baseUsers.map(u=>{
                   const emp=employees.find(e=>e.name===u.name||e.userId===u.id);
                   if(emp&&emp.mbti){synced++;return{...u,mbti:emp.mbti,mbtiHistory:emp.mbtiHistory||[]};}
                   return u;
