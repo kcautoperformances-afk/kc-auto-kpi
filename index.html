@@ -2141,7 +2141,7 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
   };
 
   const uploadAv=(uid,file)=>{const r=new FileReader();r.onload=()=>{const upd=users.map(u=>u.id===uid?{...u,avatar:r.result}:u);setUsers(upd);api.save("users",upd);};r.readAsDataURL(file);};
-  const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,...ev,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);setSaving(false);setEditing(null);};
+  const saveEdit=async()=>{setSaving(true);const upd=users.map(u=>u.id===editing?{...u,...ev,dept:ev.dept||null}:u);setUsers(upd);await api.save("users",upd);const fresh=await api.load();if(fresh&&fresh.users)setUsers(fresh.users);setSaving(false);setEditing(null);};
   const resetPwd=async(uid,name)=>{
     const upd_user=users.find(u=>u.id===uid);
     const newPwd=prompt(`重置 ${name} 的密码为：`);
