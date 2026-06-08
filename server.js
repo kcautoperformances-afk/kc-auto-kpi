@@ -23,7 +23,7 @@ if(!fs.existsSync(F))fs.writeFileSync(F,JSON.stringify(DEF),"utf8");
 const R=()=>JSON.parse(fs.readFileSync(F,"utf8"));
 const W=(d)=>fs.writeFileSync(F,JSON.stringify(d,null,2),"utf8");
 app.get("/api/data",(q,r)=>{try{r.json(R())}catch(e){r.json(DEF)}});
-app.post("/api/users",(q,r)=>{try{const d=R();d.users=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
+app.post("/api/users",(q,r)=>{try{const d=R();const incoming=q.body;const PERM_FIELDS=["canViewMBTI","canViewEmergency","canRevenue","canEditRevenue","canManage","canViewAll","canScore","canResetPin","canAttendance","canVehicle","canPerformance"];d.users=incoming.map(nu=>{const existing=d.users?d.users.find(u=>u.id===nu.id):null;if(!existing)return nu;const merged={...nu};PERM_FIELDS.forEach(f=>{if(existing[f]===true&&nu[f]!==true)merged[f]=existing[f];});return merged;});W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/employees",(q,r)=>{try{const d=R();d.employees=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/vehicles",(q,r)=>{try{const d=R();d.vehicles=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/logo",(q,r)=>{try{const d=R();d.logoUrl=q.body.logoUrl;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
@@ -55,7 +55,6 @@ app.post("/api/ai",(q,r)=>{
   req.on("error",e=>r.status(500).json({error:e.message}));
   req.write(body);req.end();
 });
-app.get("/api/fix-permissions",(q,r)=>{try{const d=R();let fixed=0;d.users=d.users.map(u=>{let changed=false;if(u.canViewMBTI===undefined||u.canViewMBTI===null){u.canViewMBTI=false;changed=true;}if(u.canViewEmergency===undefined||u.canViewEmergency===null){u.canViewEmergency=false;changed=true;}if(u.canRevenue===undefined||u.canRevenue===null){u.canRevenue=false;changed=true;}if(u.canEditRevenue===undefined||u.canEditRevenue===null){u.canEditRevenue=false;changed=true;}if(changed)fixed++;return u;});W(d);r.json({ok:true,fixed,msg:"Fixed "+fixed+" users"});}catch(e){r.status(500).json({error:e.message})}});
 app.get("*",(q,r)=>{
   const built=path.join(__dirname,"index.built.html");
   const fallback=path.join(__dirname,"index.html");
