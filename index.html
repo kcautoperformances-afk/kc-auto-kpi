@@ -650,19 +650,7 @@ function LangSwitcher({lang,setLang}){
 // ── HELPERS ─────────────────────────────────────────
 const api={
   load:()=>fetch("/api/data").then(r=>r.json()),
-  save:async(k,b)=>{
-    const r=await fetch("/api/"+k,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(b)
-    });
-    if(!r.ok){
-      const txt=await r.text();
-      alert("保存失败: "+k+" "+txt);
-      throw new Error(txt);
-    }
-    return r.json();
-  }
+  save:(k,b)=>fetch("/api/"+k,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}),
 };
 const toMin=t=>{if(!t||!t.includes(":"))return null;const[h,m]=t.split(":").map(Number);return h*60+m;};
 const calcOT=r=>{
