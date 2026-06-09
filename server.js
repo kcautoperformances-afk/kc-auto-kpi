@@ -59,6 +59,7 @@ app.get("*",(q,r)=>{
   const built=path.join(__dirname,"index.built.html");
   const fallback=path.join(__dirname,"index.html");
   const f=fs.existsSync(built)?built:fallback;
-  try{const d=R();let html=fs.readFileSync(f,"utf8");const uj=JSON.stringify(d.users||[]);html=html.replace("</head>",'<script>window.__INIT_USERS__='+uj+';</script></head>');r.send(html);}catch(e){r.sendFile(f);}
+  try{const d=R();let html=fs.readFileSync(f,"utf8");const uj=JSON.stringify(d.users||[]);html=html.replace('<script','<script>window.__INIT_USERS__='+uj+';</script><script');r.send(html);}catch(e){r.sendFile(f);}
+
 });
 app.listen(PORT,()=>console.log("KC KPI on port "+PORT));
