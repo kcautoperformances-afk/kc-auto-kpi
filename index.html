@@ -2147,11 +2147,11 @@ function SettingsPage({user,users,setUsers,logoUrl,setLogoUrl,bonusCfg,setBonusC
     const newPwd=prompt(`重置 ${name} 的密码为：`);
     if(!newPwd||newPwd.length<4){alert("密码至少4位");return;}
     const upd=users.map(u=>u.id===uid?{...u,pin:newPwd}:u);
-    setUsers(upd);await api.save("users",upd);
+    setUsers(upd);
     alert(`✅ ${name} 密码已重置`);
   };
   const delUser=async id=>{if(!confirm(t.confirmDelete))return;const target=users.find(u=>u.id===id);const upd=users.filter(u=>u.id!==id);setUsers(upd);await api.save("users",upd);if(target){const empUpd=employees.filter(e=>e.name!==target.name);setEmployees(empUpd);await api.save("employees",empUpd);}};
-  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});};
+  const addUser=async()=>{if(!nu.name.trim()||!nu.pin.trim())return alert("Fill name and PIN");const newId="u"+Date.now();const upd=[...users,{...nu,id:newId,avatar:null}];setUsers(upd);await api.save("users",upd);if(nu.role!=="boss"&&nu.dept){await new Promise(r=>setTimeout(r,300));const empUpd=[...employees,{id:Date.now(),name:nu.name.trim(),role:nu.dept,quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:newId}];setEmployees(empUpd);await api.save("employees",empUpd);}setShowAdd(false);setNu({name:"",role:"staff",pin:"",dept:"Senior Tech",canManage:false,canViewAll:false,canScore:false,canResetPin:false,canAttendance:false,canVehicle:false,canPerformance:false});};
 
   return(
     <div>
@@ -3746,10 +3746,9 @@ function MemoryGame({user,onExit}){
 }
 
 // ── DASHBOARD ────────────────────────────────────────
-function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,gameLogs,setGameLogs,appointments,setAppointments,onLogout}){
+function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployees,vehicles,setVehicles,bonusCfg,setBonusCfg,feedbacks,setFeedbacks,attendance,setAttendance,gameLogs,setGameLogs,appointments,setAppointments,revenueData,setRevenueData,onLogout}){
   const {lang,t,setLang}=useLang();
   const [tab,setTab]=useState("kpi");
-  const [revenueData,setRevenueData]=useState({});
   const [sel,setSel]=useState(null);
   const [quarter,setQuarter]=useState("Q2 2026");
   const [kpiMonth,setKpiMonth]=useState("all");
@@ -3790,6 +3789,21 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     const h=emp.history||{};
     return h[scoreKey]||{total:null,scores:{}};
   };
+
+  // Auto-sync MBTI from employees → users on load
+  useEffect(()=>{
+    if(!employees.length||!users.length)return;
+    let changed=false;
+    const updUsers=users.map(u=>{
+      const emp=employees.find(e=>e.userId===u.id||e.name===u.name);
+      if(emp&&emp.mbti&&(u.mbti!==emp.mbti||(emp.mbtiHistory&&JSON.stringify(u.mbtiHistory)!==JSON.stringify(emp.mbtiHistory)))){
+        changed=true;
+        return{...u,mbti:emp.mbti,mbtiHistory:emp.mbtiHistory||[]};
+      }
+      return u;
+    });
+    if(changed){setUsers(updUsers);api.save("users",updUsers);}
+  },[employees]);
 
   const vis=employees.filter(e=>canViewAll?true:canManage?e.role===user.dept:e.name===user.name);
   const scored=vis.filter(e=>getEmpScore(e).total!=null);
@@ -3852,7 +3866,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
     setTimeout(()=>{setShowChangePwd(false);setPwdForm({old:"",new1:"",new2:""});setPwdErr("");},1500);
   };
 
-  if(sel)return<ScoringPage user={user} emp={{...sel,...getEmpScore(sel),quarter:scoreKey,userId:users.find(u=>u.name===sel.name)?.id,mbti:sel.mbti,mbtiHistory:sel.mbtiHistory||[]}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};const isCurrentPeriod=upd.quarter===scoreKey;return{...e,history,...(isCurrentPeriod&&kpiMonth==="all"?{total:upd.total,scores:upd.scores}:{}),...(upd.mbti?{mbti:upd.mbti}:{}),...(upd.mbtiHistory?{mbtiHistory:upd.mbtiHistory}:{})};});setEmployees(u);api.save("employees",u);if(upd.mbti){const empName=upd.name;const updUsers=users.map(usr=>{if(usr.name===empName||usr.id===upd.userId){return{...usr,mbti:upd.mbti,mbtiHistory:upd.mbtiHistory||[]};}return usr;});setUsers(updUsers);api.save("users",updUsers);}setSel(null);}}/>;
+  if(sel)return<ScoringPage user={user} emp={{...sel,...getEmpScore(sel),quarter:scoreKey,userId:users.find(u=>u.name===sel.name)?.id,mbti:sel.mbti,mbtiHistory:sel.mbtiHistory||[]}} bonusCfg={bonusCfg} vehicles={vehicles} onBack={()=>setSel(null)} onSave={upd=>{const u=employees.map(e=>{if(e.id!==upd.id)return e;const history=e.history||{};history[upd.quarter]={total:upd.total,grade:upd.grade,bonusAmt:upd.bonusAmt,scores:upd.scores};const isCurrentPeriod=upd.quarter===scoreKey;return{...e,history,...(isCurrentPeriod&&kpiMonth==="all"?{total:upd.total,scores:upd.scores}:{}),...(upd.mbti?{mbti:upd.mbti}:{}),...(upd.mbtiHistory?{mbtiHistory:upd.mbtiHistory}:{})};});setEmployees(u);api.save("employees",u);if(upd.mbti){const empName=upd.name;const updUsers=users.map(usr=>{if(usr.name===empName||usr.id===upd.userId){return{...usr,mbti:upd.mbti,mbtiHistory:upd.mbtiHistory||[]};}return usr;});setUsers(updUsers);}setSel(null);}}/>;
 
   return(
     <div style={{minHeight:"100vh",background:B.dark,paddingBottom:70}}>
@@ -3950,7 +3964,7 @@ function Dashboard({user,users,setUsers,logoUrl,setLogoUrl,employees,setEmployee
                   if(emp&&emp.mbti){synced++;return{...u,mbti:emp.mbti,mbtiHistory:emp.mbtiHistory||[]};}
                   return u;
                 });
-                setUsers(updUsers);api.save("users",updUsers);
+                setUsers(updUsers);
                 alert(`✅ 同步完成！共同步 ${synced} 位员工的MBTI`);
               }} style={{...S.btn("#1A1A2E","#9B59B6",{fontSize:11})}}>🧠 同步MBTI</button>
               <button onClick={()=>setShowAddEmp(true)} style={{...S.btn(B.red,"#fff",{fontSize:11})}}>{t.addStaff}</button>
@@ -4290,7 +4304,7 @@ function ProfileModal({user,users,setUsers,employees,setEmployees,onClose}){
 
       {showMBTI&&mbtiMode&&<MBTITest emp={{...u,userId:u.id}} mode={mbtiMode} isBoss={false} onClose={()=>{setShowMBTI(false);setMbtiMode(null);}} onSave={(record)=>{
         const updUsers=users.map(x=>x.id===u.id?{...x,mbti:record.type,mbtiHistory:[record,...(x.mbtiHistory||[])].slice(0,10)}:x);
-        setUsers(updUsers);api.save("users",updUsers);
+        setUsers(updUsers);
         const updEmp=employees.map(e=>e.name===u.name?{...e,mbti:record.type,mbtiHistory:[record,...(e.mbtiHistory||[])].slice(0,10)}:e);
         setEmployees(updEmp);api.save("employees",updEmp);
         setShowMBTI(false);setMbtiMode(null);
@@ -4619,7 +4633,7 @@ function App(){
   const handleLang=l=>{setLang(l);localStorage.setItem('kc_lang',l);};
   const [user,setUser]=useState(null);
   const [ready,setReady]=useState(false);
-  const [users,setUsers]=useState(window.__INIT_USERS__&&window.__INIT_USERS__.length>0?window.__INIT_USERS__:[]);
+  const [users,setUsers]=useState([]);
   const [employees,setEmployees]=useState([]);
   const [vehicles,setVehicles]=useState([]);
   const [logoUrl,setLogoUrl]=useState(null);
@@ -4628,12 +4642,22 @@ function App(){
   const [attendance,setAttendance]=useState({});
   const [gameLogs,setGameLogs]=useState([]);
   const [appointments,setAppointments]=useState([]);
+  const [revenueData,setRevenueData]=useState({});
 
   useEffect(()=>{
     api.load().then(d=>{
-      // Only use defaults if server has NO data at all (first time setup)
-      const initUsers=window.__INIT_USERS__&&window.__INIT_USERS__.length>0?window.__INIT_USERS__:null;setUsers(d.users&&d.users.length>0?d.users:(initUsers||DEF_USERS));
-      setEmployees(d.employees||[]);
+      const loadedUsers=d.users&&d.users.length>0?d.users:DEF_USERS;
+      let loadedEmps=d.employees||[];
+      // Auto-rebuild employees from users if empty
+      if(loadedEmps.length===0&&loadedUsers.length>0){
+        loadedEmps=loadedUsers.filter(u=>u.role!=="boss"&&u.dept).map(u=>({
+          id:Date.now()+Math.random(),name:u.name,role:u.dept,
+          quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:u.id
+        }));
+        if(loadedEmps.length>0)fetch("/api/employees",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(loadedEmps)});
+      }
+      setUsers(loadedUsers);
+      setEmployees(loadedEmps);
       setVehicles(d.vehicles||[]);
       setLogoUrl(d.logoUrl||null);
       setBonusCfg(d.bonusConfig||DEF_BONUS);
@@ -4643,7 +4667,7 @@ function App(){
       setAppointments(d.appointments||[]);
       setRevenueData(d.revenueData||{});
       setReady(true);
-    }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
+    }).catch(()=>{setUsers(DEF_USERS);setEmployees(DEF_EMP);setReady(true);});
   },[]);
 
   if(!ready)return<div style={{minHeight:"100vh",background:B.dark,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:B.red,fontWeight:700}}>Loading...</div></div>;
@@ -4657,6 +4681,7 @@ function App(){
             attendance={attendance} setAttendance={setAttendance}
             gameLogs={gameLogs} setGameLogs={setGameLogs}
             appointments={appointments} setAppointments={setAppointments}
+            revenueData={revenueData} setRevenueData={setRevenueData}
             onLogout={()=>setUser(null)}/>}
     </LangContext.Provider>
   );

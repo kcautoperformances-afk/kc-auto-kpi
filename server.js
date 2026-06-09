@@ -23,8 +23,8 @@ if(!fs.existsSync(F))fs.writeFileSync(F,JSON.stringify(DEF),"utf8");
 const R=()=>JSON.parse(fs.readFileSync(F,"utf8"));
 const W=(d)=>fs.writeFileSync(F,JSON.stringify(d,null,2),"utf8");
 app.get("/api/data",(q,r)=>{try{r.json(R())}catch(e){r.json(DEF)}});
-app.post("/api/users",(q,r)=>{try{const d=R();const inc=q.body;const PF=["canViewMBTI","canViewEmergency","canRevenue","canEditRevenue","canManage","canViewAll","canScore","canResetPin","canAttendance","canVehicle","canPerformance"];const oldUsers=d.users||[];const merged=inc.map(nu=>{const ex=oldUsers.find(u=>u.id===nu.id);if(!ex)return nu;const m={...nu};PF.forEach(f=>{if(ex[f]===true||nu[f]===true)m[f]=true;});return m;});const incomingIds=inc.map(u=>u.id);const kept=oldUsers.filter(u=>!incomingIds.includes(u.id));d.users=[...merged,...kept];W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
-app.post("/api/employees",(q,r)=>{try{const d=R();d.employees=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
+app.post("/api/users",(q,r)=>{try{const d=R();const inc=q.body;const PF=["canViewMBTI","canViewEmergency","canRevenue","canEditRevenue","canManage","canViewAll","canScore","canResetPin","canAttendance","canVehicle","canPerformance"];d.users=inc.map(nu=>{const ex=(d.users||[]).find(u=>u.id===nu.id);if(!ex)return nu;const m={...nu};PF.forEach(f=>{if(ex[f]===true||nu[f]===true)m[f]=true;});return m;});W(d);const newU=d.users.filter(u=>u.role!=="boss"&&!(d.employees||[]).find(e=>e.userId===u.id));if(newU.length>0){d.employees=d.employees||[];newU.forEach(u=>{d.employees.push({id:Date.now()+Math.random(),name:u.name,role:u.dept||"Senior Tech",quarter:"Q2 2026",total:null,scores:{},avatar:null,userId:u.id});});W(d);}r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
+app.post("/api/employees",(q,r)=>{try{const d=R();d.employees=q.body;d.users=(d.users||[]).map(u=>{const emp=d.employees.find(e=>e.userId===u.id||e.name===u.name);if(emp&&emp.mbti)return{...u,mbti:emp.mbti};return u;});W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/vehicles",(q,r)=>{try{const d=R();d.vehicles=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/logo",(q,r)=>{try{const d=R();d.logoUrl=q.body.logoUrl;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/bonusConfig",(q,r)=>{try{const d=R();d.bonusConfig=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
@@ -58,7 +58,6 @@ app.get("/api/fix-permissions",(q,r)=>{try{const d=R();let fixed=0;d.users=d.use
 app.get("*",(q,r)=>{
   const built=path.join(__dirname,"index.built.html");
   const fallback=path.join(__dirname,"index.html");
-  const f=fs.existsSync(built)?built:fallback;
-  try{const d=R();let html=fs.readFileSync(f,"utf8");const uj=JSON.stringify(d.users||[]);html=html.replace("</head>",'<script>window.__INIT_USERS__='+uj+';</script></head>');r.send(html);}catch(e){r.sendFile(f);}
+  r.setHeader("Cache-Control","no-cache,no-store,must-revalidate");const f=fs.existsSync(built)?built:fallback;try{const d=R();let html=fs.readFileSync(f,"utf8");const uj=JSON.stringify(d.users||[]);html=html.replace("<script","<script>window.__INIT_USERS__="+uj+";</script><script");r.send(html);}catch(e){r.sendFile(f);}
 });
 app.listen(PORT,()=>console.log("KC KPI on port "+PORT));
