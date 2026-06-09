@@ -4644,15 +4644,15 @@ function App(){
       setRevenueData(d.revenueData||{});
       setReady(true);
     }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
-    const interval=setInterval(()=>api.load().then(d=>{if(d.users&&d.users.length>0)setUsers(d.users);}),30000);
-    return()=>clearInterval(interval);
+    const iv=setInterval(()=>api.load().then(d=>{if(d.users&&d.users.length>0)setUsers(d.users);if(d.employees)setEmployees(d.employees);}),30000);
+    return()=>clearInterval(iv);
   },[]);
 
   if(!ready)return<div style={{minHeight:"100vh",background:B.dark,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:B.red,fontWeight:700}}>Loading...</div></div>;
   return(
     <LangContext.Provider value={{lang,t,setLang:handleLang}}>
       {!user
-        ?<Login users={users} logoUrl={logoUrl} onLogin={setUser} lang={lang} setLang={handleLang}/>
+        ?<Login users={users} logoUrl={logoUrl} onLogin={(u)=>{setUser(u);setTimeout(()=>api.load().then(d=>{if(d.users&&d.users.length>0)setUsers(d.users);if(d.employees)setEmployees(d.employees);}),500);}} lang={lang} setLang={handleLang}/>
         :<Dashboard user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl}
             employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles}
             bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} feedbacks={feedbacks} setFeedbacks={setFeedbacks}
