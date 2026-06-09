@@ -23,7 +23,7 @@ if(!fs.existsSync(F))fs.writeFileSync(F,JSON.stringify(DEF),"utf8");
 const R=()=>JSON.parse(fs.readFileSync(F,"utf8"));
 const W=(d)=>fs.writeFileSync(F,JSON.stringify(d,null,2),"utf8");
 app.get("/api/data",(q,r)=>{try{r.json(R())}catch(e){r.json(DEF)}});
-app.post("/api/users",(q,r)=>{try{const d=R();const inc=q.body;const PF=["canViewMBTI","canViewEmergency","canRevenue","canEditRevenue","canManage","canViewAll","canScore","canResetPin","canAttendance","canVehicle","canPerformance"];const oldUsers=d.users||[];const merged=inc.map(nu=>{const ex=oldUsers.find(u=>u.id===nu.id);if(!ex)return nu;const m={...nu};PF.forEach(f=>{if(ex[f]===true||nu[f]===true)m[f]=true;});return m;});const incomingIds=inc.map(u=>u.id);const kept=oldUsers.filter(u=>!incomingIds.includes(u.id));d.users=[...merged,...kept];W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
+app.post("/api/users",(q,r)=>{try{const d=R();const inc=q.body;const PF=["canViewMBTI","canViewEmergency","canRevenue","canEditRevenue","canManage","canViewAll","canScore","canResetPin","canAttendance","canVehicle","canPerformance"];d.users=inc.map(nu=>{const ex=(d.users||[]).find(u=>u.id===nu.id);if(!ex)return nu;const m={...nu};PF.forEach(f=>{if(ex[f]===true||nu[f]===true)m[f]=true;});return m;});W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/employees",(q,r)=>{try{const d=R();d.employees=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/vehicles",(q,r)=>{try{const d=R();d.vehicles=q.body;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
 app.post("/api/logo",(q,r)=>{try{const d=R();d.logoUrl=q.body.logoUrl;W(d);r.json({ok:true})}catch(e){r.status(500).json({error:e.message})}});
@@ -58,6 +58,14 @@ app.get("/api/fix-permissions",(q,r)=>{try{const d=R();let fixed=0;d.users=d.use
 app.get("*",(q,r)=>{
   const built=path.join(__dirname,"index.built.html");
   const fallback=path.join(__dirname,"index.html");
-  r.sendFile(fs.existsSync(built)?built:fallback);
+  const f=fs.existsSync(built)?built:fallback;
+  try{
+    const d=R();
+    let html=fs.readFileSync(f,"utf8");
+    const usersJson=JSON.stringify(d.users||[]);
+    const inject=`<script>window.__INIT_USERS__=${usersJson};</script>`;
+    html=html.replace("</head>",inject+"</head>");
+    r.send(html);
+  }catch(e){r.sendFile(f);}
 });
 app.listen(PORT,()=>console.log("KC KPI on port "+PORT));
