@@ -426,6 +426,13 @@ const T={
     emergencyContact:"Emergency Contact",relation:"Relation",
     profileSaved:"Profile saved!",editProfile:"Edit Profile",
     yesterday:"Yesterday",
+    mbtiStartTest:"Start Test",mbtiRetake:"Retake",mbtiSaveResult:"💾 Save Result",mbtiTimeTaken:"⏱️ Time Taken",
+    mbtiPrev:"← Prev",mbtiNext:"Next →",mbtiViewResult:"🧠 View Result",mbtiMoreNeeded:"more needed",
+    mbtiStronglyDisagree:"Strongly Disagree",mbtiStronglyAgree:"Strongly Agree",
+    mbtiTitle:"🧠 MBTI Test",mbtiChooseVersion:"Choose version",mbtiQuick:"⚡ Quick",mbtiPrecise:"🎯 Precise",
+    mbtiQuickDesc:"20Q · ~5 mins",mbtiPreciseDesc:"93Q · ~20 mins",mbtiQuickLabel:"Quick 20Q",mbtiPreciseLabel:"Precise 93Q",
+    mbtiAnswered:"Answered",mbtiMinRequired:"Answer at least",mbtiMinRequired2:"to see result",
+    mbtiNotDone:"Not tested yet",mbtiNotDone2:"No MBTI test done",
   },
   zh:{
     selectAccount:"选择账号",enterPin:"输入4位PIN",wrongPin:"PIN错误",logout:"登出",
@@ -475,6 +482,13 @@ const T={
     emergencyContact:"紧急联系人",relation:"关系",
     profileSaved:"资料已保存！",editProfile:"编辑资料",
     yesterday:"昨天",
+    mbtiStartTest:"开始测试",mbtiRetake:"重新测试",mbtiSaveResult:"💾 保存结果",mbtiTimeTaken:"⏱️ 作答时间",
+    mbtiPrev:"← 上一题",mbtiNext:"下一题 →",mbtiViewResult:"🧠 查看结果",mbtiMoreNeeded:"题才能查看",
+    mbtiStronglyDisagree:"完全不同意",mbtiStronglyAgree:"完全同意",
+    mbtiTitle:"🧠 MBTI 测试",mbtiChooseVersion:"选择版本",mbtiQuick:"⚡ 简约版",mbtiPrecise:"🎯 精准版",
+    mbtiQuickDesc:"20题 · 约5分钟",mbtiPreciseDesc:"93题 · 约20分钟",mbtiQuickLabel:"简约版 20题",mbtiPreciseLabel:"精准版 93题",
+    mbtiAnswered:"已答",mbtiMinRequired:"至少答",mbtiMinRequired2:"题才能查看结果",
+    mbtiNotDone:"还没有做测试",mbtiNotDone2:"还没有做MBTI测试",
   },
   ms:{
     selectAccount:"Pilih Akaun",enterPin:"Masukkan PIN 4 digit",wrongPin:"PIN Salah",logout:"Log Keluar",
@@ -524,6 +538,13 @@ const T={
     emergencyContact:"Kenalan Kecemasan",relation:"Hubungan",
     profileSaved:"Profil disimpan!",editProfile:"Edit Profil",
     yesterday:"Semalam",
+    mbtiStartTest:"Mula Ujian",mbtiRetake:"Buat Semula",mbtiSaveResult:"💾 Simpan Keputusan",mbtiTimeTaken:"⏱️ Masa Diambil",
+    mbtiPrev:"← Sebelum",mbtiNext:"Seterus →",mbtiViewResult:"🧠 Lihat Keputusan",mbtiMoreNeeded:"lagi diperlukan",
+    mbtiStronglyDisagree:"Sangat Tidak Setuju",mbtiStronglyAgree:"Sangat Setuju",
+    mbtiTitle:"🧠 Ujian MBTI",mbtiChooseVersion:"Pilih versi",mbtiQuick:"⚡ Ringkas",mbtiPrecise:"🎯 Tepat",
+    mbtiQuickDesc:"20S · ~5 minit",mbtiPreciseDesc:"93S · ~20 minit",mbtiQuickLabel:"Ringkas 20S",mbtiPreciseLabel:"Tepat 93S",
+    mbtiAnswered:"Dijawab",mbtiMinRequired:"Jawab sekurang-kurangnya",mbtiMinRequired2:"soalan",
+    mbtiNotDone:"Belum buat ujian",mbtiNotDone2:"Belum buat ujian MBTI",
   },
   th:{
     selectAccount:"เลือกบัญชี",enterPin:"ใส่ PIN 4 หลัก",wrongPin:"PIN ผิด",logout:"ออกจากระบบ",
@@ -1452,26 +1473,26 @@ const MBTI_TYPES={
 
 // ── MBTI FULL DATA ───────────────────────────────────
 const MBTI_Q_SHORT=[
-  {q:{zh:"在派对上，你通常会主动认识新朋友",th:"ในงานปาร์ตี้ คุณมักจะริเริ่มทำความรู้จักคนใหม่",my:"ပါတီတွင် သင်သည် ပုံမှန်အားဖြင့် လူသစ်များကို ကြိုဆိုလေ့ရှိသည်"},d:"EI",dir:1},
-  {q:{zh:"你更喜欢独自工作而不是团队合作",th:"คุณชอบทำงานคนเดียวมากกว่าทำงานเป็นทีม",my:"သင်သည် အဖွဲ့လုပ်ဆောင်မှုထက် တစ်ယောက်တည်း အလုပ်လုပ်ရသည်ကို ပိုနှစ်သက်သည်"},d:"EI",dir:-1},
-  {q:{zh:"你喜欢制定详细的计划再行动",th:"คุณชอบวางแผนอย่างละเอียดก่อนลงมือทำ",my:"သင်သည် လုပ်ဆောင်မတိုင်မှီ အသေးစိတ်အစီအစဉ်ချရသည်ကို နှစ်သက်သည်"},d:"JP",dir:1},
-  {q:{zh:"你倾向于依靠直觉而不是具体事实",th:"คุณมักพึ่งพาสัญชาตญาณมากกว่าข้อเท็จจริงที่เป็นรูปธรรม",my:"သင်သည် တိကျသောအချက်အလက်များထက် အလိုလိုသိမှုကို အားကိုးလေ့ရှိသည်"},d:"SN",dir:1},
-  {q:{zh:"当朋友遇到问题，你会先给出解决方案",th:"เมื่อเพื่อนมีปัญหา คุณจะให้วิธีแก้ไขก่อนเลย",my:"သူငယ်ချင်းများ ပြဿနာရှိသောအခါ သင်သည် ဦးစွာဖြေရှင်းနည်းကို ပေးလေ့ရှိသည်"},d:"TF",dir:1},
-  {q:{zh:"你很容易感受到别人的情绪变化",th:"คุณรู้สึกได้ง่ายเมื่ออารมณ์ของผู้อื่นเปลี่ยนแปลง",my:"သူတစ်ပါး၏ ခံစားချက်ပြောင်းလဲမှုကို သင်အလွယ်တကူ ခံစားနိုင်သည်"},d:"TF",dir:-1},
-  {q:{zh:"你喜欢尝试新事物而不是坚持熟悉的方式",th:"คุณชอบลองสิ่งใหม่ๆ มากกว่ายึดติดกับวิธีที่คุ้นเคย",my:"သင်သည် ရင်းနှီးသောနည်းလမ်းများကို ဆက်လက်အသုံးပြုမည့်အစား အသစ်များကို စမ်းကြည့်ရသည်ကို နှစ်သက်သည်"},d:"JP",dir:-1},
-  {q:{zh:"你更注重细节而不是大局",th:"คุณให้ความสำคัญกับรายละเอียดมากกว่าภาพรวม",my:"သင်သည် ကြီးမားသောပုံစံထက် အသေးစိတ်အချက်များကို ပိုဂရုစိုက်သည်"},d:"SN",dir:-1},
-  {q:{zh:"做决定时你更依赖逻辑分析",th:"เมื่อตัดสินใจ คุณพึ่งพาการวิเคราะห์เชิงตรรกะมากกว่า",my:"ဆုံးဖြတ်ချက်ချသောအခါ သင်သည် ယုတ္တိဗေဒဆန်းစစ်မှုကို ပိုအားကိုးသည်"},d:"TF",dir:1},
-  {q:{zh:"你喜欢保持选择的灵活性而不是早早决定",th:"คุณชอบรักษาความยืดหยุ่นในตัวเลือกมากกว่าตัดสินใจเร็ว",my:"သင်သည် စောစီးစွာ ဆုံးဖြတ်မည့်အစား ရွေးချယ်မှုများ၏ ပြောင်းလွယ်ပြင်လွယ်မှုကို ထိန်းသိမ်းရသည်ကို နှစ်သက်သည်"},d:"JP",dir:-1},
-  {q:{zh:"社交活动后你需要独处来恢复精力",th:"หลังกิจกรรมสังคม คุณต้องการเวลาอยู่คนเดียวเพื่อฟื้นฟูพลังงาน",my:"လူမှုရေးဆိုင်ရာ လှုပ်ရှားမှုများပြီးနောက် သင်သည် ခွန်အားပြန်ရရန် တစ်ယောက်တည်း နေချိန်လိုသည်"},d:"EI",dir:-1},
-  {q:{zh:"你更相信已证实的经验而非未来的可能性",th:"คุณเชื่อมั่นในประสบการณ์ที่พิสูจน์แล้วมากกว่าความเป็นไปได้ในอนาคต",my:"သင်သည် အနာဂတ်ဖြစ်နိုင်ချေများထက် သက်သေပြပြီးသော အတွေ့အကြုံများကို ပိုယုံကြည်သည်"},d:"SN",dir:-1},
-  {q:{zh:"你认为效率比同理心更重要",th:"คุณคิดว่าประสิทธิภาพสำคัญกว่าความเห็นอกเห็นใจ",my:"သင်သည် သနားကြင်နာမှုထက် ထိရောက်မှုကပိုအရေးကြီးသည်ဟု ထင်မြင်သည်"},d:"TF",dir:1},
-  {q:{zh:"你喜欢有条理的环境和固定的日程",th:"คุณชอบสภาพแวดล้อมที่เป็นระเบียบและตารางเวลาที่แน่นอน",my:"သင်သည် စနစ်တကျသောပတ်ဝန်းကျင်နှင့် သတ်မှတ်ထားသောအချိန်ဇယားကို နှစ်သက်သည်"},d:"JP",dir:1},
-  {q:{zh:"你经常想象各种可能性和假设情景",th:"คุณมักจินตนาการถึงความเป็นไปได้และสถานการณ์สมมติต่างๆ",my:"သင်သည် မကြာခဏ အမျိုးမျိုးသောဖြစ်နိုင်ချေများနှင့် သဘောသဘာဝဆိုင်ရာ အခြေအနေများကို စိတ်ကူးယဉ်လေ့ရှိသည်"},d:"SN",dir:1},
-  {q:{zh:"你容易受到批评影响而感到难过",th:"คุณรู้สึกเสียใจได้ง่ายเมื่อถูกวิจารณ์",my:"သင်သည် ဝေဖန်မှုခံရသောအခါ အလွယ်တကူ နှလုံးနာတတ်သည်"},d:"TF",dir:-1},
-  {q:{zh:"你喜欢在截止日期前提早完成任务",th:"คุณชอบทำงานให้เสร็จก่อนกำหนดส่ง",my:"သင်သည် သတ်မှတ်ရက်မတိုင်မှီ အလုပ်များကို စောစောပြီးအောင်လုပ်ရသည်ကို နှစ်သက်သည်"},d:"JP",dir:1},
-  {q:{zh:"你在认识新朋友时感到轻松自在",th:"คุณรู้สึกสบายใจเมื่อทำความรู้จักเพื่อนใหม่",my:"သင်သည် မိတ်ဆွေသစ်များနှင့် မိတ်ဆက်သောအခါ အဆင်ပြေချောမွေ့ခံစားသည်"},d:"EI",dir:1},
-  {q:{zh:"你更关注事情的意义而非实际操作",th:"คุณให้ความสำคัญกับความหมายของสิ่งต่างๆ มากกว่าการปฏิบัติจริง",my:"သင်သည် လက်တွေ့ဆောင်ရွက်မှုများထက် အရာများ၏ အဓိပ္ပာယ်ကို ပိုဂရုစိုက်သည်"},d:"SN",dir:1},
-  {q:{zh:"你认为保持和谐关系比坚持原则更重要",th:"คุณคิดว่าการรักษาความสัมพันธ์ที่ดีสำคัญกว่าการยึดมั่นในหลักการ",my:"သင်သည် မူဝါဒများကို ခိုင်မာစွာ ကိုင်ဆွဲမည့်အစား သဟဇာတဆက်ဆံရေးကို ထိန်းသိမ်းရသည်က ပိုအရေးကြီးသည်ဟု ထင်မြင်သည်"},d:"TF",dir:-1},
+  {q:{zh:"在派对上，你通常会主动认识新朋友",en:"At parties, you usually take the initiative to meet new people",ms:"Di majlis, anda biasanya mengambil inisiatif untuk berkenalan dengan orang baru",th:"ในงานปาร์ตี้ คุณมักจะริเริ่มทำความรู้จักคนใหม่",my:"ပါတီတွင် သင်သည် ပုံမှန်အားဖြင့် လူသစ်များကို ကြိုဆိုလေ့ရှိသည်"},d:"EI",dir:1},
+  {q:{zh:"你更喜欢独自工作而不是团队合作",en:"You prefer working alone rather than in a team",ms:"Anda lebih suka bekerja sendiri berbanding bekerja dalam kumpulan",th:"คุณชอบทำงานคนเดียวมากกว่าทำงานเป็นทีม",my:"သင်သည် အဖွဲ့လုပ်ဆောင်မှုထက် တစ်ယောက်တည်း အလုပ်လုပ်ရသည်ကို ပိုနှစ်သက်သည်"},d:"EI",dir:-1},
+  {q:{zh:"你喜欢制定详细的计划再行动",en:"You like making detailed plans before taking action",ms:"Anda suka membuat rancangan terperinci sebelum bertindak",th:"คุณชอบวางแผนอย่างละเอียดก่อนลงมือทำ",my:"သင်သည် လုပ်ဆောင်မတိုင်မှီ အသေးစိတ်အစီအစဉ်ချရသည်ကို နှစ်သက်သည်"},d:"JP",dir:1},
+  {q:{zh:"你倾向于依靠直觉而不是具体事实",en:"You tend to rely on intuition rather than concrete facts",ms:"Anda cenderung bergantung pada intuisi berbanding fakta konkrit",th:"คุณมักพึ่งพาสัญชาตญาณมากกว่าข้อเท็จจริงที่เป็นรูปธรรม",my:"သင်သည် တိကျသောအချက်အလက်များထက် အလိုလိုသိမှုကို အားကိုးလေ့ရှိသည်"},d:"SN",dir:1},
+  {q:{zh:"当朋友遇到问题，你会先给出解决方案",en:"When a friend has a problem, you give solutions first",ms:"Apabila rakan menghadapi masalah, anda terus beri penyelesaian",th:"เมื่อเพื่อนมีปัญหา คุณจะให้วิธีแก้ไขก่อนเลย",my:"သူငယ်ချင်းများ ပြဿနာရှိသောအခါ သင်သည် ဦးစွာဖြေရှင်းနည်းကို ပေးလေ့ရှိသည်"},d:"TF",dir:1},
+  {q:{zh:"你很容易感受到别人的情绪变化",en:"You easily sense changes in other people's emotions",ms:"Anda mudah merasai perubahan emosi orang lain",th:"คุณรู้สึกได้ง่ายเมื่ออารมณ์ของผู้อื่นเปลี่ยนแปลง",my:"သူတစ်ပါး၏ ခံစားချက်ပြောင်းလဲမှုကို သင်အလွယ်တကူ ခံစားနိုင်သည်"},d:"TF",dir:-1},
+  {q:{zh:"你喜欢尝试新事物而不是坚持熟悉的方式",en:"You enjoy trying new things rather than sticking to familiar ways",ms:"Anda suka mencuba perkara baru berbanding cara yang biasa",th:"คุณชอบลองสิ่งใหม่ๆ มากกว่ายึดติดกับวิธีที่คุ้นเคย",my:"သင်သည် ရင်းနှီးသောနည်းလမ်းများကို ဆက်လက်အသုံးပြုမည့်အစား အသစ်များကို စမ်းကြည့်ရသည်ကို နှစ်သက်သည်"},d:"JP",dir:-1},
+  {q:{zh:"你更注重细节而不是大局",en:"You focus more on details rather than the big picture",ms:"Anda lebih memberi perhatian kepada butiran berbanding gambaran besar",th:"คุณให้ความสำคัญกับรายละเอียดมากกว่าภาพรวม",my:"သင်သည် ကြီးမားသောပုံစံထက် အသေးစိတ်အချက်များကို ပိုဂရုစိုက်သည်"},d:"SN",dir:-1},
+  {q:{zh:"做决定时你更依赖逻辑分析",en:"When making decisions, you rely more on logical analysis",ms:"Ketika membuat keputusan, anda lebih bergantung pada analisis logik",th:"เมื่อตัดสินใจ คุณพึ่งพาการวิเคราะห์เชิงตรรกะมากกว่า",my:"ဆုံးဖြတ်ချက်ချသောအခါ သင်သည် ယုတ္တိဗေဒဆန်းစစ်မှုကို ပိုအားကိုးသည်"},d:"TF",dir:1},
+  {q:{zh:"你喜欢保持选择的灵活性而不是早早决定",en:"You prefer keeping options open rather than deciding early",ms:"Anda suka mengekalkan pilihan terbuka berbanding membuat keputusan awal",th:"คุณชอบรักษาความยืดหยุ่นในตัวเลือกมากกว่าตัดสินใจเร็ว",my:"သင်သည် စောစီးစွာ ဆုံးဖြတ်မည့်အစား ရွေးချယ်မှုများ၏ ပြောင်းလွယ်ပြင်လွယ်မှုကို ထိန်းသိမ်းရသည်ကို နှစ်သက်သည်"},d:"JP",dir:-1},
+  {q:{zh:"社交活动后你需要独处来恢复精力",en:"After social activities, you need alone time to recharge",ms:"Selepas aktiviti sosial, anda perlu masa bersendirian untuk pulih tenaga",th:"หลังกิจกรรมสังคม คุณต้องการเวลาอยู่คนเดียวเพื่อฟื้นฟูพลังงาน",my:"လူမှုရေးဆိုင်ရာ လှုပ်ရှားမှုများပြီးနောက် သင်သည် ခွန်အားပြန်ရရန် တစ်ယောက်တည်း နေချိန်လိုသည်"},d:"EI",dir:-1},
+  {q:{zh:"你更相信已证实的经验而非未来的可能性",en:"You trust proven experience more than future possibilities",ms:"Anda lebih mempercayai pengalaman terbukti berbanding kemungkinan masa depan",th:"คุณเชื่อมั่นในประสบการณ์ที่พิสูจน์แล้วมากกว่าความเป็นไปได้ในอนาคต",my:"သင်သည် အနာဂတ်ဖြစ်နိုင်ချေများထက် သက်သေပြပြီးသော အတွေ့အကြုံများကို ပိုယုံကြည်သည်"},d:"SN",dir:-1},
+  {q:{zh:"你认为效率比同理心更重要",en:"You think efficiency is more important than empathy",ms:"Anda rasa kecekapan lebih penting daripada empati",th:"คุณคิดว่าประสิทธิภาพสำคัญกว่าความเห็นอกเห็นใจ",my:"သင်သည် သနားကြင်နာမှုထက် ထိရောက်မှုကပိုအရေးကြီးသည်ဟု ထင်မြင်သည်"},d:"TF",dir:1},
+  {q:{zh:"你喜欢有条理的环境和固定的日程",en:"You enjoy an organized environment and fixed schedule",ms:"Anda suka persekitaran yang teratur dan jadual yang tetap",th:"คุณชอบสภาพแวดล้อมที่เป็นระเบียบและตารางเวลาที่แน่นอน",my:"သင်သည် စနစ်တကျသောပတ်ဝန်းကျင်နှင့် သတ်မှတ်ထားသောအချိန်ဇယားကို နှစ်သက်သည်"},d:"JP",dir:1},
+  {q:{zh:"你经常想象各种可能性和假设情景",en:"You often imagine various possibilities and hypothetical scenarios",ms:"Anda kerap membayangkan pelbagai kemungkinan dan senario hipotetikal",th:"คุณมักจินตนาการถึงความเป็นไปได้และสถานการณ์สมมติต่างๆ",my:"သင်သည် မကြာခဏ အမျိုးမျိုးသောဖြစ်နိုင်ချေများနှင့် သဘောသဘာဝဆိုင်ရာ အခြေအနေများကို စိတ်ကူးယဉ်လေ့ရှိသည်"},d:"SN",dir:1},
+  {q:{zh:"你容易受到批评影响而感到难过",en:"You are easily hurt by criticism",ms:"Anda mudah terasa sedih apabila dikritik",th:"คุณรู้สึกเสียใจได้ง่ายเมื่อถูกวิจารณ์",my:"သင်သည် ဝေဖန်မှုခံရသောအခါ အလွယ်တကူ နှလုံးနာတတ်သည်"},d:"TF",dir:-1},
+  {q:{zh:"你喜欢在截止日期前提早完成任务",en:"You like to finish tasks well before the deadline",ms:"Anda suka menyiapkan tugasan jauh sebelum tarikh akhir",th:"คุณชอบทำงานให้เสร็จก่อนกำหนดส่ง",my:"သင်သည် သတ်မှတ်ရက်မတိုင်မှီ အလုပ်များကို စောစောပြီးအောင်လုပ်ရသည်ကို နှစ်သက်သည်"},d:"JP",dir:1},
+  {q:{zh:"你在认识新朋友时感到轻松自在",en:"You feel comfortable and at ease when meeting new people",ms:"Anda berasa selesa dan tenang ketika berkenalan dengan orang baru",th:"คุณรู้สึกสบายใจเมื่อทำความรู้จักเพื่อนใหม่",my:"သင်သည် မိတ်ဆွေသစ်များနှင့် မိတ်ဆက်သောအခါ အဆင်ပြေချောမွေ့ခံစားသည်"},d:"EI",dir:1},
+  {q:{zh:"你更关注事情的意义而非实际操作",en:"You focus more on the meaning of things rather than practical execution",ms:"Anda lebih mementingkan makna sesuatu berbanding pelaksanaan praktikal",th:"คุณให้ความสำคัญกับความหมายของสิ่งต่างๆ มากกว่าการปฏิบัติจริง",my:"သင်သည် လက်တွေ့ဆောင်ရွက်မှုများထက် အရာများ၏ အဓိပ္ပာယ်ကို ပိုဂရုစိုက်သည်"},d:"SN",dir:1},
+  {q:{zh:"你认为保持和谐关系比坚持原则更重要",en:"You think maintaining harmony is more important than sticking to principles",ms:"Anda rasa mengekalkan hubungan harmoni lebih penting daripada berpegang pada prinsip",th:"คุณคิดว่าการรักษาความสัมพันธ์ที่ดีสำคัญกว่าการยึดมั่นในหลักการ",my:"သင်သည် မူဝါဒများကို ခိုင်မာစွာ ကိုင်ဆွဲမည့်အစား သဟဇာတဆက်ဆံရေးကို ထိန်းသိမ်းရသည်က ပိုအရေးကြီးသည်ဟု ထင်မြင်သည်"},d:"TF",dir:-1},
 ];
 
 const MBTI_Q_FULL_ZH=["你在聚会上会主动与陌生人交流","长时间独处会让你感到精力充沛","你喜欢成为人群中的焦点","你倾向于先想清楚再开口说话","你有很多朋友并且享受社交活动","你更喜欢小圈子的深度交流而非大型聚会","你容易在新环境中快速融入","你通常在行动之前需要时间独自思考","你喜欢分享自己的想法和经历","你更享受一个人完成任务","你觉得与人交流能给你带来能量","你需要独处时间才能恢复精力","你喜欢多任务并行和快节奏环境","你更喜欢安静的工作环境","你容易与初次见面的人建立联系","你通常等别人先开口","你享受成为团队的核心人物","你在人多的场合会感到疲惫","你喜欢通过与他人讨论来解决问题","你有少数几个深交的朋友而非许多泛泛之交","你在公开场合发言时感到轻松","你更喜欢书面沟通而非面对面交流","你喜欢参加各种社交活动","你更关注眼前的实际情况而非未来的可能性","你经常思考事物背后的深层含义","你更喜欢有具体步骤的清晰指示","你喜欢理论和抽象概念","你注重实用性和可操作性","你经常想象各种假设情景","你相信已经被证实的方法","你对新颖和创新的想法充满热情","你更关注细节而非整体框架","你喜欢探索想法之间的联系和模式","你倾向于从过去的经验中学习","你对未来的可能性比现在的现实更感兴趣","你更喜欢具体的事实而非抽象的理论","你经常有独特的想法和创意","你更注重实际结果而非理论意义","你喜欢思考事物的象征意义","你在处理问题时依赖经验和常识","你对未被探索的可能性感到兴奋","你更喜欢脚踏实地而非天马行空","你经常看到事物之间的隐含联系","你相信直觉往往比分析更可靠","你更喜欢有固定程序的工作","你享受思考复杂的抽象问题","做决定时你优先考虑逻辑而非情感","你很容易感受到他人的情绪","你认为批评应该直接而非迂回","你在做决定时会考虑对他人的影响","你更重视效率而非和谐","你很难在有人不开心时保持中立","你认为公平比同情更重要","你会为了维护关系而妥协","你更倾向于分析问题而非共情","你容易因批评而受伤","你认为规则应该一视同仁地执行","你在团队中会优先考虑成员感受","你更看重能力而非努力","你会为朋友的问题感同身受","你相信理性比感性更可靠","你非常重视人际关系的和谐","你更喜欢讨论观点而非感受","你认为帮助别人是最重要的事","你在争论中更关注谁有道理","你对周围人的情绪变化很敏感","你认为诚实比善意的谎言更重要","你很难拒绝别人的请求","你更重视客观标准而非个人价值观","你喜欢提前计划而不是临时决定","你喜欢保留各种选择的可能性","你的工作空间通常是有条理的","你享受随机应变的生活方式","你在截止日期前会提早完成任务","你喜欢在最后一刻才完成任务","你喜欢有固定的日常规律","你更享受开放性和灵活性","你在做重要决定前会充分准备","你更喜欢走一步看一步","你的时间表和日程对你很重要","你不介意计划中途改变","你喜欢按部就班地完成事情","你会把事情拖到最后才处理","你认为整洁有序很重要","你享受即兴发挥而非预先计划","你喜欢早早做出决定并坚持","你喜欢随时调整计划","你对未完成的事情感到不安","你喜欢开始新项目多于完成旧项目","你会为重要活动提前做好准备","你更享受探索新事物而非完成既定计划","你喜欢有明确结果的任务","你觉得太多计划会限制创意"];
@@ -1711,6 +1732,7 @@ function calcMBTIResult(answers,questions){
 }
 
 function MBTIResultDetail({record,onClose,empName}){
+  const {t}=useLang();
   const info=MBTI_DETAIL[record.type]||{name:record.type,emoji:"🧠",color:B.red,desc:"",strengths:[],weaknesses:[],career:[],famous:[]};
   const pcts=record.pcts||{EI:50,SN:50,TF:50,JP:50};
   return(
@@ -1722,7 +1744,7 @@ function MBTIResultDetail({record,onClose,empName}){
           {empName&&<div style={{color:B.muted,fontSize:13,marginBottom:6}}>👤 {empName}</div>}
           <div style={{color:info.color,fontSize:36,fontWeight:900,letterSpacing:4,marginBottom:4}}>{record.type}</div>
           <div style={{color:B.text,fontSize:20,fontWeight:800,marginBottom:6}}>{info.name}</div>
-          <div style={{color:B.muted,fontSize:11}}>{record.mode==="full"?"精准版 93题":"简约版 20题"} · {record.date}</div>
+          <div style={{color:B.muted,fontSize:11}}>{record.mode==="full"?t.mbtiPreciseLabel:t.mbtiQuickLabel} · {record.date}</div>
         </div>
 
         {/* Score bars */}
@@ -1945,7 +1967,7 @@ function ScoringPage({user,emp,bonusCfg,vehicles,onBack,onSave}){
 
 // ── BONUS CONFIG ─────────────────────────────────────
 function MBTITest({emp,mode,isBoss,onClose,onSave}){
-  const {lang}=useLang();
+  const {lang,t}=useLang();
   const getLang=()=>lang==="en"?"en":"zh";
   const getQ=(q)=>{
     if(typeof q==="object"&&q.zh){
@@ -1999,7 +2021,7 @@ function MBTITest({emp,mode,isBoss,onClose,onSave}){
         <div style={{color:B.text,fontSize:18,fontWeight:800,marginBottom:6}}>{info.name}</div>
         <div style={{color:B.muted,fontSize:12,lineHeight:1.6,marginBottom:10}}>{info.desc}</div>
         <div style={{...S.card(),padding:"8px 14px",marginBottom:12,display:"flex",justifyContent:"space-between"}}>
-          <span style={{color:B.muted,fontSize:11}}>⏱️ 作答时间</span>
+          <span style={{color:B.muted,fontSize:11}}>{t.mbtiTimeTaken}</span>
           <span style={{color:B.text,fontWeight:700,fontSize:12}}>{result.timeStr}</span>
         </div>
         <div style={{marginBottom:16}}>
@@ -2013,8 +2035,8 @@ function MBTITest({emp,mode,isBoss,onClose,onSave}){
             </div>
           ))}
         </div>
-        <button onClick={save} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:14,marginBottom:8})}}>💾 保存结果</button>
-        <button onClick={()=>setResult(null)} style={{...S.btn(B.border,B.muted,{width:"100%",padding:10,fontSize:12})}}>重新测试</button>
+        <button onClick={save} style={{...S.btn(B.red,"#fff",{width:"100%",padding:12,fontSize:14,marginBottom:8})}}>{t.mbtiSaveResult}</button>
+        <button onClick={()=>setResult(null)} style={{...S.btn(B.border,B.muted,{width:"100%",padding:10,fontSize:12})}}>{t.mbtiRetake}</button>
       </div>
     </div>
   );
@@ -2024,15 +2046,15 @@ function MBTITest({emp,mode,isBoss,onClose,onSave}){
       <div style={{...S.card(),padding:20,maxWidth:420,margin:"0 auto"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div>
-            <div style={{color:B.text,fontWeight:800,fontSize:15}}>🧠 MBTI 人格测试</div>
-            <div style={{color:B.muted,fontSize:10}}>{mode==="full"?"精准版 93题":"简约版 20题"}</div>
+            <div style={{color:B.text,fontWeight:800,fontSize:15}}>🧠 MBTI {mode==="full"?t.mbtiPrecise:t.mbtiQuick}</div>
+            <div style={{color:B.muted,fontSize:10}}>{mode==="full"?t.mbtiPreciseLabel:t.mbtiQuickLabel}</div>
           </div>
           <button onClick={onClose} style={{...S.btn(B.border,B.muted,{fontSize:11,padding:"4px 10px"})}}>✕</button>
         </div>
         <div style={{marginBottom:14}}>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
             <span style={{color:B.muted,fontSize:10}}>{step+1} / {questions.length}</span>
-            <span style={{color:B.muted,fontSize:10}}>已答 {answered}题</span>
+            <span style={{color:B.muted,fontSize:10}}>{t.mbtiAnswered} {answered}</span>
           </div>
           <div style={{background:B.border,borderRadius:99,height:5,overflow:"hidden"}}>
             <div style={{width:`${((step+1)/questions.length)*100}%`,height:"100%",background:B.red,borderRadius:99,transition:"width .3s"}}/>
@@ -2043,8 +2065,8 @@ function MBTITest({emp,mode,isBoss,onClose,onSave}){
         </div>
         <div style={{marginBottom:18}}>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-            <span style={{color:B.muted,fontSize:10}}>完全不同意</span>
-            <span style={{color:B.muted,fontSize:10}}>完全同意</span>
+            <span style={{color:B.muted,fontSize:10}}>{t.mbtiStronglyDisagree}</span>
+            <span style={{color:B.muted,fontSize:10}}>{t.mbtiStronglyAgree}</span>
           </div>
           <div style={{display:"flex",gap:6,justifyContent:"center"}}>
             {[1,2,3,4,5].map(v=>(
@@ -2059,16 +2081,16 @@ function MBTITest({emp,mode,isBoss,onClose,onSave}){
         </div>
         <div style={{display:"flex",gap:8,marginBottom:10}}>
           <button onClick={()=>step>0&&setStep(s=>s-1)} disabled={step===0}
-            style={{...S.btn(B.border,B.muted,{flex:1,opacity:step===0?0.3:1})}}>← 上一题</button>
+            style={{...S.btn(B.border,B.muted,{flex:1,opacity:step===0?0.3:1})}}>{t.mbtiPrev}</button>
           {step<questions.length-1
-            ?<button onClick={()=>setStep(s=>s+1)} style={{...S.btn(B.border,B.text,{flex:1})}}>下一题 →</button>
+            ?<button onClick={()=>setStep(s=>s+1)} style={{...S.btn(B.border,B.text,{flex:1})}}>{t.mbtiNext}</button>
             :<button onClick={submit} disabled={answered<minRequired}
               style={{...S.btn(answered>=minRequired?B.red:B.border,answered>=minRequired?"#fff":B.muted,{flex:2,opacity:answered<minRequired?0.5:1})}}>
-              {answered>=minRequired?"🧠 查看结果":`还需答 ${minRequired-answered} 题`}
+              {answered>=minRequired?t.mbtiViewResult:`${minRequired-answered} ${t.mbtiMoreNeeded}`}
             </button>
           }
         </div>
-        <div style={{color:B.muted,fontSize:10,textAlign:"center"}}>至少答{minRequired}题才能查看结果</div>
+        <div style={{color:B.muted,fontSize:10,textAlign:"center"}}>{t.mbtiMinRequired} {minRequired} {t.mbtiMinRequired2}</div>
       </div>
     </div>
   );
