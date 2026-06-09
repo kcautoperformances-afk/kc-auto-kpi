@@ -4619,7 +4619,7 @@ function App(){
   const handleLang=l=>{setLang(l);localStorage.setItem('kc_lang',l);};
   const [user,setUser]=useState(null);
   const [ready,setReady]=useState(false);
-  const [users,setUsers]=useState([]);
+  const [users,setUsers]=useState(window.__INIT_USERS__&&window.__INIT_USERS__.length>0?window.__INIT_USERS__:[]);
   const [employees,setEmployees]=useState([]);
   const [vehicles,setVehicles]=useState([]);
   const [logoUrl,setLogoUrl]=useState(null);
@@ -4632,7 +4632,7 @@ function App(){
   useEffect(()=>{
     api.load().then(d=>{
       // Only use defaults if server has NO data at all (first time setup)
-      setUsers(d.users&&d.users.length>0?d.users:DEF_USERS);
+      const initUsers=window.__INIT_USERS__&&window.__INIT_USERS__.length>0?window.__INIT_USERS__:null;setUsers(d.users&&d.users.length>0?d.users:(initUsers||DEF_USERS));
       setEmployees(d.employees||[]);
       setVehicles(d.vehicles||[]);
       setLogoUrl(d.logoUrl||null);
@@ -4644,15 +4644,13 @@ function App(){
       setRevenueData(d.revenueData||{});
       setReady(true);
     }).catch(()=>{setUsers(DEF_USERS);setEmployees([]);setReady(true);});
-    const iv=setInterval(()=>api.load().then(d=>{if(d.users&&d.users.length>0)setUsers(d.users);if(d.employees)setEmployees(d.employees);}),30000);
-    return()=>clearInterval(iv);
   },[]);
 
   if(!ready)return<div style={{minHeight:"100vh",background:B.dark,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{color:B.red,fontWeight:700}}>Loading...</div></div>;
   return(
     <LangContext.Provider value={{lang,t,setLang:handleLang}}>
       {!user
-        ?<Login users={users} logoUrl={logoUrl} onLogin={(u)=>{setUser(u);setTimeout(()=>api.load().then(d=>{if(d.users&&d.users.length>0)setUsers(d.users);if(d.employees)setEmployees(d.employees);}),500);}} lang={lang} setLang={handleLang}/>
+        ?<Login users={users} logoUrl={logoUrl} onLogin={setUser} lang={lang} setLang={handleLang}/>
         :<Dashboard user={user} users={users} setUsers={setUsers} logoUrl={logoUrl} setLogoUrl={setLogoUrl}
             employees={employees} setEmployees={setEmployees} vehicles={vehicles} setVehicles={setVehicles}
             bonusCfg={bonusCfg} setBonusCfg={setBonusCfg} feedbacks={feedbacks} setFeedbacks={setFeedbacks}
